@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "Member")
@@ -20,6 +22,9 @@ public abstract class Member {
     @Column(name = "member_id")
     private Long id;
 
+    @Column(name = "member_uuid", updatable = false, nullable = false, unique = true, length = 36)
+    private String memberUuid;
+
     @Column(length = 100, nullable = false)
     private String password;
 
@@ -29,4 +34,11 @@ public abstract class Member {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @PrePersist
+    public void generateUUID() {
+        if (memberUuid == null) {
+            memberUuid = UUID.randomUUID().toString();
+        }
+    }
 }
