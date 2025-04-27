@@ -2,6 +2,7 @@ package com.example.classroom_reservation_system.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -37,6 +38,7 @@ public abstract class Member {
     @Column(nullable = false)
     private Role role;
 
+    @Builder.Default
     @OneToMany(mappedBy = "member")
     private List<Notification> notifications = new ArrayList<>();
 
