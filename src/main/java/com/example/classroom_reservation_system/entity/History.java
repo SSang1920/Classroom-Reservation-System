@@ -2,27 +2,31 @@ package com.example.classroom_reservation_system.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "History")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@Builder
 public class History {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="history_id")
-    private Long historyid;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "history_id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name  ="Reservation_id", nullable = false)
+    @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,21 +38,23 @@ public class History {
     private Classroom classroom;
 
     @Column(name = "start_time", nullable = false)
-    private LocalDateTime starttime;
+    private LocalDateTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private LocalDateTime endtime;
+    private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "history_state" , nullable = false)
-    private Historystate historystate;
+    private HistoryState historyState;
 
+    @CreatedDate
     @Column(name = "create_at", nullable = false)
-    private LocalDateTime createat;
+    private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "update_at", nullable = false)
-    private LocalDateTime updateat;
+    private LocalDateTime updatedAt;
 
-    @Column(name = "completed_at", nullable = false)
-    private LocalDateTime completedat;
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 }

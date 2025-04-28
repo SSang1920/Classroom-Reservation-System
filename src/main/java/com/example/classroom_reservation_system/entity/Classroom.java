@@ -2,9 +2,9 @@ package com.example.classroom_reservation_system.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,30 +14,34 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@Builder
 public class Classroom {
 
-    @Id @Column(name = "classroom_id")
-    private Long classroomId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "classroom_id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "building_id",nullable = false)
     private Building building;
 
-    @Column(length = 20, nullable = false)
-    private String classroomname;
+    @Column(name = "classroom_name", length = 20, nullable = false)
+    private String classroomName;
 
     @Column(nullable = false)
     private int capacity;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private State state;
+    @Column(name = "classroom_state", nullable = false)
+    private ClassroomState classroomState;
 
+    @Builder.Default
     @OneToMany(mappedBy = "classroom", fetch = FetchType.LAZY)
     private List<Reservation> reservations  = new ArrayList<>();
 
-    @OneToMany(mappedBy = "classroom",fetch =  FetchType.LAZY)
+    @Builder.Default
+    @OneToMany(mappedBy = "classroom", fetch = FetchType.LAZY)
     private List<History> histories = new ArrayList<>();
 
 }

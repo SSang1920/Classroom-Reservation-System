@@ -2,9 +2,9 @@ package com.example.classroom_reservation_system.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +14,18 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@Builder
 public class Building {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "building_id")
-    private Long buildingid;
+    private Long id;
 
-    @Column(length = 20, nullable = false)
-    private String buildingname;
+    @Column(name = "building_name", length = 20, nullable = false)
+    private String buildingName;
 
+    @Builder.Default
     @OneToMany(mappedBy = "building" ,fetch = FetchType.LAZY)
     private List<Classroom> classrooms = new ArrayList<>();
 }

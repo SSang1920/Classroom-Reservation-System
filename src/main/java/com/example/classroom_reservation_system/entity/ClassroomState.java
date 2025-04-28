@@ -1,6 +1,5 @@
 package com.example.classroom_reservation_system.entity;
 
-public enum State {
-
+public enum ClassroomState {
     AVAILABLE , RESERVED
 }
