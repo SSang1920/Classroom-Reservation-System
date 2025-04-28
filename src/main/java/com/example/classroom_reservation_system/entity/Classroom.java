@@ -22,7 +22,7 @@ public class Classroom {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "building_id",nullable = false)
-    private Long building;
+    private Building building;
 
     @Column(length = 20, nullable = false)
     private String classroomname;

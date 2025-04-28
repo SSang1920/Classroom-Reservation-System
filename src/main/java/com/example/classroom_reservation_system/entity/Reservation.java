@@ -8,7 +8,6 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.cglib.core.Local;
 
-import javax.management.Notification;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +27,11 @@ public class Reservation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Long member;
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "classroomd_id", nullable = false)
-    private Long classroom;
+    @JoinColumn(name = "classroom_id", nullable = false)
+    private Classroom classroom;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime starttime;
@@ -50,6 +49,6 @@ public class Reservation {
     @OneToMany(mappedBy = "reservation",fetch = FetchType.LAZY)
     private List<History> histories = new ArrayList<>();
 
-    @OneToMany(mappedBy = "reservation",fetch = FetchType.LAZY)
-    private List<Notification> notifications = new ArrayList<>();
+    //@OneToMany(mappedBy = "reservation",fetch = FetchType.LAZY)
+    //private List<Notification> notifications = new ArrayList<>();
 }

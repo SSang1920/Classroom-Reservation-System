@@ -23,15 +23,15 @@ public class History {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name  ="Reservation_id", nullable = false)
-    private Long reservation;
+    private Reservation reservation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Long member;
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classroom_id", nullable = false)
-    private Long classroom;
+    private Classroom classroom;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime starttime;
@@ -40,7 +40,7 @@ public class History {
     private LocalDateTime endtime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "history_state, nullable = false")
+    @Column(name = "history_state" , nullable = false)
     private Historystate historystate;
 
     @Column(name = "create_at", nullable = false)
