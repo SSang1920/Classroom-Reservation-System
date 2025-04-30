@@ -18,4 +18,9 @@ public class Professor extends Member {
 
     @Column(name = "professor_id", length = 10, unique = true)
     private String professorId;
+
+    @Override
+    public String getId() {
+        return professorId;
+    }
 }

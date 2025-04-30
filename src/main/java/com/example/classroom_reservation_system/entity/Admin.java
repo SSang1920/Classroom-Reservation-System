@@ -18,4 +18,9 @@ public class Admin extends Member {
 
     @Column(name = "admin_id", length = 10, unique = true)
     private String adminId;
+
+    @Override
+    public String getId() {
+        return adminId;
+    }
 }
