@@ -20,4 +20,9 @@ public class Student extends Member {
     private String studentId;
 
     private int year;
+
+    @Override
+    public String getId() {
+        return studentId;
+    }
 }

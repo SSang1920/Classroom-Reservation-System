@@ -48,4 +48,6 @@ public abstract class Member {
             memberUuid = UUID.randomUUID().toString();
         }
     }
+
+    public abstract String getId();
 }
