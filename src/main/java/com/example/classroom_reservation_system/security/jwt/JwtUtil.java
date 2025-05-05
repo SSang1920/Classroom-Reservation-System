@@ -2,9 +2,9 @@ package com.example.classroom_reservation_system.security.jwt;
 
 import com.example.classroom_reservation_system.config.JwtProperties;
 import com.example.classroom_reservation_system.entity.Role;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.example.classroom_reservation_system.exception.CustomException;
+import com.example.classroom_reservation_system.exception.ErrorCode;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -52,46 +52,49 @@ public class JwtUtil {
                 .compact();
     }
 
+    // 예외 처리
+    private Claims parseClaims(String token, TokenType type) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            if (type == TokenType.REFRESH) {
+                throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+            }
+            throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
+        } catch (JwtException | IllegalArgumentException e) {
+            if (type == TokenType.REFRESH) {
+                throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+            }
+            throw new CustomException((ErrorCode.INVALID_ACCESS_TOKEN));
+        }
+    }
+
     // 토큰에서 memberUuid 가져오기
     public String getMemberUuidFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return parseClaims(token, TokenType.ACCESS).getSubject();
     }
 
     // 토큰에서 사용자 Id 가져오기
     public String getUserIdFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .get("userId", String.class);
+        return parseClaims(token, TokenType.ACCESS).get("userId", String.class);
     }
 
     // 토큰에서 사용자 role 가져오기
     public String getRoleFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .get("role", String.class);
+        return parseClaims(token, TokenType.ACCESS).get("role", String.class);
     }
 
-    // 토큰 유효성 검사
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+    // 토큰 유효성 검사 (Access)
+    public void validateTokenOrThrow(String token) {
+        parseClaims(token, TokenType.ACCESS);
+    }
+
+    // 토큰 유효성 검사(Access/Refresh 구분)
+    public void validateTokenOrThrow(String token, TokenType type) {
+        parseClaims(token, type);
     }
 }

@@ -1,6 +1,8 @@
 package service;
 
 import com.example.classroom_reservation_system.entity.RefreshToken;
+import com.example.classroom_reservation_system.exception.CustomException;
+import com.example.classroom_reservation_system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import repository.RefreshTokenRepository;
@@ -35,7 +37,7 @@ public class RefreshTokenService {
      */
     public RefreshToken findByToken(String token) {
         return refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("RefreshToken이 유효하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
     }
 
     /**

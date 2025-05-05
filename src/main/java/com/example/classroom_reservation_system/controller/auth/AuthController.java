@@ -1,22 +1,18 @@
 package com.example.classroom_reservation_system.controller.auth;
 
-import com.example.classroom_reservation_system.config.JwtProperties;
 import com.example.classroom_reservation_system.dto.requestDto.LoginRequest;
+import com.example.classroom_reservation_system.dto.requestDto.SignUpRequest;
 import com.example.classroom_reservation_system.dto.requestDto.TokenRequest;
+import com.example.classroom_reservation_system.dto.responseDto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.dto.responseDto.LoginResponse;
 import com.example.classroom_reservation_system.dto.responseDto.TokenResponse;
-import com.example.classroom_reservation_system.entity.Member;
-import com.example.classroom_reservation_system.entity.RefreshToken;
-import com.example.classroom_reservation_system.entity.Role;
 import com.example.classroom_reservation_system.security.jwt.JwtUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import service.MemberLoginService;
+import org.springframework.web.bind.annotation.*;
+import service.AuthService;
 import service.RefreshTokenService;
 
 @RestController
@@ -25,71 +21,51 @@ import service.RefreshTokenService;
 public class AuthController {
 
     private final JwtUtil jwtUtil;
-    private final JwtProperties jwtProperties;
-    private final MemberLoginService memberLoginService;
     private final RefreshTokenService refreshTokenService;
+    private final AuthService authService;
 
     /**
-     * 로그인: AccessToken, RefreshToken 발급
+     * 로그인
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-
-        Member member = memberLoginService.login(request.getId(), request.getPassword());
-
-        String memberUuid = member.getMemberUuid();
-        String userId = member.getId();
-        String accessToken = jwtUtil.generateAccessToken(memberUuid, userId, member.getRole());
-        String refreshToken = jwtUtil.generateRefreshToken(memberUuid);
-
-        // DB에 refreshToken 저장
-        refreshTokenService.saveRefreshToken(memberUuid, refreshToken, jwtProperties.getRefreshTokenExpirationTime());
-
-        return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken));
+    public ResponseEntity<ApiSuccessResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "로그인 성공", response));
     }
 
     /**
-     * RefreshToken으로 AccessToken 재발급
+     * AccessToken 재발급
      */
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refresh(@RequestBody TokenRequest request) {
-
-        String refreshToken = request.getRefreshToken();
-
-        // JWT 검증
-        if (!jwtUtil.validateToken(refreshToken)) {
-            return ResponseEntity.badRequest().body(null);
-        }
-
-        // DB에 저장된 토큰인지 검증
-        RefreshToken storedToken = refreshTokenService.findByToken(refreshToken);
-        String memberUuid = storedToken.getMemberUuid();
-
-        // 새로운 AccessToken 발급
-        String userId = jwtUtil.getUserIdFromToken(refreshToken);
-        String role = jwtUtil.getRoleFromToken(refreshToken);
-        String newAccessToken = jwtUtil.generateAccessToken(
-                memberUuid,
-                userId != null ? userId : "unknown",
-                role != null ? Enum.valueOf(Role.class, role) : Role.STUDENT
-        );
-
-        return ResponseEntity.ok(new TokenResponse(newAccessToken));
+    public ResponseEntity<ApiSuccessResponse<TokenResponse>> refresh(@RequestBody @Valid TokenRequest request) {
+        TokenResponse response = authService.refresh(request);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "토큰 재발급 성공", response));
     }
 
     /**
-     * 로그아웃: RefreshToken 삭제
+     * 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(Authentication authentication) {
+    public ResponseEntity<ApiSuccessResponse<Void>> logout(Authentication authentication) {
+        authService.logout(authentication);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "로그아웃 완료"));
+    }
 
-        if (authentication == null || authentication.getPrincipal() == null) {
-            return ResponseEntity.badRequest().build();
-        }
+    /**
+     * 회원가입
+     */
+    @PostMapping("/signup")
+    public ResponseEntity<ApiSuccessResponse<Void>> signUp(@RequestBody @Valid SignUpRequest request) {
+        authService.signUp(request);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "회원가입 성공"));
+    }
 
-        String memberUuid = authentication.getPrincipal().toString();
-        refreshTokenService.deleteByMemberUuid(memberUuid);
-
-        return ResponseEntity.ok().build();
+    /**
+     * ID 중복 검사 API
+     */
+    @GetMapping("/check-id")
+    public ResponseEntity<ApiSuccessResponse<Void>> checkIdDuplicate(@RequestParam("id") String id) {
+        authService.checkDuplicateId(id);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용 가능한 아이디입니다."));
     }
 }
