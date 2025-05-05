@@ -1,4 +1,4 @@
-package service;
+package com.example.classroom_reservation_system.service;
 
 import com.example.classroom_reservation_system.config.JwtProperties;
 import com.example.classroom_reservation_system.dto.requestDto.LoginRequest;
@@ -15,7 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import repository.MemberRepository;
+import com.example.classroom_reservation_system.repository.MemberRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +23,7 @@ import repository.MemberRepository;
 public class AuthService {
 
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final MemberLoginService memberLoginService;
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
@@ -80,10 +81,10 @@ public class AuthService {
 
         // 새 AccessToken 발급
         String memberUuid = storedToken.getMemberUuid();
-        String userId = jwtUtil.getUserIdFromToken(refreshToken);
-        Role role = Role.valueOf(jwtUtil.getRoleFromToken(refreshToken));
+        Member member = memberService.findByMemberUuid(memberUuid);
 
-        String newAccessToken = jwtUtil.generateAccessToken(memberUuid, userId, role);
+
+        String newAccessToken = jwtUtil.generateAccessToken(memberUuid, member.getId(), member.getRole());
 
         return new TokenResponse(newAccessToken);
     }
@@ -93,7 +94,7 @@ public class AuthService {
      */
     public void logout(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
-            throw new IllegalArgumentException("인증 정보가 없습니다.");
+            throw new CustomException(ErrorCode.AUTHENTICATION_NOT_FOUND);
         }
 
         String memberUuid = authentication.getPrincipal().toString();
@@ -110,7 +111,7 @@ public class AuthService {
         }
 
         // 중복 ID 검사
-        if (memberRepository.existsByStudentIdOrProfessorIdOrAdminId(request.getId(), request.getId(), request.getId())) {
+        if (memberRepository.existsByUserId(request.getId())) {
             throw new CustomException(ErrorCode.DUPLICATE_ID);
         }
 
@@ -142,7 +143,7 @@ public class AuthService {
      * @param id
      */
     public void checkDuplicateId(String id) {
-        boolean exists = memberRepository.existsByStudentIdOrProfessorIdOrAdminId(id, id, id);
+        boolean exists = memberRepository.existsByUserId(id);
 
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_ID);

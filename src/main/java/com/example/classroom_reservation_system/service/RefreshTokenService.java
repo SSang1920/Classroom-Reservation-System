@@ -1,4 +1,4 @@
-package service;
+package com.example.classroom_reservation_system.service;
 
 import com.example.classroom_reservation_system.entity.RefreshToken;
 import com.example.classroom_reservation_system.exception.CustomException;
@@ -6,7 +6,7 @@ import com.example.classroom_reservation_system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import repository.RefreshTokenRepository;
+import com.example.classroom_reservation_system.repository.RefreshTokenRepository;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Transactional
 public class RefreshTokenService {
 
-    private RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     /**
      * RefreshToken 저장(새로 발급할 때)

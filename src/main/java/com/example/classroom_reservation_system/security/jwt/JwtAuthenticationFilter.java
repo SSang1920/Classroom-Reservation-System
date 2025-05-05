@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Authorization 헤더에서 토큰 가져오기
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null && !authHeader.startsWith("Bearer")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response); // 토큰 없으면 다음 필터로 넘김
             return;
         }
@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String role = jwtUtil.getRoleFromToken(token);
 
             // 권한 설정
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
 
             // 스프링 인증 객체 생성
             UsernamePasswordAuthenticationToken authentication =

@@ -32,7 +32,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(memberUuid)
                 .claim("userId", userId)    // 학번, 교수번호, 관리자번호(ID)
-                .claim("role", role.name()) // 사용자 권한
+                .claim("role", "ROLE_" + role.name()) // 사용자 권한
                 .setIssuedAt(now)              // 발급일
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

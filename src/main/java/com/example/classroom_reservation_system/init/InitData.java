@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import repository.MemberRepository;
+import com.example.classroom_reservation_system.repository.MemberRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class InitData implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // 관리자 계정
-        if (memberRepository.findByStudentIdOrProfessorIdOrAdminId("admin001", "admin001", "admin001").isEmpty()) {
+        if (memberRepository.findByUserId("admin001").isEmpty()) {
             Admin admin = Admin.builder()
                     .adminId("admin001")
                     .name("관리자 계정")
@@ -31,7 +31,7 @@ public class InitData implements CommandLineRunner {
         }
 
         // 학생 계정
-        if (memberRepository.findByStudentIdOrProfessorIdOrAdminId("stu2023", "stu2023", "stu2023").isEmpty()) {
+        if (memberRepository.findByUserId("stu2023").isEmpty()) {
             Student student = Student.builder()
                     .studentId("stu2023")
                     .name("학생 계정")
@@ -43,7 +43,7 @@ public class InitData implements CommandLineRunner {
         }
 
         // 교수 계정
-        if (memberRepository.findByStudentIdOrProfessorIdOrAdminId("pro2023", "pro2023", "pro2023").isEmpty()) {
+        if (memberRepository.findByUserId("pro2023").isEmpty()) {
             Professor professor = Professor.builder()
                     .professorId("pro2023")
                     .name("교수 계정")

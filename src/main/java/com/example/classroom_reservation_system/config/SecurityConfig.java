@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())   // CSRF 비활성화
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 세션 방식 사용 X(토큰 기반 인증 사용)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/refresh", "/auth/signup").permitAll()    // 로그인, 토큰 갱신은 아무나 접근 가능
+                        .requestMatchers("/auth/login", "/auth/refresh", "/auth/signup", "/").permitAll()    // 로그인, 토큰 갱신은 아무나 접근 가능
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()   // 나머지는 인증 필요
                 )

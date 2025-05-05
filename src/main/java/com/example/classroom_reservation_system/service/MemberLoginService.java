@@ -1,4 +1,4 @@
-package service;
+package com.example.classroom_reservation_system.service;
 
 import com.example.classroom_reservation_system.entity.Member;
 import com.example.classroom_reservation_system.exception.CustomException;
@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import repository.MemberRepository;
+import com.example.classroom_reservation_system.repository.MemberRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class MemberLoginService {
     public Member login(String id, String password) {
 
         // ID로 Member 조회 (학생, 교수, 관리자)
-        Member member = memberRepository.findByStudentIdOrProfessorIdOrAdminId(id, id, id)
+        Member member = memberRepository.findByUserId(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 비밀번호 일치 여부 확인

@@ -12,8 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import service.AuthService;
-import service.RefreshTokenService;
+import com.example.classroom_reservation_system.service.AuthService;
+import com.example.classroom_reservation_system.service.RefreshTokenService;
 
 @RestController
 @RequestMapping("/auth")
