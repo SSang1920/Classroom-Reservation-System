@@ -1,7 +1,6 @@
 package com.example.classroom_reservation_system.exception;
 
 import com.example.classroom_reservation_system.dto.responseDto.ApiErrorResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;

@@ -6,12 +6,12 @@ import com.example.classroom_reservation_system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import repository.MemberRepository;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class MemberLoginService {
 
     private final MemberRepository memberRepository;

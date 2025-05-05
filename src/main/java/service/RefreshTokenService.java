@@ -5,12 +5,14 @@ import com.example.classroom_reservation_system.exception.CustomException;
 import com.example.classroom_reservation_system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import repository.RefreshTokenRepository;
 
 import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class RefreshTokenService {
 
     private RefreshTokenRepository refreshTokenRepository;
@@ -35,6 +37,7 @@ public class RefreshTokenService {
     /**
      * RefreshToken 검증
      */
+    @Transactional(readOnly = true)
     public RefreshToken findByToken(String token) {
         return refreshTokenRepository.findByToken(token)
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
