@@ -1,0 +1,26 @@
+# build 파일
+.gradle
+build/
+target/
+!build/libs/app.jar
+
+# Git, IDE 설정 파일
+.git
+.gitignore
+*.iml
+.idea
+.vscode
+
+# 테스트, 임시 파일
+*.log
+*.tmp
+*.md
+
+# 환경 변수 파일
+.env
+application-secret.properties
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
