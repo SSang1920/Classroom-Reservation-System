@@ -55,4 +55,22 @@ public class Reservation {
     @Builder.Default
     @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
     private List<Notification> notifications = new ArrayList<>();
+
+
+
+    public void addHistory(History history){
+        histories.add(history);
+    }
+
+    public void removeHistory(History history){
+        histories.remove(history);
+    }
+
+    public void addNotification(Notification notification){
+        notifications.add(notification);
+    }
+
+    public void removeNotification(Notification notification){
+        notifications.remove(notification);
+    }
 }

@@ -28,4 +28,12 @@ public class Building {
     @Builder.Default
     @OneToMany(mappedBy = "building" ,fetch = FetchType.LAZY)
     private List<Classroom> classrooms = new ArrayList<>();
+
+    public void addClassroom(Classroom classroom){
+        classrooms.add(classroom);
+    }
+
+    public void removeClassroom(Classroom classroom){
+        classrooms.remove(classroom);
+    }
 }

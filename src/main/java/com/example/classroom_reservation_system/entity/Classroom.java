@@ -44,4 +44,19 @@ public class Classroom {
     @OneToMany(mappedBy = "classroom", fetch = FetchType.LAZY)
     private List<History> histories = new ArrayList<>();
 
+
+    public void addReservation(Reservation reservation){
+        reservations.add(reservation);
+    }
+    public void removeReservationm(Reservation reservation){
+        reservations.remove(reservation);
+    }
+
+    public void addHistory(History history){
+        histories.add(history);
+    }
+
+    public void removeClassroom(History history){
+        histories.remove(history);
+    }
 }

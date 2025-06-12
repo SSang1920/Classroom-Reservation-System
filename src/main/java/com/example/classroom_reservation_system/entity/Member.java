@@ -48,6 +48,13 @@ public abstract class Member {
             memberUuid = UUID.randomUUID().toString();
         }
     }
+    public void addNotifications(Notification notification){
+        notifications.add(notification);
+    }
+
+    public void removeNotifications(Notification notification){
+        notifications.remove(notification);
+    }
 
     public abstract String getId();
 }
