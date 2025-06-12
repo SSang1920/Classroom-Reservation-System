@@ -50,10 +50,12 @@ public abstract class Member {
     }
     public void addNotifications(Notification notification){
         notifications.add(notification);
+        notification.setMember(this);
     }
 
     public void removeNotifications(Notification notification){
         notifications.remove(notification);
+        notification.setMember(null);
     }
 
     public abstract String getId();

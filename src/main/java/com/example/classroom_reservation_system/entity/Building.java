@@ -1,10 +1,7 @@
 package com.example.classroom_reservation_system.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +28,11 @@ public class Building {
 
     public void addClassroom(Classroom classroom){
         classrooms.add(classroom);
+        classroom.setBuilding(this);
     }
 
     public void removeClassroom(Classroom classroom){
         classrooms.remove(classroom);
+        classroom.setBuilding(null);
     }
 }

@@ -1,10 +1,7 @@
 package com.example.classroom_reservation_system.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +9,7 @@ import java.util.List;
 @Entity
 @Table(name = "Classroom")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -47,16 +45,21 @@ public class Classroom {
 
     public void addReservation(Reservation reservation){
         reservations.add(reservation);
+        reservation.setClassroom(this);
     }
-    public void removeReservationm(Reservation reservation){
+
+    public void removeReservation(Reservation reservation){
         reservations.remove(reservation);
+        reservation.setClassroom(null);
     }
 
     public void addHistory(History history){
         histories.add(history);
+        history.setClassroom(this);
     }
 
     public void removeClassroom(History history){
         histories.remove(history);
+        history.setClassroom(null);
     }
 }

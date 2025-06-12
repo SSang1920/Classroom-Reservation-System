@@ -1,10 +1,7 @@
 package com.example.classroom_reservation_system.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,6 +13,7 @@ import java.util.List;
 @Table(name = "Reservation")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -60,17 +58,21 @@ public class Reservation {
 
     public void addHistory(History history){
         histories.add(history);
+        history.setReservation(this);
     }
 
     public void removeHistory(History history){
         histories.remove(history);
+        history.setReservation(null);
     }
 
     public void addNotification(Notification notification){
         notifications.add(notification);
+        notification.setReservation(this);
     }
 
     public void removeNotification(Notification notification){
         notifications.remove(notification);
+        notification.setReservation(null);
     }
 }
