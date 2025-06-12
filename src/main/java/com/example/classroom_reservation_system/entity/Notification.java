@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Setter
 public class Notification {
 
     @Id
@@ -43,4 +42,11 @@ public class Notification {
     @Column(name = "read_at")
     private LocalDateTime readAt;
 
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
 }

@@ -9,7 +9,6 @@ import java.util.List;
 @Entity
 @Table(name = "Classroom")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -61,5 +60,9 @@ public class Classroom {
     public void removeClassroom(History history){
         histories.remove(history);
         history.setClassroom(null);
+    }
+
+    public void setBuilding(Building building) {
+        this.building = building;
     }
 }

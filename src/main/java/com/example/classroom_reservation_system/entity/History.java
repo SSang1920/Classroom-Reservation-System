@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Table(name = "History")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -56,4 +55,15 @@ public class History {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    public void setReservation(Reservation reservation) {
+        this.reservation = reservation;
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void setClassroom(Classroom classroom) {
+        this.classroom = classroom;
+    }
 }

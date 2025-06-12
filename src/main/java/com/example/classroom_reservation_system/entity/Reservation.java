@@ -13,7 +13,6 @@ import java.util.List;
 @Table(name = "Reservation")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -74,5 +73,13 @@ public class Reservation {
     public void removeNotification(Notification notification){
         notifications.remove(notification);
         notification.setReservation(null);
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void setClassroom(Classroom classroom) {
+        this.classroom = classroom;
     }
 }
