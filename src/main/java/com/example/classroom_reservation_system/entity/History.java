@@ -22,14 +22,17 @@ public class History {
     @Column(name = "history_id")
     private Long id;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classroom_id", nullable = false)
     private Classroom classroom;
@@ -54,16 +57,4 @@ public class History {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
-
-    public void setReservation(Reservation reservation) {
-        this.reservation = reservation;
-    }
-
-    public void setMember(Member member) {
-        this.member = member;
-    }
-
-    public void setClassroom(Classroom classroom) {
-        this.classroom = classroom;
-    }
 }

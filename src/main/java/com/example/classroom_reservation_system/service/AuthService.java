@@ -9,20 +9,25 @@ import com.example.classroom_reservation_system.dto.responseDto.TokenResponse;
 import com.example.classroom_reservation_system.entity.*;
 import com.example.classroom_reservation_system.exception.CustomException;
 import com.example.classroom_reservation_system.exception.ErrorCode;
+import com.example.classroom_reservation_system.repository.member.AdminRepository;
+import com.example.classroom_reservation_system.repository.member.ProfessorRepository;
+import com.example.classroom_reservation_system.repository.member.StudentRepository;
 import com.example.classroom_reservation_system.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.classroom_reservation_system.repository.MemberRepository;
+import com.example.classroom_reservation_system.repository.member.MemberRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {
 
-    private final MemberRepository memberRepository;
+    private final StudentRepository studentRepository;
+    private final ProfessorRepository professorRepository;
+    private final AdminRepository adminRepository;
     private final MemberService memberService;
     private final MemberLoginService memberLoginService;
     private final RefreshTokenService refreshTokenService;
@@ -111,31 +116,37 @@ public class AuthService {
         }
 
         // 중복 ID 검사
-        if (memberRepository.existsByUserId(request.getId())) {
-            throw new CustomException(ErrorCode.DUPLICATE_ID);
-        }
+        checkDuplicateId(request.getId());
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         // 역할에 따라 Member 생성
-        Member newMember = switch (request.getRole()) {
-            case STUDENT -> Student.builder()
+        switch (request.getRole()) {
+            case STUDENT -> {
+                Student student = Student.builder()
                     .studentId(request.getId())
                     .name(request.getName())
                     .password(encodedPassword)
                     .role(Role.STUDENT)
                     .build();
-            case PROFESSOR -> Professor.builder()
+
+                studentRepository.save(student);
+            }
+
+            case PROFESSOR -> {
+                Professor professor = Professor.builder()
                     .professorId(request.getId())
                     .name(request.getName())
                     .password(encodedPassword)
                     .role(Role.PROFESSOR)
                     .build();
-            default -> throw new CustomException(ErrorCode.VALIDATION_FAIL);
-        };
 
-        memberRepository.save(newMember);
+                professorRepository.save(professor);
+            }
+
+            default -> throw new CustomException(ErrorCode.VALIDATION_FAIL);
+        }
     }
 
     /**
@@ -143,7 +154,10 @@ public class AuthService {
      * @param id
      */
     public void checkDuplicateId(String id) {
-        boolean exists = memberRepository.existsByUserId(id);
+        boolean exists =
+            studentRepository.existsByStudentId(id) ||
+            professorRepository.existsByProfessorId(id) ||
+            adminRepository.existsByAdminId(id);
 
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_ID);

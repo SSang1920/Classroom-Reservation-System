@@ -23,10 +23,12 @@ public class Reservation {
     @Column(name = "reservation_id")
     private Long id;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classroom_id", nullable = false)
     private Classroom classroom;
@@ -53,16 +55,12 @@ public class Reservation {
     @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
     private List<Notification> notifications = new ArrayList<>();
 
-
-
+    /**
+     * 연관관계 편의 메서드
+     */
     public void addHistory(History history){
         histories.add(history);
         history.setReservation(this);
-    }
-
-    public void removeHistory(History history){
-        histories.remove(history);
-        history.setReservation(null);
     }
 
     public void addNotification(Notification notification){
@@ -73,13 +71,5 @@ public class Reservation {
     public void removeNotification(Notification notification){
         notifications.remove(notification);
         notification.setReservation(null);
-    }
-
-    public void setMember(Member member) {
-        this.member = member;
-    }
-
-    public void setClassroom(Classroom classroom) {
-        this.classroom = classroom;
     }
 }

@@ -20,8 +20,6 @@ import com.example.classroom_reservation_system.service.RefreshTokenService;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final JwtUtil jwtUtil;
-    private final RefreshTokenService refreshTokenService;
     private final AuthService authService;
 
     /**

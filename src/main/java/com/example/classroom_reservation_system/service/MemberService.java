@@ -3,7 +3,7 @@ package com.example.classroom_reservation_system.service;
 import com.example.classroom_reservation_system.entity.Member;
 import com.example.classroom_reservation_system.exception.CustomException;
 import com.example.classroom_reservation_system.exception.ErrorCode;
-import com.example.classroom_reservation_system.repository.MemberRepository;
+import com.example.classroom_reservation_system.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

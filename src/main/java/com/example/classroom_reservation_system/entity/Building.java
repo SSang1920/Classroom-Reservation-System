@@ -26,6 +26,9 @@ public class Building {
     @OneToMany(mappedBy = "building" ,fetch = FetchType.LAZY)
     private List<Classroom> classrooms = new ArrayList<>();
 
+    /**
+     * 연관관계 편의 메서드
+     */
     public void addClassroom(Classroom classroom){
         classrooms.add(classroom);
         classroom.setBuilding(this);

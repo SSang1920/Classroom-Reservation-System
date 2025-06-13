@@ -19,8 +19,9 @@ public class Classroom {
     @Column(name = "classroom_id")
     private Long id;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "building_id",nullable = false)
+    @JoinColumn(name = "building_id", nullable = false)
     private Building building;
 
     @Column(name = "classroom_name", length = 20, nullable = false)
@@ -37,32 +38,16 @@ public class Classroom {
     @OneToMany(mappedBy = "classroom", fetch = FetchType.LAZY)
     private List<Reservation> reservations  = new ArrayList<>();
 
-    @Builder.Default
-    @OneToMany(mappedBy = "classroom", fetch = FetchType.LAZY)
-    private List<History> histories = new ArrayList<>();
-
-
-    public void addReservation(Reservation reservation){
+    /**
+     * 연관관계 편의 메서드
+     */
+    public void addReservation(Reservation reservation) {
         reservations.add(reservation);
         reservation.setClassroom(this);
     }
 
-    public void removeReservation(Reservation reservation){
+    public void removeReservation(Reservation reservation) {
         reservations.remove(reservation);
         reservation.setClassroom(null);
-    }
-
-    public void addHistory(History history){
-        histories.add(history);
-        history.setClassroom(this);
-    }
-
-    public void removeClassroom(History history){
-        histories.remove(history);
-        history.setClassroom(null);
-    }
-
-    public void setBuilding(Building building) {
-        this.building = building;
     }
 }

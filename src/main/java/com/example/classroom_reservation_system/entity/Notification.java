@@ -21,10 +21,12 @@ public class Notification {
     @Column(name = "notification_id")
     private Long id;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Setter(AccessLevel.PROTECTED)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
@@ -41,12 +43,4 @@ public class Notification {
 
     @Column(name = "read_at")
     private LocalDateTime readAt;
-
-    public void setMember(Member member) {
-        this.member = member;
-    }
-
-    public void setReservation(Reservation reservation) {
-        this.reservation = reservation;
-    }
 }
