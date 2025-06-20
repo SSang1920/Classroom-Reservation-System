@@ -30,6 +30,7 @@ public class InitData implements CommandLineRunner {
                     .adminId("admin001")
                     .name("관리자 계정")
                     .password(passwordEncoder.encode("admin1234"))
+                    .email("admin001@naver.com")
                     .role(Role.ADMIN)
                     .build();
             adminRepository.save(admin);
@@ -41,6 +42,7 @@ public class InitData implements CommandLineRunner {
                     .studentId("stu2023")
                     .name("학생 계정")
                     .password(passwordEncoder.encode("student1234"))
+                    .email("stu2023@naver.com")
                     .role(Role.STUDENT)
                     .year(1)
                     .build();
@@ -53,6 +55,7 @@ public class InitData implements CommandLineRunner {
                     .professorId("pro2023")
                     .name("교수 계정")
                     .password(passwordEncoder.encode("professor1234"))
+                    .email("pro2023@naver.com")
                     .role(Role.PROFESSOR)
                     .build();
             professorRepository.save(professor);

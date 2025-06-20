@@ -128,6 +128,7 @@ public class AuthService {
                     .studentId(request.getId())
                     .name(request.getName())
                     .password(encodedPassword)
+                    .email(request.getEmail())
                     .role(Role.STUDENT)
                     .build();
 
@@ -139,6 +140,7 @@ public class AuthService {
                     .professorId(request.getId())
                     .name(request.getName())
                     .password(encodedPassword)
+                    .email(request.getEmail())
                     .role(Role.PROFESSOR)
                     .build();
 

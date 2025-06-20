@@ -34,6 +34,9 @@ public abstract class Member {
     @Column(length = 20, nullable = false)
     private String name;
 
+    @Column(length = 100, nullable = false, unique = true)
+    private String email;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

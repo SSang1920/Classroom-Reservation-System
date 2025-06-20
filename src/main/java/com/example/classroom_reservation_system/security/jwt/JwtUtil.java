@@ -7,12 +7,14 @@ import com.example.classroom_reservation_system.exception.ErrorCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtUtil {
@@ -21,6 +23,8 @@ public class JwtUtil {
 
     // 비밀키 properties 가져오기
     private Key getSigningKey() {
+        byte[] keyBytes = jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8);
+        log.info("JWT KEY LENGTH: {}", keyBytes.length);
         return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8));
     }
 
