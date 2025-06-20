@@ -6,19 +6,17 @@ import com.example.classroom_reservation_system.dto.requestDto.TokenRequest;
 import com.example.classroom_reservation_system.dto.responseDto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.dto.responseDto.LoginResponse;
 import com.example.classroom_reservation_system.dto.responseDto.TokenResponse;
-import com.example.classroom_reservation_system.security.jwt.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.example.classroom_reservation_system.service.AuthService;
-import com.example.classroom_reservation_system.service.RefreshTokenService;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthRestController {
 
     private final AuthService authService;
 
