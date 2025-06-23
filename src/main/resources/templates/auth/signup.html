@@ -41,7 +41,8 @@
             <!-- 비밀번호 -->
             <div class="mb-3">
               <label for="password" class="form-label">비밀번호</label>
-              <input type="password" class="form-control" id="password" required>
+              <input type="password" class="form-control" id="password" required oninput="checkPasswordLength()">
+              <div id="password-check-result" class="form-text"></div>
             </div>
 
             <!-- 역할 선택 -->
@@ -105,29 +106,48 @@
   }
 
   function submitSignup() {
-    const name = document.getElementById('name').value.trim();
-    const id = document.getElementById('id').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value;
+  const name = document.getElementById('name').value.trim();
+  const id = document.getElementById('id').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const role = document.getElementById('role').value;
 
-    if (!name || !id || !email || !password || !role) {
-      alert('모든 항목을 입력해주세요.');
-      return;
-    }
+  const emptyFields = [];
 
-    if (!isIdAvailable) {
-      alert("아이디 중복 확인을 해주세요.");
-      return;
-    }
+  if (!name) emptyFields.push('이름');
+  if (!id) emptyFields.push('아이디');
+  if (!email) emptyFields.push('이메일');
+  if (!password) emptyFields.push('비밀번호');
+  if (!role) emptyFields.push('역할');
 
-    fetch('/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, id: id, email, password, role })
-    })
+  if (emptyFields.length === 1) {
+    alert(`${emptyFields[0]}을(를) 입력해주세요.`);
+    return;
+  }
+
+  if (emptyFields.length >= 2) {
+    alert('모든 항목을 입력해주세요.');
+    return;
+  }
+
+  if (!isIdAvailable) {
+    alert("아이디 중복 확인을 해주세요.");
+    return;
+  }
+
+  if (password.length < 8) {
+    alert('비밀번호는 8자 이상 입력해주세요.');
+    return;
+  }
+
+  // ↓ 정상적인 경우, fetch 요청
+  fetch('/auth/signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name, id, email, password, role })
+  })
     .then(response => {
       if (!response.ok) throw new Error('회원가입 실패');
       return response.json();
@@ -139,7 +159,19 @@
     .catch(error => {
       alert(error.message || '회원가입에 실패했습니다.');
     });
+}
+  function checkPasswordLength() {
+  const password = document.getElementById('password').value;
+  const resultBox = document.getElementById('password-check-result');
+
+  if (password.length > 0 && password.length < 8) {
+    resultBox.textContent = '비밀번호는 8자 이상이어야 합니다.';
+    resultBox.className = 'form-text text-danger';
+  } else {
+    resultBox.textContent = '';
+    resultBox.className = 'form-text';
   }
+}
 </script>
 
 </body>
