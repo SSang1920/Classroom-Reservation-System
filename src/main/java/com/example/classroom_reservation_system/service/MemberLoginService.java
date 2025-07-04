@@ -39,14 +39,12 @@ public class MemberLoginService {
                         .or(() -> professorRepository.findByProfessorId(id).map(m -> (Member) m))
                         .or(() -> adminRepository.findByAdminId(id).map(m -> (Member) m));
 
-        Member member = memberOpt.orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-        // 비밀번호 일치 여부 확인
-        if (!passwordEncoder.matches(password, member.getPassword())) {
-            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        // 아이디가 없거나 비밀번호 틀릴시 에러 처리
+        if (memberOpt.isEmpty() || !passwordEncoder.matches(password, memberOpt.get().getPassword())) {
+            throw new CustomException(ErrorCode.LOGIN_FAILED);
         }
 
         // 로그인 성공
-        return member;
+        return memberOpt.get();
     }
 }

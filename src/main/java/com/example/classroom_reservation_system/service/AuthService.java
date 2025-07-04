@@ -115,6 +115,11 @@ public class AuthService {
             throw new CustomException(ErrorCode.INVALID_ROLE_FOR_SIGNUP);
         }
 
+        // 비밀번호, 비밀번호 확인 일치 여부 체크
+        if (!request.getPassword().equals(request.getPasswordConfirm())) {
+            throw new CustomException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
+        }
+
         // 중복 ID 검사
         checkDuplicateId(request.getId());
 
