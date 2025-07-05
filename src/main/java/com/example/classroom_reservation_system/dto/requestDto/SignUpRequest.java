@@ -3,6 +3,7 @@ package com.example.classroom_reservation_system.dto.requestDto;
 import com.example.classroom_reservation_system.entity.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class SignUpRequest {
     private String name;
 
     @NotBlank(message = "아이디는 필수입니다.")
+    @Pattern(regexp = "^[a-zA-Z0-9]{6,15}$", message = "아이디는 영어와 숫자만 입력할 수 있습니다.")
     private String id;
 
     @NotBlank(message = "비밀번호는 필수입니다.")
