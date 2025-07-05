@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.classroom_reservation_system.repository.member.MemberRepository;
 
+import java.util.regex.Pattern;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,6 +30,7 @@ public class AuthService {
     private final StudentRepository studentRepository;
     private final ProfessorRepository professorRepository;
     private final AdminRepository adminRepository;
+    private final MemberRepository memberRepository;
     private final MemberService memberService;
     private final MemberLoginService memberLoginService;
     private final RefreshTokenService refreshTokenService;
@@ -35,6 +38,7 @@ public class AuthService {
     private final JwtProperties jwtProperties;
     private final PasswordEncoder passwordEncoder;
 
+    private static final Pattern ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{6,15}$");
     /**
      * 로그인
      */
@@ -110,6 +114,10 @@ public class AuthService {
      * 회원가입
      */
     public void signUp(SignUpRequest request) {
+
+        if (request.getRole() == null) {
+            throw new CustomException(ErrorCode.VALIDATION_FAIL);
+        }
         // ADMIN으로 회원가입 요청 차단
         if (request.getRole() == Role.ADMIN) {
             throw new CustomException(ErrorCode.INVALID_ROLE_FOR_SIGNUP);
@@ -120,8 +128,12 @@ public class AuthService {
             throw new CustomException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
         }
 
-        // 중복 ID 검사
+
+
+        // 중복 검사
+        validateIdFormat((request.getId()));
         checkDuplicateId(request.getId());
+        checkDuplicateEmail(request.getEmail());
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -130,24 +142,24 @@ public class AuthService {
         switch (request.getRole()) {
             case STUDENT -> {
                 Student student = Student.builder()
-                    .studentId(request.getId())
-                    .name(request.getName())
-                    .password(encodedPassword)
-                    .email(request.getEmail())
-                    .role(Role.STUDENT)
-                    .build();
+                        .studentId(request.getId())
+                        .name(request.getName())
+                        .password(encodedPassword)
+                        .email(request.getEmail())
+                        .role(Role.STUDENT)
+                        .build();
 
                 studentRepository.save(student);
             }
 
             case PROFESSOR -> {
                 Professor professor = Professor.builder()
-                    .professorId(request.getId())
-                    .name(request.getName())
-                    .password(encodedPassword)
-                    .email(request.getEmail())
-                    .role(Role.PROFESSOR)
-                    .build();
+                        .professorId(request.getId())
+                        .name(request.getName())
+                        .password(encodedPassword)
+                        .email(request.getEmail())
+                        .role(Role.PROFESSOR)
+                        .build();
 
                 professorRepository.save(professor);
             }
@@ -162,12 +174,28 @@ public class AuthService {
      */
     public void checkDuplicateId(String id) {
         boolean exists =
-            studentRepository.existsByStudentId(id) ||
-            professorRepository.existsByProfessorId(id) ||
-            adminRepository.existsByAdminId(id);
+                studentRepository.existsByStudentId(id) ||
+                        professorRepository.existsByProfessorId(id) ||
+                        adminRepository.existsByAdminId(id);
 
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_ID);
         }
     }
+
+    public void checkDuplicateEmail(String email){
+        boolean exists = memberRepository.existsByEmail(email);
+
+        if (exists) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+    }
+
+    public void validateIdFormat(String id) {
+        if (!ID_PATTERN.matcher(id).matches()) {
+            throw new CustomException(ErrorCode.INVALID_ID_FORMAT);
+        }
+    }
 }
+
+

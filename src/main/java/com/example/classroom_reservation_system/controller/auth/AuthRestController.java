@@ -64,4 +64,13 @@ public class AuthRestController {
         authService.checkDuplicateId(id);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용 가능한 아이디입니다."));
     }
+
+    /**
+     * 이메일 중복 검사 API
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<ApiSuccessResponse<Void>> checkEmailDuplicate(@RequestParam("email") String email) {
+        authService.checkDuplicateEmail(email);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용 가능한 이메일입니다."));
+    }
 }
