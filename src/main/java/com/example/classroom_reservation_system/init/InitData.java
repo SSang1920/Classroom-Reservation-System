@@ -61,6 +61,18 @@ public class InitData implements CommandLineRunner {
             studentRepository.save(student);
         }
 
+        if (studentRepository.findByStudentId("sangyoon053").isEmpty()) {
+            Student student = Student.builder()
+                    .studentId("sangyoon053")
+                    .name("용상윤")
+                    .password(passwordEncoder.encode("asdfasdf"))
+                    .email("sangyoon053@naver.com")
+                    .role(Role.STUDENT)
+                    .year(4)
+                    .build();
+            studentRepository.save(student);
+        }
+
         // 교수 계정
         if (professorRepository.findByProfessorId("pro2023").isEmpty()) {
             Professor professor = Professor.builder()

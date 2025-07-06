@@ -226,8 +226,9 @@
 
     function submitSignup() {
 
-     const roleSelect = document.getElementById('role');
-     const roleValue = roleSelect.value === "" ? null : roleSelect.value;
+     //const roleSelect = document.getElementById('role');
+     //const roleValue = roleSelect.value === "" ? null : roleSelect.value;
+     const roleValue = document.getElementById('role').value || null;
 
     const payload = {
       name: document.getElementById('name').value.trim(),
