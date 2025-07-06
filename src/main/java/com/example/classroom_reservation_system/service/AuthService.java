@@ -212,28 +212,35 @@ public class AuthService {
     public void sendResetPasswordMail(FindPasswordRequest request){
         String id = request.getId();
 
-        memberService.findMemberById(id).ifPresent(member -> {
-            String token = UUID.randomUUID().toString();
-            LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+        //optional 변수에 저장
+        Optional<Member> memberOpt = memberService.findMemberById(id);
 
-            // 토큰 저장
-            PasswordResetToken entity = PasswordResetToken.builder()
-                    .token(token)
-                    .expiresAt(expiresAt)
-                    .used(false)
-                    .member(member)
-                    .build();
+        //사용자 x -> MEMBER_NOT_FOUND 반환
+        if(memberOpt.isEmpty()){
+            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND) ;
+        }
 
-            tokenRepository.save(entity);
+        //사용자 존재-> 메일 발송 로직 실행
+        Member member = memberOpt.get();
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-            // 이메일 전송
-            String link = UriComponentsBuilder.fromUriString(frontendUrl)
-                    .path("/auth/reset-password")
-                    .queryParam("token", token)
-                    .toUriString();
+        //토큰 저장
+        PasswordResetToken entity = PasswordResetToken.builder()
+                .token(token)
+                .expiresAt(expiresAt)
+                .used(false)
+                .member(member)
+                .build();
+        tokenRepository.save(entity);
 
-            mailService.sendResetPasswordMail(member.getEmail(), link);
-        });
+        //이메일 전송
+        String link = UriComponentsBuilder.fromUriString(frontendUrl)
+                .path("/auth/reset-password")
+                .queryParam("token", token)
+                .toUriString();
+
+        mailService.sendResetPasswordMail(member.getEmail(), link);
     }
 
     /**

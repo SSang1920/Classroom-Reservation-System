@@ -7,6 +7,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,11 @@ public class MailService {
 
     private final JavaMailSender mailSender;
 
+    /**
+     * HTML 메일 발송
+     *  비동기 실행하여 사용자가 바로확인가능하게 함
+     */
+    @Async
     public void sendResetPasswordMail(String to, String link) {
         String subject = "[실시간 강의실 예약 시스템] 비밀번호 재설정 안내";
         String content = ""
@@ -27,22 +33,19 @@ public class MailService {
                 + "<div style=\"font-size:0.9em; color:#888; margin-top:16px;\">"
                 + "이 링크는 30분간 유효합니다.<br/>만약 본인이 요청하지 않았다면 이메일을 무시하세요.</div>";
 
-        sendHtmlMail(to, subject, content);
-    }
-
-    /**
-     * HTML 메일 발송 (공통)
-     */
-    public void sendHtmlMail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlContent, true); // true: HTML
+            helper.setText(content, true); // true: HTML
             mailSender.send(message);
-        } catch (MessagingException e) {
+        }
+        catch (MessagingException e)
+        {
             throw new CustomException(ErrorCode.MAIL_SEND_FAIL);
         }
+
     }
+
 }
