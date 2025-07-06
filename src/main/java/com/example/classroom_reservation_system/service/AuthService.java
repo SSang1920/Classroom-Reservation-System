@@ -2,6 +2,7 @@ package com.example.classroom_reservation_system.service;
 
 import com.example.classroom_reservation_system.config.JwtProperties;
 import com.example.classroom_reservation_system.dto.requestDto.LoginRequest;
+import com.example.classroom_reservation_system.dto.requestDto.ResetPasswordRequest;
 import com.example.classroom_reservation_system.dto.requestDto.SignUpRequest;
 import com.example.classroom_reservation_system.dto.requestDto.TokenRequest;
 import com.example.classroom_reservation_system.dto.responseDto.LoginResponse;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.classroom_reservation_system.repository.member.MemberRepository;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -86,9 +88,7 @@ public class AuthService {
         try {
             jwtUtil.validateTokenOrThrow(refreshToken);
         } catch (CustomException e) {
-            if (e.getErrorCode() == ErrorCode.ACCESS_TOKEN_EXPIRED) {
-                throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
-            }
+            // refreshToken 검증 실패 시, 유효하지 않는 토큰으로 처리
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
@@ -139,8 +139,6 @@ public class AuthService {
             throw new CustomException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
         }
 
-
-
         // 중복 검사
         validateIdFormat((request.getId()));
         checkDuplicateId(request.getId());
@@ -184,12 +182,7 @@ public class AuthService {
      * @param id
      */
     public void checkDuplicateId(String id) {
-        boolean exists =
-                studentRepository.existsByStudentId(id) ||
-                        professorRepository.existsByProfessorId(id) ||
-                        adminRepository.existsByAdminId(id);
-
-        if (exists) {
+        if (memberService.findMemberById(id).isPresent()) {
             throw new CustomException(ErrorCode.DUPLICATE_ID);
         }
     }
@@ -220,47 +213,53 @@ public class AuthService {
      * 이메일로 링크 발송
      */
     public void sendResetPasswordMail(String id){
-        Optional<? extends  Member> memberOpt =
-                studentRepository.findByStudentId(id).map(m -> (Member) m)
-                .or(() -> professorRepository.findByProfessorId(id).map(m -> (Member) m))
-                .or(() -> adminRepository.findByAdminId(id).map(m -> (Member) m));
+        memberService.findMemberById(id).ifPresent(member -> {
+            String token = UUID.randomUUID().toString();
+            LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-        if (memberOpt.isEmpty()) return;
+            // 토큰 저장
+            PasswordResetToken entity = PasswordResetToken.builder()
+                    .token(token)
+                    .expiresAt(expiresAt)
+                    .used(false)
+                    .member(member)
+                    .build();
 
-        Member member = memberOpt.get();
-        String token = UUID.randomUUID().toString();
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+            tokenRepository.save(entity);
 
-        // 토큰 저장
-        PasswordResetToken entity = PasswordResetToken.builder()
-                .token(token)
-                .expiresAt(expiresAt)
-                .used(false)
-                .member(member)
-                .build();
+            // 이메일 전송
+            String link = UriComponentsBuilder.fromUriString(frontendUrl)
+                    .path("/auth/reset-password")
+                    .queryParam("token", token)
+                    .toUriString();
 
-        tokenRepository.save(entity);
-
-        // 이메일 전송
-        String link = frontendUrl + "/auth/reset-password?token=" + token;
-        mailService.sendResetPasswordMail(member.getEmail(), link);
+            mailService.sendResetPasswordMail(member.getEmail(), link);
+        });
     }
 
     /**
      * 비밀번호 재설정
      */
-    public void resetPassword(String token, String newPassword) {
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+    public void resetPassword(ResetPasswordRequest request) {
+        // 비밀번호 일치 여부 확인
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new CustomException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
+        }
+
+        // 토큰 유효성 검사
+        PasswordResetToken resetToken = tokenRepository.findByToken(request.getToken())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_RESET_TOKEN));
 
         if (resetToken.isUsed() || resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new CustomException(ErrorCode.INVALID_RESET_TOKEN);
         }
 
+        // 비밀번호 변경
         Member member = resetToken.getMember();
-        String encodedPassword = passwordEncoder.encode(newPassword);
-
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         member.changePassword(encodedPassword);
+
+        // 토큰 사용 처리
         resetToken.use();
 
         tokenRepository.save(resetToken);

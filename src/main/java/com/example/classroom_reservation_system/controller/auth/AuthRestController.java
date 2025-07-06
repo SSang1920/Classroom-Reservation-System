@@ -86,7 +86,7 @@ public class AuthRestController {
      */
     @PostMapping("/reset-password")
     public ResponseEntity<ApiSuccessResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
-        authService.resetPassword(request.getToken(), request.getNewPassword());
+        authService.resetPassword(request);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "비밀번호가 성공적으로 변경되었습니다."));
     }
 }
