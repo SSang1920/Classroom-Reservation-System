@@ -77,7 +77,7 @@ public class AuthRestController {
      */
     @PostMapping("/find-password")
     public ResponseEntity<ApiSuccessResponse<Void>> findPassword(@RequestBody @Valid FindPasswordRequest request) {
-        authService.sendResetPasswordMail(request.getId());
+        authService.sendResetPasswordMail(request);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "비밀번호 재설정 메일을 발송했습니다."));
     }
 

@@ -1,10 +1,7 @@
 package com.example.classroom_reservation_system.service;
 
 import com.example.classroom_reservation_system.config.JwtProperties;
-import com.example.classroom_reservation_system.dto.requestDto.LoginRequest;
-import com.example.classroom_reservation_system.dto.requestDto.ResetPasswordRequest;
-import com.example.classroom_reservation_system.dto.requestDto.SignUpRequest;
-import com.example.classroom_reservation_system.dto.requestDto.TokenRequest;
+import com.example.classroom_reservation_system.dto.requestDto.*;
 import com.example.classroom_reservation_system.dto.responseDto.LoginResponse;
 import com.example.classroom_reservation_system.dto.responseDto.TokenResponse;
 import com.example.classroom_reservation_system.entity.*;
@@ -212,7 +209,9 @@ public class AuthService {
     /**
      * 이메일로 링크 발송
      */
-    public void sendResetPasswordMail(String id){
+    public void sendResetPasswordMail(FindPasswordRequest request){
+        String id = request.getId();
+
         memberService.findMemberById(id).ifPresent(member -> {
             String token = UUID.randomUUID().toString();
             LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
