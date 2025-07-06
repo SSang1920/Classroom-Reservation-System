@@ -17,4 +17,14 @@ public class AuthViewController {
     public String login() {
         return "auth/login";
     }
+
+    @GetMapping("/find-password")
+    public String findPassword() {
+        return "auth/find-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPassword() {
+        return "auth/reset-password";
+    }
 }

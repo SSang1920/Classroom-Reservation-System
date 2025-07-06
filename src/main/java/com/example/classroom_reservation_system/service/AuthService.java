@@ -195,6 +195,28 @@ public class AuthService {
     }
 
     /**
+     * 이메일 중복 검사
+     * @param email
+     */
+    public void checkDuplicateEmail(String email){
+        boolean exists = memberRepository.existsByEmail(email);
+
+        if (exists) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+    }
+
+    /**
+     * 아이디 형식 검증
+     * @param id
+     */
+    public void validateIdFormat(String id) {
+        if (!ID_PATTERN.matcher(id).matches()) {
+            throw new CustomException(ErrorCode.INVALID_ID_FORMAT);
+        }
+    }
+
+    /**
      * 이메일로 링크 발송
      */
     public void sendResetPasswordMail(String id){
@@ -220,7 +242,7 @@ public class AuthService {
         tokenRepository.save(entity);
 
         // 이메일 전송
-        String link = frontendUrl + "/auth/resetPassword?token" + token;
+        String link = frontendUrl + "/auth/reset-password?token=" + token;
         mailService.sendResetPasswordMail(member.getEmail(), link);
     }
 
@@ -242,19 +264,5 @@ public class AuthService {
         resetToken.use();
 
         tokenRepository.save(resetToken);
-    }
-
-    public void checkDuplicateEmail(String email){
-        boolean exists = memberRepository.existsByEmail(email);
-
-        if (exists) {
-            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
-        }
-    }
-
-    public void validateIdFormat(String id) {
-        if (!ID_PATTERN.matcher(id).matches()) {
-            throw new CustomException(ErrorCode.INVALID_ID_FORMAT);
-        }
     }
 }

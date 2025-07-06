@@ -1,8 +1,6 @@
 package com.example.classroom_reservation_system.controller.auth;
 
-import com.example.classroom_reservation_system.dto.requestDto.LoginRequest;
-import com.example.classroom_reservation_system.dto.requestDto.SignUpRequest;
-import com.example.classroom_reservation_system.dto.requestDto.TokenRequest;
+import com.example.classroom_reservation_system.dto.requestDto.*;
 import com.example.classroom_reservation_system.dto.responseDto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.dto.responseDto.LoginResponse;
 import com.example.classroom_reservation_system.dto.responseDto.TokenResponse;
@@ -66,9 +64,18 @@ public class AuthRestController {
     }
 
     /**
+     * 이메일 중복 검사 API
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<ApiSuccessResponse<Void>> checkEmailDuplicate(@RequestParam("email") String email) {
+        authService.checkDuplicateEmail(email);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용 가능한 이메일입니다."));
+    }
+
+    /**
      * 비밀번호 재설정 메일 발송
      */
-    @PostMapping("/findPassword")
+    @PostMapping("/find-password")
     public ResponseEntity<ApiSuccessResponse<Void>> findPassword(@RequestBody @Valid FindPasswordRequest request) {
         authService.sendResetPasswordMail(request.getId());
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "비밀번호 재설정 메일을 발송했습니다."));
@@ -77,18 +84,9 @@ public class AuthRestController {
     /**
      * 비밀번호 재설정
      */
-    @PostMapping("/resetPassword")
+    @PostMapping("/reset-password")
     public ResponseEntity<ApiSuccessResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "비밀번호가 성공적으로 변경되었습니다."));
-    }
-
-    /**
-     * 이메일 중복 검사 API
-     */
-    @GetMapping("/check-email")
-    public ResponseEntity<ApiSuccessResponse<Void>> checkEmailDuplicate(@RequestParam("email") String email) {
-        authService.checkDuplicateEmail(email);
-        return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용 가능한 이메일입니다."));
     }
 }
