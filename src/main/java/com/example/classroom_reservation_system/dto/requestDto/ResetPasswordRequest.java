@@ -3,8 +3,10 @@ package com.example.classroom_reservation_system.dto.requestDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class ResetPasswordRequest {
 
     @NotBlank(message = "토큰이 필요합니다.")

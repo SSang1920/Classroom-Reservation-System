@@ -49,6 +49,7 @@ public class AuthService {
     private String frontendUrl;
 
     private static final Pattern ID_PATTERN = Pattern.compile("^[a-zA-Z0-9]{6,15}$");
+
     /**
      * 로그인
      */
