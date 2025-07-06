@@ -16,6 +16,7 @@ public enum ErrorCode {
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "LOGIN_FAILED", "아이디 또는 비밀번호가 일치하지 않습니다."),
     PASSWORD_CONFIRM_NOT_MATCH(HttpStatus.BAD_REQUEST, "PASSWORD_CONFIRM_NOT_MATCH", "비밀번호가 일치하지 않습니다."),
     INVALID_ID_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_ID_FORMAT", "아이디는 6~15자 이내의 영어와 숫자만 입력할 수 있습니다."),
+    CANNOT_USE_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "CANNOT_USE_OLD_PASSWORD", "이전과 동일한 비밀번호는 사용할 수 없습니다."),
 
     // ===== 토큰/인증 관련 =====
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED", "AccessToken이 만료되었습니다."),

@@ -254,8 +254,14 @@ public class AuthService {
             throw new CustomException(ErrorCode.INVALID_RESET_TOKEN);
         }
 
-        // 비밀번호 변경
         Member member = resetToken.getMember();
+
+        // 이전 비밀번호와 동일한지 확인
+        if (passwordEncoder.matches(request.getNewPassword(), member.getPassword())) {
+            throw new CustomException(ErrorCode.CANNOT_USE_OLD_PASSWORD);
+        }
+
+        // 비밀번호 변경
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         member.changePassword(encodedPassword);
 
