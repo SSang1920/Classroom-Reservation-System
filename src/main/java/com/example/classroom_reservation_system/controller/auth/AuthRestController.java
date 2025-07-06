@@ -1,8 +1,6 @@
 package com.example.classroom_reservation_system.controller.auth;
 
-import com.example.classroom_reservation_system.dto.requestDto.LoginRequest;
-import com.example.classroom_reservation_system.dto.requestDto.SignUpRequest;
-import com.example.classroom_reservation_system.dto.requestDto.TokenRequest;
+import com.example.classroom_reservation_system.dto.requestDto.*;
 import com.example.classroom_reservation_system.dto.responseDto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.dto.responseDto.LoginResponse;
 import com.example.classroom_reservation_system.dto.responseDto.TokenResponse;
@@ -63,5 +61,23 @@ public class AuthRestController {
     public ResponseEntity<ApiSuccessResponse<Void>> checkIdDuplicate(@RequestParam("id") String id) {
         authService.checkDuplicateId(id);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용 가능한 아이디입니다."));
+    }
+
+    /**
+     * 비밀번호 재설정 메일 발송
+     */
+    @PostMapping("/findPassword")
+    public ResponseEntity<ApiSuccessResponse<Void>> findPassword(@RequestBody @Valid FindPasswordRequest request) {
+        authService.sendResetPasswordMail(request.getId());
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "비밀번호 재설정 메일을 발송했습니다."));
+    }
+
+    /**
+     * 비밀번호 재설정
+     */
+    @PostMapping("/resetPassword")
+    public ResponseEntity<ApiSuccessResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "비밀번호가 성공적으로 변경되었습니다."));
     }
 }

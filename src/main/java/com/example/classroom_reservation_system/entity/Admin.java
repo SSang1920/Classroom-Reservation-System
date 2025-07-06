@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class Admin extends Member {
 
-    @Column(name = "admin_id", length = 10, unique = true)
+    @Column(name = "admin_id", length = 15, unique = true)
     private String adminId;
 
     @Override

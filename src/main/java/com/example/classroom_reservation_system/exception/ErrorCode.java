@@ -23,12 +23,14 @@ public enum ErrorCode {
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "TOKEN_NOT_FOUND", "토큰이 존재하지 않습니다."),
     TOKEN_MISMATCH(HttpStatus.FORBIDDEN, "TOKEN_MISMATCH", "서버에 저장된 토큰과 일치하지 않습니다."),
     AUTHENTICATION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTHENTICATION_NOT_FOUND", "인증 정보가 없습니다."),
+    INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "INVALID_RESET_TOKEN", "유효하지 않은 비밀번호 재설정 토큰입니다."),
 
     // ===== 입력값 검증 관련 =====
     VALIDATION_FAIL(HttpStatus.BAD_REQUEST, "VALIDATION_FAIL", "입력값 검증 실패"),
 
     // ===== 시스템 에러 =====
-    SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "서버 내부 오류");
+    SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "서버 내부 오류"),
+    MAIL_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "MAIL_SEND_FAIL", "메일 전송에 실패했습니다.");
 
     private final HttpStatus status;
     private final String errorCode;

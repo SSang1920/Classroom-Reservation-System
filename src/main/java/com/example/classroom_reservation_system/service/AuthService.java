@@ -12,13 +12,19 @@ import com.example.classroom_reservation_system.exception.ErrorCode;
 import com.example.classroom_reservation_system.repository.member.AdminRepository;
 import com.example.classroom_reservation_system.repository.member.ProfessorRepository;
 import com.example.classroom_reservation_system.repository.member.StudentRepository;
+import com.example.classroom_reservation_system.repository.token.PasswordResetTokenRepository;
 import com.example.classroom_reservation_system.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.classroom_reservation_system.repository.member.MemberRepository;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,12 +34,17 @@ public class AuthService {
     private final StudentRepository studentRepository;
     private final ProfessorRepository professorRepository;
     private final AdminRepository adminRepository;
+    private final PasswordResetTokenRepository tokenRepository;
     private final MemberService memberService;
     private final MemberLoginService memberLoginService;
+    private final MailService mailService;
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
     private final JwtProperties jwtProperties;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     /**
      * 로그인
@@ -169,5 +180,55 @@ public class AuthService {
         if (exists) {
             throw new CustomException(ErrorCode.DUPLICATE_ID);
         }
+    }
+
+    /**
+     * 이메일로 링크 발송
+     */
+    public void sendResetPasswordMail(String id){
+        Optional<? extends  Member> memberOpt =
+                studentRepository.findByStudentId(id).map(m -> (Member) m)
+                .or(() -> professorRepository.findByProfessorId(id).map(m -> (Member) m))
+                .or(() -> adminRepository.findByAdminId(id).map(m -> (Member) m));
+
+        if (memberOpt.isEmpty()) return;
+
+        Member member = memberOpt.get();
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        // 토큰 저장
+        PasswordResetToken entity = PasswordResetToken.builder()
+                .token(token)
+                .expiresAt(expiresAt)
+                .used(false)
+                .member(member)
+                .build();
+
+        tokenRepository.save(entity);
+
+        // 이메일 전송
+        String link = frontendUrl + "/auth/resetPassword?token" + token;
+        mailService.sendResetPasswordMail(member.getEmail(), link);
+    }
+
+    /**
+     * 비밀번호 재설정
+     */
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_RESET_TOKEN));
+
+        if (resetToken.isUsed() || resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new CustomException(ErrorCode.INVALID_RESET_TOKEN);
+        }
+
+        Member member = resetToken.getMember();
+        String encodedPassword = passwordEncoder.encode(newPassword);
+
+        member.changePassword(encodedPassword);
+        resetToken.use();
+
+        tokenRepository.save(resetToken);
     }
 }

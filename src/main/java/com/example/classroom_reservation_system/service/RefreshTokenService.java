@@ -6,7 +6,7 @@ import com.example.classroom_reservation_system.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.classroom_reservation_system.repository.RefreshTokenRepository;
+import com.example.classroom_reservation_system.repository.token.RefreshTokenRepository;
 
 import java.time.LocalDateTime;
 

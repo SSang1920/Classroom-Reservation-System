@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class Professor extends Member {
 
-    @Column(name = "professor_id", length = 10, unique = true)
+    @Column(name = "professor_id", length = 15, unique = true)
     private String professorId;
 
     @Override

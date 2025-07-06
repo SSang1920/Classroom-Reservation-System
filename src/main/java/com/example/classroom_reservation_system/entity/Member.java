@@ -61,5 +61,9 @@ public abstract class Member {
         notification.setMember(null);
     }
 
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
+    }
+
     public abstract String getId();
 }

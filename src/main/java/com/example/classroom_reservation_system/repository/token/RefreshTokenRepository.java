@@ -1,4 +1,4 @@
-package com.example.classroom_reservation_system.repository;
+package com.example.classroom_reservation_system.repository.token;
 
 import com.example.classroom_reservation_system.entity.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
