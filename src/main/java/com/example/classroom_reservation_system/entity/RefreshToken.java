@@ -29,4 +29,12 @@ public class RefreshToken {
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
+
+    /**
+     * 토큰 값과 만료 날짜를 갱신
+     */
+    public void updateToken(String token, LocalDateTime expiryDate){
+        this.token = token;
+        this.expiryDate = expiryDate;
+    }
 }

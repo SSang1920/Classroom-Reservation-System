@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.classroom_reservation_system.repository.token.RefreshTokenRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,14 +25,22 @@ public class RefreshTokenService {
 
         LocalDateTime expiryDate = LocalDateTime.now().plusSeconds(refreshTokenExpirationMillis / 1000);
 
-        // RefreshToken 생성
-        RefreshToken refreshToken = RefreshToken.builder()
-                .memberUuid(memberUuid)
-                .token(token)
-                .expiryDate(expiryDate)
-                .build();
+        Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByMemberUuid(memberUuid);
 
-        refreshTokenRepository.save(refreshToken);
+        if(existingTokenOpt.isPresent()){
+            //이미 토큰 존재시 새 토큰값과 만료시간 업데이트
+            RefreshToken existingToken = existingTokenOpt.get();
+            existingToken.updateToken(token,expiryDate);
+        }else{
+            // 토큰 생성
+            RefreshToken newRefreshToken = RefreshToken.builder()
+                    .memberUuid(memberUuid)
+                    .token(token)
+                    .expiryDate(expiryDate)
+                    .build();
+            refreshTokenRepository.save(newRefreshToken);
+        }
+
     }
 
     /**

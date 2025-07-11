@@ -67,7 +67,7 @@ public class InitData implements CommandLineRunner {
                     .name("용상윤")
                     .password(passwordEncoder.encode("asdfasdf"))
                     .email("sangyoon053@naver.com")
-                    .role(Role.STUDENT)
+                    .role(Role.ADMIN)
                     .year(4)
                     .build();
             studentRepository.save(student);

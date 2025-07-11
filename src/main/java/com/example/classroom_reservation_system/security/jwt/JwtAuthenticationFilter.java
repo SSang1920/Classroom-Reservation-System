@@ -1,6 +1,12 @@
 package com.example.classroom_reservation_system.security.jwt;
 
+import com.example.classroom_reservation_system.entity.Member;
 import com.example.classroom_reservation_system.exception.CustomException;
+import com.example.classroom_reservation_system.exception.ErrorCode;
+import com.example.classroom_reservation_system.security.CustomUserDetails;
+import com.example.classroom_reservation_system.service.MemberService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +23,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -25,6 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtUtil jwtUtil;
+    private final MemberService memberService;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -48,28 +59,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 토큰에서 정보 추출
             String memberUuid = jwtUtil.getMemberUuidFromToken(token);
-            String role = jwtUtil.getRoleFromToken(token);
+            Member member = memberService.findByMemberUuid(memberUuid);
+            CustomUserDetails userDetails = new CustomUserDetails(member);
 
-            // 권한 설정
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
-
-            // 스프링 인증 객체 생성
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                            memberUuid,
+                            userDetails, //사용자 정보
                             null,
-                            Collections.singletonList(authority)
+                            userDetails.getAuthorities() // 권한 가져오기
                     );
 
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
             // SecurityContext 등록
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } catch (CustomException e) {
             logger.warn("JWT 인증 실패: {}", e.getMessage());
+            setErrorResponse(response, e.getErrorCode());
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+    private void setErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException{
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json;charset=UTF-8");
+
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("status", errorCode.getStatus().value());
+        errorDetails.put("errorCode", errorCode.getErrorCode());
+        errorDetails.put("message", errorCode.getMessage());
+
+        response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
     }
 }

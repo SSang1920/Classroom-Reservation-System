@@ -58,7 +58,7 @@ public class AuthService {
         Member member = memberLoginService.login(request.getId(), request.getPassword());
 
         // JWT 생성
-        String accessToken = jwtUtil.generateAccessToken(member.getMemberUuid(), member.getId(), member.getRole());
+        String accessToken = jwtUtil.generateAccessToken(member.getMemberUuid(), member.getId(), member.getName(), member.getRole());
         String refreshToken = jwtUtil.generateRefreshToken(member.getMemberUuid());
 
         // RefreshToken 저장
@@ -102,7 +102,7 @@ public class AuthService {
         Member member = memberService.findByMemberUuid(memberUuid);
 
 
-        String newAccessToken = jwtUtil.generateAccessToken(memberUuid, member.getId(), member.getRole());
+        String newAccessToken = jwtUtil.generateAccessToken(memberUuid, member.getId(), member.getName() ,member.getRole());
 
         return new TokenResponse(newAccessToken);
     }
