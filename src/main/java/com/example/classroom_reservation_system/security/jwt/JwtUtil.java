@@ -29,13 +29,14 @@ public class JwtUtil {
     }
 
     // AccessToken 생성
-    public String generateAccessToken(String memberUuid, String userId, Role role) {
+    public String generateAccessToken(String memberUuid, String userId, String name,  Role role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getAccessTokenExpirationTime());  // 만료일
 
         return Jwts.builder()
                 .setSubject(memberUuid)
                 .claim("userId", userId)    // 학번, 교수번호, 관리자번호(ID)
+                .claim("name", name) //사용자 실명
                 .claim("role", "ROLE_" + role.name()) // 사용자 권한
                 .setIssuedAt(now)              // 발급일
                 .setExpiration(expiryDate)
