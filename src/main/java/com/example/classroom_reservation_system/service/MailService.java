@@ -27,7 +27,7 @@ public class MailService {
         String subject = "[실시간 강의실 예약 시스템] 비밀번호 재설정 안내";
         String content = ""
                 + "<h3>비밀번호 재설정 안내</h3>"
-                + "<p>아래 링크를 클릭하여 비밀번호를 재설정하세요.</br>"
+                + "<p>아래 링크를 클릭하여 비밀번호를 재설정하세요.<br><br>"
                 + "<a href=\"" + link + "\" "
                 + "style=\"padding:10px 18px; background:#4361ee; color:white; border-radius:6px; text-decoration:none;\">비밀번호 재설정</a></p>"
                 + "<div style=\"font-size:0.9em; color:#888; margin-top:16px;\">"
