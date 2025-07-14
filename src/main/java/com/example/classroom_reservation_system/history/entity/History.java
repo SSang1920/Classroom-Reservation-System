@@ -6,7 +6,6 @@ import com.example.classroom_reservation_system.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -18,7 +17,7 @@ import java.time.LocalDateTime;
         // 특정 사용자의 예약 이력을 조회하는 경우
         @Index(name = "idx_history_member", columnList = "member_id"),
         // 특정 기간의 이력을 조회하는 경우
-        @Index(name = "idx_history_created_at", columnList = "create_at")
+        @Index(name = "idx_history_created_at", columnList = "created_at")
 })
 @EntityListeners(AuditingEntityListener.class)
 @Getter

@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 세션 방식 사용 X(토큰 기반 인증 사용)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/login", "signup", "/find-password", "reset-password",    // View
+                                "/", "/login", "/signup", "/find-password", "/reset-password",    // View
                                 "/js/**", "/css/**", "/img/**", // 정적 리소스
 
                                 // api
