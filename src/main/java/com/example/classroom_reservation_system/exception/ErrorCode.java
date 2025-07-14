@@ -33,7 +33,8 @@ public enum ErrorCode {
 
     // ===== 시스템 에러 =====
     SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "서버 내부 오류"),
-    MAIL_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "MAIL_SEND_FAIL", "메일 전송에 실패했습니다.");
+    MAIL_SEND_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "MAIL_SEND_FAIL", "메일 전송에 실패했습니다."),
+    MAIL_SEND_FAIL_BUT_TOKEN_SAVED(HttpStatus.INTERNAL_SERVER_ERROR, "MAIL_SEND_FAIL_BUT_TOKEN_SAVED", "요청은 처리되었으나, 메일 발송에 실패햇습니다. 잠시 후 다시 시도해 주세요");
 
     private final HttpStatus status;
     private final String errorCode;

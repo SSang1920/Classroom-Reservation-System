@@ -209,39 +209,54 @@ public class AuthService {
 
     /**
      * 이메일로 링크 발송
+     * sendResetPasswordMail, createAndSavePasswordResetToken 으로 분리하여 트랜잭션 분리
      */
+    @Transactional(noRollbackFor = CustomException.class)
     public void sendResetPasswordMail(FindPasswordRequest request){
         String id = request.getId();
 
-        //optional 변수에 저장
-        Optional<Member> memberOpt = memberService.findMemberById(id);
+        //1. 사용자 조회
+        Member member = memberService.findMemberById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        //사용자 x -> MEMBER_NOT_FOUND 반환
-        if(memberOpt.isEmpty()){
-            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND) ;
-        }
+        //2. 비밀번호 재설정 토큰을 생성하고 DB에 저장 (핵심 DB 트랜잭션)
+        PasswordResetToken resetToken = createAndSavePasswordResetToken(member);
 
-        //사용자 존재-> 메일 발송 로직 실행
-        Member member = memberOpt.get();
+        //3. 재설정 링크 생성, 이메일 발송
+        buildResetLinkAndSendMail(member.getEmail(), resetToken.getToken());
+    }
+
+    /**
+     * 비밀번호 재설정 토큰 생성, DB 저장
+     */
+    private PasswordResetToken createAndSavePasswordResetToken(Member member){
         String token = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
-        //토큰 저장
         PasswordResetToken entity = PasswordResetToken.builder()
                 .token(token)
                 .expiresAt(expiresAt)
                 .used(false)
                 .member(member)
                 .build();
-        tokenRepository.save(entity);
 
-        //이메일 전송
+        return tokenRepository.save(entity);
+    }
+
+    /**
+     * 재설정 링크 생성, 이메일 발송
+     */
+    private void buildResetLinkAndSendMail(String email, String token){
         String link = UriComponentsBuilder.fromUriString(frontendUrl)
                 .path("/auth/reset-password")
-                .queryParam("token", token)
+                .queryParam("token",token)
                 .toUriString();
+        try{
+            mailService.sendResetPasswordMail(email, link);
+        } catch (CustomException e){
+            throw new CustomException(ErrorCode.MAIL_SEND_FAIL_BUT_TOKEN_SAVED);
+        }
 
-        mailService.sendResetPasswordMail(member.getEmail(), link);
     }
 
     /**
