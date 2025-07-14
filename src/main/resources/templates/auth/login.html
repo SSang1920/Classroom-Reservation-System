@@ -38,8 +38,8 @@
 
             <!-- 하단 회원가입/비밀번호 찾기 링크 -->
             <div class="mt-4 text-center">
-                <a href="/auth/signup" class="btn btn-link">회원가입</a>
-                <a href="/auth/find-password" class="btn btn-link">비밀번호 찾기</a>
+                <a href="/signup" class="btn btn-link">회원가입</a>
+                <a href="/find-password" class="btn btn-link">비밀번호 찾기</a>
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
         const password = document.getElementById('password').value;
 
         try {
-            const response = await fetch('/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id, password })

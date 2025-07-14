@@ -51,8 +51,8 @@
 
   <!-- 로그아웃 상태일 때 보여줄 뷰 -->
   <div id="logged-out-view">
-    <a href="/auth/login" class="btn btn-primary">로그인</a>
-    <a href="/auth/signup" class="btn btn-secondary">회원가입</a>
+    <a href="/login" class="btn btn-primary">로그인</a>
+    <a href="/signup" class="btn btn-secondary">회원가입</a>
   </div>
 
   <div id="logged-in-view" class="d-flex align-items-center d-none">
@@ -139,7 +139,7 @@
   function logout() {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      fetch('/auth/logout', {
+      fetch('/api/auth/logout', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
