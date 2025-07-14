@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="topbar" class="top-bar bg-white border-bottom shadow-sm">
+
+    <!-- 로그아웃 상태일 때 보여줄 뷰 -->
+    <div id="logged-out-view">
+        <a href="/auth/login" class="btn btn-primary">로그인</a>
+        <a href="/auth/signup" class="btn btn-secondary">회원가입</a>
+    </div>
+
+    <!-- 로그인 상태일 때 보여줄 뷰 -->
+    <div id="logged-in-view" class="d-flex align-items-center d-none">
+    <span class="me-3">
+      환영합니다, <strong id="username-display"></strong>님!
+    </span>
+        <a id="admin-page-btn" href="/admin" class="btn btn-warning btn-sm me-2 d-none">관리자 페이지</a>
+        <button id="logout-button" class="btn btn-outline-danger btn-sm me-2">로그아웃</button>
+        <div class="notification">
+            <button class="btn btn-outline-secondary btn-sm position-relative" id="notification-btn">
+                🔔
+                <span class="badge bg-danger rounded-pill d-none" id="notification-count">0</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script th:fragment="topbar-script">
+    // 이 스크립트는 topbar fragment를 사용하는 모든 페이지에서 실행됩니다.
+    document.addEventListener('DOMContentLoaded', function() {
+      const token = localStorage.getItem('accessToken');
+      const loggedOutView = document.getElementById('logged-out-view');
+      const loggedInView = document.getElementById('logged-in-view');
+
+      if (token) {
+        //  토큰이 있으면, Bootstrap 클래스를 제어하여 UI 변경
+        loggedOutView.classList.add('d-none');    // 로그아웃 뷰 숨기기
+        loggedInView.classList.remove('d-none'); // 로그인 뷰 보여주기
+
+        try {
+          const payload = parseJwt(token);
+          const displayName = payload.name || payload.userId || '사용자';
+          const role = payload.role;
+
+          document.getElementById('username-display').textContent = displayName;
+
+          if (role === 'ROLE_ADMIN') {
+            document.getElementById('admin-page-btn').classList.remove('d-none');
+          }
+
+        } catch (e) {
+          console.error("유효하지 않은 토큰입니다. 로그아웃 처리합니다.", e);
+          logout();
+        }
+
+      } else {
+        // 토큰이 없으면, Bootstrap 클래스를 제어하여 UI 변경
+        loggedOutView.classList.remove('d-none'); // 로그아웃 뷰 보여주기
+        loggedInView.classList.add('d-none');     // 로그인 뷰 숨기기
+      }
+    });
+
+    // logout-button은 이 스크립트가 로드될 때 항상 존재하므로,
+    // 이벤트 리스너를 여기에 두는 것이 안전합니다.
+    if (document.getElementById('logout-button')) {
+        document.getElementById('logout-button').addEventListener('click', function() {
+          logout();
+        });
+    }
+
+    function parseJwt(token) {
+      try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          return JSON.parse(jsonPayload);
+      } catch (e) {
+          throw new Error("Invalid token");
+      }
+    }
+
+    function logout() {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        fetch('/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+      localStorage.removeItem("accessToken");
+      alert('로그아웃되었습니다.');
+      window.location.href = "/";
+    }
+
+    // 예시: 알림 수 표시 (이 로직은 필요에 따라 각 페이지로 옮기거나 공통으로 유지할 수 있습니다)
+    const unreadNotifications = 3;
+    if (unreadNotifications > 0) {
+      const badge = document.getElementById("notification-count");
+      if(badge) { // badge가 존재하는지 확인 후 실행
+          badge.classList.remove('d-none');
+          badge.textContent = unreadNotifications;
+      }
+    }
+</script>
+
+</body>
+</html>
