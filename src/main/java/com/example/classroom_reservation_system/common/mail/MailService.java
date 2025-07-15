@@ -1,7 +1,7 @@
-package com.example.classroom_reservation_system.service;
+package com.example.classroom_reservation_system.common.mail;
 
-import com.example.classroom_reservation_system.exception.CustomException;
-import com.example.classroom_reservation_system.exception.ErrorCode;
+import com.example.classroom_reservation_system.common.exception.CustomException;
+import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
