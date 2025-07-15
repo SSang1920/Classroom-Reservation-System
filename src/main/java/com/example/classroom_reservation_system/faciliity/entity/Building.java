@@ -35,7 +35,7 @@ public class Building {
 
     @Builder.Default
     @OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<Classroom> classrooms = new ArrayList<>();
+    private List<Classroom> classrooms = new ArrayList<>();
 
     /**
      * 연관관계 편의 메서드 - 강의실 추가, 제거

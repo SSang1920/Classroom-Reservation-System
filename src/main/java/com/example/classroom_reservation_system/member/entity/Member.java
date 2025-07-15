@@ -24,6 +24,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SuperBuilder
+@ToString(exclude = "notifications")    // 모든 연관 필드 제외
 public abstract class Member {
 
     @Id

@@ -49,7 +49,7 @@ public class Classroom {
 
     @Builder.Default
     @OneToMany(mappedBy = "classroom", orphanRemoval = true)
-    private final List<Reservation> reservations  = new ArrayList<>();
+    private List<Reservation> reservations  = new ArrayList<>();
 
     /**
      * 비즈니스 로직: 강의실 상태 변경 메서드 (관리자용 기능)

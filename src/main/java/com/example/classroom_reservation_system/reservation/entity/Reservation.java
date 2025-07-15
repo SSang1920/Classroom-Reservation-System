@@ -30,6 +30,7 @@ import java.util.List;
 @SQLRestriction("deleted_at IS NULL")   // 모든 조회 쿼리에 조건을 추가하여, 논리적으로 삭제된 데이터는 조회하지 않도록 함
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(exclude = {"member", "classroom", "histories", "notifications"})  // 모든 연관 필드 제외
 public class Reservation {
 
     @Id
@@ -63,10 +64,10 @@ public class Reservation {
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<History> histories = new ArrayList<>();
+    private List<History> histories = new ArrayList<>();
 
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<Notification> notifications = new ArrayList<>();
+    private List<Notification> notifications = new ArrayList<>();
 
     /**
      * 예약 생성자
