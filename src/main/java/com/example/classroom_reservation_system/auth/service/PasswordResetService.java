@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +47,7 @@ public class PasswordResetService {
         //1. 사용자 조회
         Member member = memberService.findMemberById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         //2. 보안 토큰 생성
         String originalToken = tokenGenerator.generateSecureUrlToken(32);
         String hashedToken = tokenGenerator.hashToken(originalToken);
@@ -61,10 +61,11 @@ public class PasswordResetService {
 
     /**
      * 비밀번호 재설정 토큰 생성, DB 저장
-     * @param member 토큰을 발급할 대상 회원 객체
+     *
+     * @param member      토큰을 발급할 대상 회원 객체
      * @param hashedToken 데이터베이스에 저장될 해시된 토큰 값
      */
-    private PasswordResetToken createAndSavePasswordResetToken(Member member,String hashedToken){
+    private void createAndSavePasswordResetToken(Member member, String hashedToken){
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 
         PasswordResetToken entity = PasswordResetToken.builder()
@@ -74,7 +75,7 @@ public class PasswordResetService {
                 .member(member)
                 .build();
 
-        return tokenRepository.save(entity);
+        tokenRepository.save(entity);
     }
 
     /**
@@ -85,7 +86,7 @@ public class PasswordResetService {
      */
     private void buildResetLinkAndSendMail(String email, String token){
         String link = UriComponentsBuilder.fromUriString(frontendUrl)
-                .path("/auth/reset-password")
+                .path("/reset-password")
                 .queryParam("token",token)
                 .toUriString();
         try{
