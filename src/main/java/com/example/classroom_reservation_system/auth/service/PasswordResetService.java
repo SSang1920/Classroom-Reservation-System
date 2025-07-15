@@ -1,0 +1,115 @@
+package com.example.classroom_reservation_system.auth.service;
+
+import com.example.classroom_reservation_system.auth.dto.request.FindPasswordRequest;
+import com.example.classroom_reservation_system.auth.dto.request.ResetPasswordRequest;
+import com.example.classroom_reservation_system.member.entity.Member;
+import com.example.classroom_reservation_system.auth.token.PasswordResetToken;
+import com.example.classroom_reservation_system.common.exception.CustomException;
+import com.example.classroom_reservation_system.common.exception.ErrorCode;
+import com.example.classroom_reservation_system.auth.token.PasswordResetTokenRepository;
+import com.example.classroom_reservation_system.config.security.TokenGenerator;
+import com.example.classroom_reservation_system.common.mail.MailService;
+import com.example.classroom_reservation_system.member.service.MemberService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class PasswordResetService {
+
+    private final PasswordResetTokenRepository tokenRepository;
+    private final MemberService memberService;
+    private final MailService mailService;
+    private final TokenGenerator tokenGenerator;
+    private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
+    /**
+     * 이메일로 링크 발송
+     * sendResetPasswordMail, createAndSavePasswordResetToken 으로 분리하여 트랜잭션 분리
+     */
+    @Transactional(noRollbackFor = CustomException.class)
+    public void sendResetPasswordMail(FindPasswordRequest request){
+        String id = request.getId();
+
+        //1. 사용자 조회
+        Member member = memberService.findMemberById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        //2. 비밀번호 재설정 토큰을 생성하고 DB에 저장 (핵심 DB 트랜잭션)
+        PasswordResetToken resetToken = createAndSavePasswordResetToken(member);
+
+        //3. 재설정 링크 생성, 이메일 발송
+        buildResetLinkAndSendMail(member.getEmail(), resetToken.getToken());
+    }
+
+    /**
+     * 비밀번호 재설정 토큰 생성, DB 저장
+     */
+    private PasswordResetToken createAndSavePasswordResetToken(Member member){
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
+
+        PasswordResetToken entity = PasswordResetToken.builder()
+                .token(token)
+                .expiresAt(expiresAt)
+                .used(false)
+                .member(member)
+                .build();
+
+        return tokenRepository.save(entity);
+    }
+
+    /**
+     * 재설정 링크 생성, 이메일 발송
+     */
+    private void buildResetLinkAndSendMail(String email, String token){
+        String link = UriComponentsBuilder.fromUriString(frontendUrl)
+                .path("/auth/reset-password")
+                .queryParam("token",token)
+                .toUriString();
+        try{
+            mailService.sendResetPasswordMail(email, link);
+        } catch (CustomException e){
+            throw new CustomException(ErrorCode.MAIL_SEND_FAIL_BUT_TOKEN_SAVED);
+        }
+
+    }
+
+    /**
+     * 비밀번호 재설정
+     */
+    public void resetPassword(ResetPasswordRequest request) {
+        // 비밀번호 일치 여부 확인
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new CustomException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
+        }
+
+        // 토큰 유효성 검사
+        String hashedToken = tokenGenerator.hashToken(request.getToken());
+        PasswordResetToken resetToken = tokenRepository.findByToken(hashedToken)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_RESET_TOKEN));
+
+        // 토큰 사용 처리
+        resetToken.use();
+
+        Member member = resetToken.getMember();
+
+        // 이전 비밀번호와 동일한지 확인
+        if (passwordEncoder.matches(request.getNewPassword(), member.getPassword())) {
+            throw new CustomException(ErrorCode.CANNOT_USE_OLD_PASSWORD);
+        }
+
+        member.changePassword(passwordEncoder.encode(request.getNewPassword()));
+    }
+}
