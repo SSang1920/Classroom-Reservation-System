@@ -39,7 +39,7 @@ public class SecurityConfig {
                                 "/api/members/check-id",        // ID 중복 검사
                                 "/api/members/check-email"       // 이메일 중복 검사
                         ).permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ADMIN")  // 관리자 권한
+                        .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")  // 관리자 권한 필요
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 등록

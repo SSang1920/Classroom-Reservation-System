@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String memberUuid = jwtUtil.getMemberUuidFromToken(token);
             Member member = memberService.findByMemberUuid(memberUuid);
             CustomUserDetails userDetails = new CustomUserDetails(member);
+            System.out.println("권한: " + userDetails.getAuthorities());
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -69,6 +71,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // SecurityContext 등록
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            logger.debug("[{}] {}   // authHeader={}", request.getMethod(), request.getRequestURI(), authHeader);
+            logger.info("=== 최종 권한 === {}", auth != null ? auth.getAuthorities() : "null");
+
         } catch (CustomException e) {
             logger.warn("JWT 인증 실패: {}", e.getMessage());
             setErrorResponse(response, e.getErrorCode());
@@ -77,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-    private void setErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException{
+    private void setErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
         response.setStatus(errorCode.getStatus().value());
         response.setContentType("application/json;charset=UTF-8");
 

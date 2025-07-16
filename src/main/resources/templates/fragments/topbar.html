@@ -15,7 +15,7 @@
     <span class="me-3">
       환영합니다, <strong id="username-display"></strong>님!
     </span>
-        <a id="admin-page-btn" href="/admin" class="btn btn-warning btn-sm me-2 d-none">관리자 페이지</a>
+        <a id="admin-page-btn" href="/admin/main" class="btn btn-warning btn-sm me-2 d-none">관리자 페이지</a>
         <button id="logout-button" class="btn btn-outline-danger btn-sm me-2">로그아웃</button>
         <div class="notification">
             <button class="btn btn-outline-secondary btn-sm position-relative" id="notification-btn">
@@ -86,7 +86,7 @@
     function logout() {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        fetch('/auth/logout', {
+        fetch('/api/auth/logout', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });

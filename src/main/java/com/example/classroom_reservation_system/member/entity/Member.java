@@ -30,7 +30,7 @@ public abstract class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
-    private Long id;
+    private Long memberId;
 
     @Column(name = "member_uuid", updatable = false, nullable = false, unique = true, length = 36)
     private String memberUuid;
