@@ -19,6 +19,7 @@ public enum ErrorCode {
     CANNOT_USE_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "CANNOT_USE_OLD_PASSWORD", "이전과 동일한 비밀번호는 사용할 수 없습니다."),
 
     // ===== 토큰/인증 관련 =====
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "ACCESS_DENIED", "접근 권한이 없습니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED", "AccessToken이 만료되었습니다."),
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_ACCESS_TOKEN", "유효하지 않는 AccessToken입니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "REFRESH_TOKEN_EXPIRED", "RefreshToken이 만료되었습니다."),
@@ -42,6 +43,9 @@ public enum ErrorCode {
     RESERVATION_ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "RESERVATION_ALREADY_CANCELED", "이미 취소된 예약은 완료 처리할 수 없습니다."),
     RESERVATION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "RESERVATION_ALREADY_COMPLETED","이미 완료된 예약입니다."),
     RESERVATION_NOT_CANCELLABLE(HttpStatus.BAD_REQUEST, "RESERVATION_NOT_CANCELLABLE", "이미 완료되었거나 취소된 예약은 취소할 수 없습니다."),
+    RESERVATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "RESERVATION_ACCESS_DENIED", "해당 예약에 접근할 권한이 없습니다."),
+    INVALID_RESERVATION_TIME(HttpStatus.BAD_REQUEST, "INVALID_RESERVATION_TIME", "유효하지 않은 예약 시간입니다."),
+
 
     // ===== 입력값 검증 관련 =====
     VALIDATION_FAIL(HttpStatus.BAD_REQUEST, "VALIDATION_FAIL", "입력값 검증 실패"),
