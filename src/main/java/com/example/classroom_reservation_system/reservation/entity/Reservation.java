@@ -123,6 +123,23 @@ public class Reservation {
         this.addNotification(this.member.getName() + "님의 " + this.classroom.getName() + " 강의실 예약이 취소되었습니다.");
     }
 
+    public void cancelByAdmin(){
+        // 예약이 취소 불가능한 상태인지 검사
+        if (this.reservationState == ReservationState.CANCELED || this.reservationState == ReservationState.COMPLETED) {
+            throw new CustomException(ErrorCode.RESERVATION_NOT_CANCELLABLE);
+        }
+
+        // 예약 상태를 'CANCELED' 변경
+        this.reservationState = ReservationState.CANCELED;
+
+        // 히스토리 기록 추가
+        this.addHistory(HistoryState.CANCELED_BY_ADMIN);
+
+        // 알림 추가
+        this.addNotification("관리자에 의해 "+ this.member.getName() + "님의 " + this.classroom.getName() + " 강의실 예약이 취소되었습니다.");
+
+    }
+
     public void complete() {
         if (this.reservationState == ReservationState.COMPLETED) {
             throw new CustomException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
@@ -135,6 +152,22 @@ public class Reservation {
         this.reservationState = ReservationState.COMPLETED;
         this.addHistory(HistoryState.COMPLETED);
     }
+
+    public void autoComplete() {
+        //이미 처리된 예약은 건너띔
+        if (this.reservationState == ReservationState.COMPLETED || this.reservationState == ReservationState.CANCELED) {
+           return;
+        }
+
+        //종료 시간이 되지 않은 예약은 건너뜀
+        if (this.endTime.isAfter(LocalDateTime.now())){
+            return;
+        }
+
+        this.reservationState = ReservationState.COMPLETED;
+        this.addHistory(HistoryState.COMPLETED_BY_SYSTEM);
+    }
+
 
     /**
      * 연관관계 편의 메서드 - 예약이력 추가 (내부용)
@@ -178,4 +211,5 @@ public class Reservation {
     public void linkToClassroom(Classroom classroom) {
         this.classroom = classroom;
     }
+
 }

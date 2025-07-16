@@ -14,13 +14,13 @@ public class CustomUserDetails implements UserDetails {
 
     private final String username; //로그인 id (학번)
     private final String password;
-    private final String memberUUid;
+    private final String memberUuid;
     private final Collection<? extends  GrantedAuthority> authorities;
 
     public CustomUserDetails(Member member){
         this.username = member.getId();
         this.password = member.getPassword();
-        this.memberUUid = member.getMemberUuid();
+        this.memberUuid = member.getMemberUuid();
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()));
     }
 

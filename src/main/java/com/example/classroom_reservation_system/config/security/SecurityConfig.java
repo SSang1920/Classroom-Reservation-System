@@ -28,10 +28,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))   // 세션 방식 사용 X(토큰 기반 인증 사용)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/login", "/signup", "/find-password", "/reset-password",    // View
-                                "/js/**", "/css/**", "/img/**", // 정적 리소스
+                                // --- 정적 리소스 ---
+                                "/js/**", "/css/**", "/img/**",
+                                // --- View 페이지 (인증 없이 접근 가능) ---
+                                "/", "/login", "/signup", "/find-password", "/reset-password",
 
-                                // api
+                                // --- API (인증 없이 접근 가능) ---
                                 "/api/auth/login",              // 로그인
                                 "/api/auth/refresh",            // 토큰 재발급
                                 "/api/auth/password/**",        // 비밀번호 찾기, 재설정 관련 모든 api
