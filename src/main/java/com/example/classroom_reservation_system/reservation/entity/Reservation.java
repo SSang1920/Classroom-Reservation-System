@@ -205,11 +205,4 @@ public class Reservation {
         }
     }
 
-    /**
-     * 연관관계 편의 메서드 - Classroom과 연관관계 설정
-     */
-    public void linkToClassroom(Classroom classroom) {
-        this.classroom = classroom;
-    }
-
 }

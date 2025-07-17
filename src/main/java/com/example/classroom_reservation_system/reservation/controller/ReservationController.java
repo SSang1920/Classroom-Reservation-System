@@ -3,16 +3,18 @@ package com.example.classroom_reservation_system.reservation.controller;
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.config.security.CustomUserDetails;
 import com.example.classroom_reservation_system.reservation.dto.request.ReservationRequest;
+import com.example.classroom_reservation_system.reservation.dto.response.ReservationCreationResponse;
+import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
 import com.example.classroom_reservation_system.reservation.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,16 +24,31 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     /**
+     * 내 예약 목록 조회 API
+     */
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()") // 이 엔드포인트는 인증된 사용자만 접근 가능
+    public ResponseEntity<ApiSuccessResponse<List<ReservationResponse>>> getMyReservations(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String memberUuid = userDetails.getMemberUuid();
+        List<ReservationResponse> reservations = reservationService.getMyReservationsApi(memberUuid);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "내 예약 목록 조회 성공", reservations));
+    }
+
+    /**
      * 예약 생성 API (사용자)
      */
     @PostMapping
-    public ResponseEntity<ApiSuccessResponse<Void>> createReservation(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody ReservationRequest request){
+    public ResponseEntity<ApiSuccessResponse<ReservationCreationResponse>> createReservation(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody ReservationRequest request){
         String memberUuid = userDetails.getMemberUuid();
         Long reservationId = reservationService.createReservation(memberUuid,request);
         URI location = URI.create("/api/reservations/" + reservationId);
 
+        //응답에 포함할 데이터 생성
+        ReservationCreationResponse responseData = new ReservationCreationResponse(reservationId);
+
         return ResponseEntity.created(location)
-                .body(ApiSuccessResponse.of(201, "예약이 성공적으로 생성되었습니다."));
+                .body(ApiSuccessResponse.of(201, "예약이 성공적으로 생성되었습니다.", responseData));
     }
 
     /**
@@ -53,7 +70,7 @@ public class ReservationController {
         String memberUuid = userDetails.getMemberUuid();
         reservationService.completeReservation(reservationId, memberUuid);
 
-        return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약이 성공적으로 완료되었습니다."));
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용완료 처리가 성공적으로 되었습니다."));
 
     }
 

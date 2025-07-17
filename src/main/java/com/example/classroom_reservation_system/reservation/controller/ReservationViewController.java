@@ -1,6 +1,7 @@
 package com.example.classroom_reservation_system.reservation.controller;
 
 import com.example.classroom_reservation_system.config.security.CustomUserDetails;
+import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import com.example.classroom_reservation_system.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
@@ -15,18 +16,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReservationViewController {
 
-    private final ReservationService reservationService;
+    @GetMapping("/history")
+    public String myReservationHistoryPage(){
 
-    @GetMapping("/reservations/my-list")
-    public String myReservationsPage(@AuthenticationPrincipal CustomUserDetails userDetails, Model model){
-        String memberUuid = userDetails.getMemberUuid();
-        List<Reservation> reservations = reservationService.getMyReservations(memberUuid);
-        model.addAttribute("reservations", reservations);
-        return "reservation/my-list";
+        return "reservation/history";
     }
 
-    @GetMapping("/reservations/new")
+    @GetMapping("/reserve")
     public String newReservationPage(){
-        return "reservation/new-form";
+
+        return "reservation/reserve";
     }
 }

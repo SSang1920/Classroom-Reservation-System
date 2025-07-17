@@ -31,7 +31,8 @@ public class SecurityConfig {
                                 // --- 정적 리소스 ---
                                 "/js/**", "/css/**", "/img/**",
                                 // --- View 페이지 (인증 없이 접근 가능) ---
-                                "/", "/login", "/signup", "/find-password", "/reset-password",
+                                "/", "/login", "/signup", "/home", "/reserve", "/history",
+                                "/find-password", "/reset-password",
 
                                 // --- API (인증 없이 접근 가능) ---
                                 "/api/auth/login",              // 로그인
@@ -39,10 +40,11 @@ public class SecurityConfig {
                                 "/api/auth/password/**",        // 비밀번호 찾기, 재설정 관련 모든 api
                                 "/api/members/signup",          // 회원가입
                                 "/api/members/check-id",        // ID 중복 검사
-                                "/api/members/check-email"       // 이메일 중복 검사
+                                "/api/members/check-email",       // 이메일 중복 검사
+                                "/api/classrooms" //강의실 목록 조회
                         ).permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ADMIN")  // 관리자 권한
-                        .anyRequest().authenticated()
+                        .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")  // 'ADMIN' 역할을 가진 사용자만 접근 가능
+                        .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 등록
 

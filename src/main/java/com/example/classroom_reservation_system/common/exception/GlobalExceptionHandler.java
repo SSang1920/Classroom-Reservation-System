@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +37,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleCustom(CustomException ex) {
 
         ErrorCode code = ex.getErrorCode();
+
+        return ResponseEntity
+                .status(code.getStatus())
+                .body(ApiErrorResponse.of(code));
+    }
+
+    /**
+     * Spring Security @PreAuthorize 권한 실패
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex){
+        ErrorCode code = ErrorCode.ACCESS_DENIED;
 
         return ResponseEntity
                 .status(code.getStatus())
