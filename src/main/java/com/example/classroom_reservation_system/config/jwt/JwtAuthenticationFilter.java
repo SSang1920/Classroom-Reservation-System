@@ -58,22 +58,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String memberUuid = jwtUtil.getMemberUuidFromToken(token);
             Member member = memberService.findByMemberUuid(memberUuid);
             CustomUserDetails userDetails = new CustomUserDetails(member);
-            System.out.println("권한: " + userDetails.getAuthorities());
 
-            UsernamePasswordAuthenticationToken authentication =
+            UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
                             userDetails, //사용자 정보
                             null,
                             userDetails.getAuthorities() // 권한 가져오기
                     );
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            // SecurityContext 등록
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            logger.debug("[{}] {}   // authHeader={}", request.getMethod(), request.getRequestURI(), authHeader);
-            logger.info("=== 최종 권한 === {}", auth != null ? auth.getAuthorities() : "null");
+            // 디버깅 코드 - 현재 요청을 보낸 사용자 권한 확인
+            logger.info(">>>> [Auth Check] User: '{}', Authorities: {}", auth.getName(), auth.getAuthorities());
+
+            // SecurityContext에 auth 객체 저장
+            SecurityContextHolder.getContext().setAuthentication(auth);
 
         } catch (CustomException e) {
             logger.warn("JWT 인증 실패: {}", e.getMessage());

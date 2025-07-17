@@ -23,7 +23,6 @@ public class JwtUtil {
     // 비밀키 properties 가져오기
     private Key getSigningKey() {
         byte[] keyBytes = jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8);
-        log.info("JWT KEY LENGTH: {}", keyBytes.length);
         return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8));
     }
 

@@ -13,4 +13,9 @@ public class AdminViewController {
     public String adminMainPage() {
         return "admin/main";
     }
+
+    @GetMapping("/members")
+    public String adminMembersPage() {
+        return "admin/members";
+    }
 }
