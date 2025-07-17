@@ -81,12 +81,10 @@ public class Classroom {
      */
     public void addReservation(Reservation reservation) {
         reservations.add(reservation);
-        reservation.linkToClassroom(this);
     }
 
     public void removeReservation(Reservation reservation) {
         reservations.remove(reservation);
-        reservation.linkToClassroom(null);
     }
 
     /**
