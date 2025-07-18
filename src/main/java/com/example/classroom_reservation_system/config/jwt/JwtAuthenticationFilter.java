@@ -41,14 +41,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         // Authorization 헤더에서 토큰 가져오기
+        String token = null; // JWT 토큰 변수 초기화
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response); // 토큰 없으면 다음 필터로 넘김
-            return;
+        // 헤더에서 토큰을 먼저 확인
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            // "Bearer " 다음 부분이 실제 토큰이므로 substring(7)로 잘라냄
+            token = authHeader.substring(7);
         }
 
-        String token = authHeader.substring(7); // "Bearer" 이후 부분 추출
+        // 헤더에 토큰이 없고, 요청이 SSE 구독(/subscribe)일 경우 쿼리 파라미터에서 토큰을 추출
+        else if ("/api/notifications/subscribe".equals(request.getRequestURI())
+                && request.getParameter("token") != null){
+            token = request.getParameter("token");
+            logger.info("SSE connection token found in query parameter.");
+        }
+
+        // 토큰이 여전히 없으면 인증 로직 없이 다음 필터로 진행
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             // AccessToken 유효성 검사
