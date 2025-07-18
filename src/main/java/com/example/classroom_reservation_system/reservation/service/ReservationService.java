@@ -10,8 +10,10 @@ import com.example.classroom_reservation_system.reservation.dto.request.Reservat
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import com.example.classroom_reservation_system.reservation.entity.ReservationState;
+import com.example.classroom_reservation_system.reservation.event.ReservationStatusChangedEvent;
 import com.example.classroom_reservation_system.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final MemberService memberService; //회원 정보를 가져옴
     private final ClassroomRepository classroomRepository; // 강의실 정보 가져옴
+    private final ApplicationEventPublisher eventPublisher; // 이벤트 발행기
 
     /**
      * 예약 생성
@@ -71,9 +74,13 @@ public class ReservationService {
         );
 
         // 6. 예약 저장
-        Reservation saveReservation = reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
 
-        return saveReservation.getId();
+        // 7. 예약 성공 이벤트 발행
+        String message = String.format("'%s' 예약이 완료되었습니다.", savedReservation.getClassroom().getName());
+        eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, savedReservation, message));
+
+        return savedReservation.getId();
     }
 
     /**
@@ -85,6 +92,10 @@ public class ReservationService {
     public void cancelReservation(Long reservationId, String memberUuid){
         Reservation reservation = findAndValidateOwner(reservationId, memberUuid);
         reservation.cancel();
+
+        // 예약 취소 이벤트 발행
+        String message = String.format("'%s' 예약이 취소되었습니다.", reservation.getClassroom().getName());
+        eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
     }
 
     @Transactional
@@ -93,6 +104,10 @@ public class ReservationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
 
         reservation.cancelByAdmin();
+
+        // 관리자에 의한 예약 취소 이벤트 발행
+        String message = String.format("관리자에 의해 '%s' 예약이 취소되었습니다.", reservation.getClassroom().getName());
+        eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
 
     }
 

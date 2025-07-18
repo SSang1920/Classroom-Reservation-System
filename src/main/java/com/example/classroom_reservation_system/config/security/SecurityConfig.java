@@ -45,6 +45,8 @@ public class SecurityConfig {
                                 "/api/members/check-email",     // 이메일 중복 검사
                                 "/api/classrooms"               // 강의실 목록 조회
                         ).permitAll()
+                        // SSE 구독 경로는 인증된 사용자만 접근 가능하도록 추가
+                        .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")  // 'ADMIN' 역할을 가진 사용자만 접근 가능
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )

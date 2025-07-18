@@ -77,18 +77,6 @@ public abstract class Member {
         this.password = newPassword;
     }
 
-    /**
-     * 연관관계 편의 메서드 - 알림 추가, 제거
-     */
-    public void addNotifications(Notification notification){
-        this.notifications.add(notification);
-        notification.assignToMember(this);
-    }
-
-    public void removeNotifications(Notification notification){
-        this.notifications.remove(notification);
-        notification.unassignFromMember();
-    }
 
     public abstract String getId();
 }

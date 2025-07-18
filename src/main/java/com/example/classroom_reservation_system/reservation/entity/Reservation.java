@@ -66,7 +66,7 @@ public class Reservation {
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<History> histories = new ArrayList<>();
 
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "reservation")
     private List<Notification> notifications = new ArrayList<>();
 
     /**
@@ -99,8 +99,6 @@ public class Reservation {
         classroom.addReservation(reservation);
         reservation.addHistory(HistoryState.RESERVED);
 
-        reservation.addNotification(member.getName() + "님의 " + classroom.getName() + " 강의실 예약이 완료되었습니다.");
-
         return reservation;
     }
 
@@ -119,8 +117,6 @@ public class Reservation {
         // 히스토리 기록 추가
         this.addHistory(HistoryState.CANCELED);
 
-        // 알림 추가
-        this.addNotification(this.member.getName() + "님의 " + this.classroom.getName() + " 강의실 예약이 취소되었습니다.");
     }
 
     public void cancelByAdmin(){
@@ -134,9 +130,6 @@ public class Reservation {
 
         // 히스토리 기록 추가
         this.addHistory(HistoryState.CANCELED_BY_ADMIN);
-
-        // 알림 추가
-        this.addNotification("관리자에 의해 "+ this.member.getName() + "님의 " + this.classroom.getName() + " 강의실 예약이 취소되었습니다.");
 
     }
 
@@ -186,23 +179,5 @@ public class Reservation {
         history.linkToReservation(this);
     }
 
-    /**
-     * 연관관계 편의 메서드 - 알림 추가 (내부용)
-     */
-    private void addNotification(String message) {
-        Notification notification = Notification.builder()
-                .member(this.member)
-                .message(message)
-                .build();
-
-        // Reservation -> Notification 양방향 관계 설정
-        this.notifications.add(notification);
-        notification.linkToReservation(this);
-
-        // Member -> Notification 양방향 관계 설정
-        if (this.member != null) {
-            this.member.addNotifications(notification);
-        }
-    }
 
 }

@@ -34,4 +34,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     // View를 위한 내 예약 목록 조회
     List<Reservation> findAllByMemberOrderByStartTimeDesc(Member member);
+
+    /**
+     * 특정 시간 사이에 시작하고, 특정 상태가 아닌 모든 예약을 조회.
+     * @param reservationState 제외할 예약 상태 (CANCELED)
+     * @param start 시작 시간
+     * @param end 종료 시간
+     * @return 조건에 맞는 예약 목록
+     */
+    List<Reservation> findAllByReservationStateNotAndStartTimeBetween(
+            ReservationState reservationState,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

@@ -127,10 +127,11 @@
       // '예약됨' 상태일 때만 취소 버튼을 생성합니다.
       let actionButton = '';
       if (reservation.state === 'RESERVED') {
+          // [수정] form 대신 button과 onclick을 사용하여 코드를 더 명확하게 만듭니다.
           actionButton = `
-              <form class="cancel-form" data-reservation-id="${reservation.id}">
-                  <button type="submit" class="btn btn-sm btn-outline-danger">취소</button>
-              </form>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="handleCancelClick(this, ${reservation.id})">
+                  취소
+              </button>
           `;
       }
 
@@ -146,36 +147,44 @@
       `;
   }
 
-  // 이벤트 위임을 사용하여 동적으로 생성된 '취소' 버튼의 submit 이벤트를 처리합니다.
-  document.body.addEventListener('submit', function (event) {
-      // 이벤트가 발생한 요소가 'cancel-form' 클래스를 가졌는지 확인합니다.
-      if (event.target.classList.contains('cancel-form')) {
-          event.preventDefault(); // 폼의 기본 동작을 막습니다.
+  //  예약 취소 버튼 클릭을 처리하는 비동기 함수
+  async function handleCancelClick(button, reservationId) {
+      if (!confirm('정말로 예약을 취소하시겠습니까?')) return;
 
-          if (!confirm('정말로 예약을 취소하시겠습니까?')) return;
+      const token = localStorage.getItem('accessToken');
+      const url = `/api/reservations/${reservationId}/cancel`;
 
-          const reservationId = event.target.dataset.reservationId;
-          const token = localStorage.getItem('accessToken');
-          const url = `/api/reservations/${reservationId}/cancel`;
-
-          fetch(url, {
+      try {
+          const response = await fetch(url, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${token}` }
-          })
-          .then(response => {
-              if (!response.ok) return response.json().then(err => { throw new Error(err.message || '취소에 실패했습니다.') });
-              return response.json();
-          })
-          .then(data => {
-              alert(data.message);
-              window.location.reload(); // 성공 시 페이지를 새로고침하여 변경사항을 반영합니다.
-          })
-          .catch(error => {
-              console.error('취소 처리 중 에러 발생:', error);
-              alert(error.message);
           });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+              throw new Error(result.message || '취소에 실패했습니다.');
+          }
+
+          // 성공 시, 페이지 새로고침 없이 UI를 직접 업데이트합니다.
+          // alert(result.message); // 성공 메시지는 실시간 알림으로 대체되므로 굳이 띄울 필요가 없습니다.
+
+          const row = button.closest('tr');
+          if (row) {
+              // 1. 상태 배지를 '취소됨'으로 변경
+              const statusCell = row.cells[4]; // 5번째 셀 (상태)
+              statusCell.innerHTML = '<span class="badge bg-secondary">취소됨</span>';
+
+              // 2. '취소' 버튼을 제거
+              button.remove();
+          }
+
+      } catch (error) {
+          console.error('취소 처리 중 에러 발생:', error);
+          alert(error.message);
       }
-  });
+  }
+
 </script>
 
 </body>

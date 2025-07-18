@@ -5,10 +5,18 @@ background-color: #f8fafa;
 
 /* 모든 페이지의 상단바 스타일 */
 .top-bar {
-display: flex;
-justify-content: flex-end; /* 내용을 오른쪽으로 정렬 */
-align-items: center;
-padding: 1rem;
+    display: flex;
+     justify-content: space-between; /* 내용을 양쪽 끝으로 정렬 */
+     align-items: center;
+     padding: 0.75rem 1.5rem; /* 패딩 조정 */
+ }
+
+ /* 홈으로 가는 링크 스타일 */
+ .navbar-brand {
+     font-size: 1.25rem;
+     text-decoration: none;
+     color: #343a40;
+     font-weight: 600;
 }
 
 /* 알림 아이콘 스타일 (필요 시 사용) */
