@@ -5,6 +5,7 @@ import com.example.classroom_reservation_system.member.dto.request.SignUpRequest
 import com.example.classroom_reservation_system.member.service.MemberRegistrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class MemberRegistrationController {
     @PostMapping("/signup")
     public ResponseEntity<ApiSuccessResponse<Void>> signUp(@RequestBody @Valid SignUpRequest request) {
         memberRegistrationService.signUp(request);
-        return ResponseEntity.ok(ApiSuccessResponse.of(200, "회원가입 성공"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.of(201, "회원가입 성공"));
     }
 
     /**

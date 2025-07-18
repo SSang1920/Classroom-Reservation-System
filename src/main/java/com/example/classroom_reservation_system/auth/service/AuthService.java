@@ -5,6 +5,7 @@ import com.example.classroom_reservation_system.auth.dto.request.TokenRequest;
 import com.example.classroom_reservation_system.config.jwt.JwtProperties;
 import com.example.classroom_reservation_system.auth.dto.response.LoginResponse;
 import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
+import com.example.classroom_reservation_system.config.jwt.TokenType;
 import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.auth.token.RefreshToken;
 import com.example.classroom_reservation_system.common.exception.CustomException;
@@ -60,7 +61,7 @@ public class AuthService {
         }
 
         // 토큰 검증
-        jwtUtil.validateTokenOrThrow(refreshToken);
+        jwtUtil.validateTokenOrThrow(refreshToken, TokenType.REFRESH);
 
         RefreshToken storedToken = refreshTokenService.findByToken(refreshToken);
 
@@ -68,7 +69,14 @@ public class AuthService {
         Member member = memberService.findByMemberUuid(storedToken.getMemberUuid());
         String newAccessToken = jwtUtil.generateAccessToken(member.getMemberUuid(), member.getId(), member.getName() ,member.getRole());
 
-        return new TokenResponse(newAccessToken);
+        // 새 RefreshToken 발급하고 DB의 기존 토큰 업데이트
+        String newRefreshToken = jwtUtil.generateRefreshToken(member.getMemberUuid());
+        storedToken.updateToken(
+                newRefreshToken,
+                jwtUtil.getExpiryDateFromToken(newRefreshToken).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+        );
+
+        return new TokenResponse(newAccessToken, newRefreshToken);
     }
 
     /**

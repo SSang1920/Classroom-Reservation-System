@@ -41,8 +41,8 @@ public class AuthController {
      * 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiSuccessResponse<Void>> logout(Authentication authentication) {
+    public ResponseEntity<Void> logout(Authentication authentication) {
         authService.logout(authentication);
-        return ResponseEntity.ok(ApiSuccessResponse.of(200, "로그아웃 완료"));
+        return ResponseEntity.noContent().build();
     }
 }

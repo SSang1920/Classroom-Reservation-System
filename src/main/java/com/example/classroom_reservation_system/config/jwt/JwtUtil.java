@@ -91,6 +91,11 @@ public class JwtUtil {
         return parseClaims(token, TokenType.ACCESS).get("role", String.class);
     }
 
+    // 토큰에서 만료일을 가져오기
+    public Date getExpiryDateFromToken(String token) {
+        return parseClaims(token, TokenType.REFRESH).getExpiration();
+    }
+
     // 토큰 유효성 검사 (Access)
     public void validateTokenOrThrow(String token) {
         parseClaims(token, TokenType.ACCESS);

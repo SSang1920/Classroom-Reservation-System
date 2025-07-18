@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 토큰이 없을 경우
     if (!token) {
-        alert("로그인이 필요한 페이지입니다.");
         window.location.href = '/login';
         return;
     }
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 관리자가 아닐 경우
         if (userRole !== 'ROLE_ADMIN') {
-            alert("관리자만 접근할 수 있는 페이지입니다.");
             window.location.href = '/';
         }
     } catch (e) {
