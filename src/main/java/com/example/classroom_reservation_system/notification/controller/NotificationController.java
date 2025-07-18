@@ -27,7 +27,7 @@ public class NotificationController {
      */
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId){
+                                @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         return notificationService.subscribe(userDetails.getMemberUuid(), lastEventId);
     }
 
@@ -36,7 +36,7 @@ public class NotificationController {
      * 사용자가 아이콘을 클릭시 호출되는 API
      */
     @GetMapping
-    public ResponseEntity<ApiSuccessResponse<List<NotificationResponseDto>>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiSuccessResponse<List<NotificationResponseDto>>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<NotificationResponseDto> notifications = notificationService.getMyNotifications(userDetails.getMemberUuid());
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "알림 목록 조회 성공", notifications));
     }
@@ -46,8 +46,17 @@ public class NotificationController {
      * 사용자가 특정 알림을 클릭햇을 때 호출될 API
      */
     @PatchMapping("/{id}/read")
-    public ResponseEntity<ApiSuccessResponse<String>> readNotification(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails){
+    public ResponseEntity<ApiSuccessResponse<String>> readNotification(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
         notificationService.readNotification(id, userDetails.getMemberUuid());
         return ResponseEntity.ok(ApiSuccessResponse.of(200,"알림을 읽음 처리 햇습니다.", null));
+    }
+
+    /**
+     * 사용자가 읽지 않은 알림 개수 조회
+     */
+    @GetMapping("/unread-count")
+    public ResponseEntity<ApiSuccessResponse<Long>> getUnreadNotification(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        long count = notificationService.getUnreadNotificationCount(userDetails.getMemberUuid());
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "읽지 않은 알림 개수 조회 성공", count));
     }
 }

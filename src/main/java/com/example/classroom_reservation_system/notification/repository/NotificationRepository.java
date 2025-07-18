@@ -2,11 +2,22 @@ package com.example.classroom_reservation_system.notification.repository;
 
 import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.notification.entity.Notification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NotificationRepository  extends JpaRepository<Notification, Long> {
+
+    /**
+     * 사용자가 알림 조회할 때 연관된 Member 함께 조회
+     */
+    @EntityGraph(attributePaths = {"member"})
+    @Override
+    @NonNull
+    Optional<Notification> findById(@NonNull Long id);
 
     /**
      * 특정 회원의 모든 알림을 최신순으로 조회

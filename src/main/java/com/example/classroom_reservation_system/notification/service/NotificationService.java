@@ -67,7 +67,7 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_NOT_FOUND));
 
-        // 2.알림이 현재 로그인한 회원의ㅡ 것인지 확인
+        // 2.알림이 현재 로그인한 회원의 것인지 확인
         if(!notification.getMember().getMemberUuid().equals(memberUuid)){
             throw new CustomException(ErrorCode.NOTIFICATION_ACCESS_DENIED);
 
@@ -76,6 +76,20 @@ public class NotificationService {
         // 3. 엔티티  내부의 읽음 처리 메소드 호출
         notification.markAsRead();
     }
+
+    /**
+     * 읽지 않은 알림 개수 조회
+     * @param MemberUUid 현재 로그인한 사용자의 UUID
+     * @retrun 읽지 않은 알림 개수
+     */
+    @Transactional(readOnly = true)
+    public long getUnreadNotificationCount(String MemberUUid){
+        Member member = memberRepository.findByMemberUuid(MemberUUid)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return notificationRepository.countByMemberAndIsReadIsFalse(member);
+    }
+
 
     /**
      * SSE 구독
