@@ -159,7 +159,7 @@ public class NotificationService {
                     .data(data));
         } catch (IOException exception) {
             emitterRepository.deleteById(emitterId);
-            log.error("SSE 연결 오류 발생: {}", emitterId, exception);
+            log.debug("SSE 연결 오류 발생: {}", emitterId, exception);
         }
     }
 

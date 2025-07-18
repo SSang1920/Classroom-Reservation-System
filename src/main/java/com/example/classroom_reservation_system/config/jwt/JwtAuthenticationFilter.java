@@ -89,6 +89,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (CustomException e) {
             logger.warn("JWT 인증 실패: {}", e.getMessage());
+
+            // SSE 요청이면 연결만 끊고, 응답 본문은 쓰지 않음 (SSE는 response body 쓰면 안 됨)
+            if (request.getRequestURI().contains("/api/notifications/subscribe")) {
+                return;
+            }
+
+            // 그 외 요청은 에러 응답 반환
             setErrorResponse(response, e.getErrorCode());
             return;
         }
