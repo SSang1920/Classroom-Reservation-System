@@ -34,7 +34,7 @@ public class SecurityConfig {
                                 // --- View 페이지 (인증 없이 접근 가능) ---
                                 "/", "/login", "/signup", "/find-password", "/reset-password",
                                 "/admin/main", "/admin/members",
-                                "reserve", "history",
+                                "/reserve", "/history",
 
                                 // --- API (인증 없이 접근 가능) ---
                                 "/api/auth/login",              // 로그인
@@ -43,7 +43,8 @@ public class SecurityConfig {
                                 "/api/members/signup",          // 회원가입
                                 "/api/members/check-id",        // ID 중복 검사
                                 "/api/members/check-email",     // 이메일 중복 검사
-                                "/api/classrooms"               // 강의실 목록 조회
+                                "/api/facilities/**", // 건물 및 강의실 조회
+                                "/api/reservations/classroom/**" //예약 되어있는 시간 조회
                         ).permitAll()
                         // SSE 구독 경로는 인증된 사용자만 접근 가능하도록 추가
                         .requestMatchers("/api/notifications/**").authenticated()

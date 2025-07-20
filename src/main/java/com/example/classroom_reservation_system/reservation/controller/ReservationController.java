@@ -5,16 +5,21 @@ import com.example.classroom_reservation_system.config.security.CustomUserDetail
 import com.example.classroom_reservation_system.reservation.dto.request.ReservationRequest;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationCreationResponse;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
+import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import com.example.classroom_reservation_system.reservation.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.sql.Time;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,6 +38,18 @@ public class ReservationController {
         String memberUuid = userDetails.getMemberUuid();
         List<ReservationResponse> reservations = reservationService.getMyReservationsApi(memberUuid);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "내 예약 목록 조회 성공", reservations));
+    }
+
+    /**
+     * 특정 날짜에 대한 예약 조회API
+     * 사용자가 날짜 선택시 호출
+     */
+    @GetMapping("/classroom/{classroomId}/reserved-periods")
+    public ResponseEntity<ApiSuccessResponse<Set<TimePeriod>>> getReservedPeriodsForDate(
+            @PathVariable Long classroomId,
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
+        Set<TimePeriod> reservedPeriods = reservationService.getReservedPeriodsForDate(classroomId, date);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약된 시간 조회 성공", reservedPeriods));
     }
 
     /**

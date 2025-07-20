@@ -16,7 +16,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "reservation", indexes = {
@@ -69,16 +71,25 @@ public class Reservation {
     @OneToMany(mappedBy = "reservation")
     private List<Notification> notifications = new ArrayList<>();
 
+    @ElementCollection(targetClass = TimePeriod.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "reservation_periods", joinColumns = @JoinColumn(name = "reservation_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name ="period", nullable = false)
+    private Set<TimePeriod> periods = EnumSet.noneOf(TimePeriod.class);
+
+
     /**
      * 예약 생성자
      */
     @Builder
-    private Reservation(Member member, Classroom classroom, LocalDateTime startTime, LocalDateTime endTime, ReservationState reservationState) {
+    private Reservation(Member member, Classroom classroom, LocalDateTime startTime, LocalDateTime endTime, ReservationState reservationState, Set<TimePeriod> periods) {
         this.member = member;
         this.classroom = classroom;
         this.startTime = startTime;
         this.endTime = endTime;
         this.reservationState = reservationState;
+        this.periods = (periods !=null) ? periods : EnumSet.noneOf(TimePeriod.class);
+
     }
 
     /**
@@ -86,13 +97,14 @@ public class Reservation {
      * 예약을 생성하고, 관련된 초기 히스토리와 알림 함께 생성
      * @return 생성된 Reservation 객체
      */
-    public static Reservation create(Member member, Classroom classroom, LocalDateTime startTime, LocalDateTime endTime) {
+    public static Reservation create(Member member, Classroom classroom, LocalDateTime startTime, LocalDateTime endTime, Set<TimePeriod> periods) {
         Reservation reservation = Reservation.builder()
                 .member(member)
                 .classroom(classroom)
                 .startTime(startTime)
                 .endTime(endTime)
                 .reservationState(ReservationState.RESERVED)
+                .periods(periods)
                 .build();
 
         // 연관관계 설정

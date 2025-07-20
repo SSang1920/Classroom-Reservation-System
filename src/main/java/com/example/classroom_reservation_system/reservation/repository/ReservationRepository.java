@@ -47,4 +47,19 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             LocalDateTime start,
             LocalDateTime end
     );
+
+    /**
+     * 강의실에 예약목록조회
+     * @param classroomId 조회할 강의실 Id
+     * @param  reservationState 제외할 예약
+     * @param start 조회 시작 시간
+     * @param end 조회 종료 시간
+     * @return 조건에 맞는 예약
+     */
+    List<Reservation> findByClassroom_IdAndReservationStateNotAndStartTimeBetween(
+            Long classroomId,
+            ReservationState reservationState,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }
