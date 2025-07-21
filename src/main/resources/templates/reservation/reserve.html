@@ -3,18 +3,16 @@
 <head>
   <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
   <title>강의실 예약하기</title>
-  <!-- [추가] 예약된 슬롯을 시각적으로 표시하기 위한 스타일 -->
   <style>
     .reserved-slot {
-      background-color: #f8d7da !important; /* 예약된 항목 배경색 */
-      color: #842029 !important;           /* 예약된 항목 글자색 */
+      background-color: #f8d7da !important;
+      color: #842029 !important;
       font-style: italic;
-      cursor: not-allowed;                  /* 마우스 커서 변경 */
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
-<!-- 상단 바 -->
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
 <div class="container mt-5">
@@ -131,7 +129,7 @@
 
         if (result.data.length > 0) {
           result.data.forEach(classroom => {
-            // [수정] 강의실 이름에서 건물 부분을 제거하고 호수와 수용인원을 함께 표시
+            //  강의실 이름에서 건물 부분을 제거하고 호수와 수용인원을 함께 표시
             const nameParts = classroom.name.split('-');
             const displayName = nameParts.length > 1 ? nameParts[1] : classroom.name;
             const displayText = `${displayName} (수용인원: ${classroom.capacity}명)`;

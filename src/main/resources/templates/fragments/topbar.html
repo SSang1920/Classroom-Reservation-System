@@ -3,28 +3,24 @@
 <body>
 
 <div th:fragment="topbar" class="top-bar bg-white border-bottom shadow-sm">
-    <!-- 왼쪽: 홈으로 가는 링크 -->
     <div>
         <a href="/" class="navbar-brand">
             <strong>🎓 강의실 예약 시스템</strong>
         </a>
     </div>
 
-    <!-- 오른쪽: 사용자 관련 버튼들을 담는 컨테이너 -->
     <div class="d-flex align-items-center">
-        <!-- 로그아웃 상태일 때 보여줄 뷰 -->
         <div id="logged-out-view">
             <a href="/login" class="btn btn-primary">로그인</a>
             <a href="/signup" class="btn btn-secondary ms-2">회원가입</a>
         </div>
 
-        <!-- 로그인 상태일 때 보여줄 뷰 -->
         <div id="logged-in-view" class="d-flex align-items-center d-none">
             <span class="me-3">환영합니다, <strong id="username-display"></strong>님!</span>
             <a id="admin-page-btn" href="/admin/main" class="btn btn-warning btn-sm me-2 d-none">관리자 페이지</a>
             <button id="logout-button" class="btn btn-outline-danger btn-sm">로그아웃</button>
 
-            <!-- 알림 드롭다운 UI -->
+
             <div class="notification dropdown ms-2">
                 <button class="btn btn-outline-secondary btn-sm position-relative" type="button" id="notification-dropdown-btn" data-bs-toggle="dropdown" aria-expanded="false">
                     🔔
@@ -110,7 +106,7 @@
         const eventSource = new EventSource(`/api/notifications/subscribe?token=${token}`);
 
         eventSource.addEventListener("notification", function(event) {
-            // [수정] 서버에서 오는 데이터가 JSON이 아닐 수도 있으므로 try-catch로 감싸줍니다.
+            //  서버에서 오는 데이터가 JSON이 아닌 경우 방지를 위해  try-catch 사용
             try {
                 const newNotification = JSON.parse(event.data);
                 console.log("새 알림 도착:", newNotification);
@@ -133,7 +129,6 @@
 
     // (UI 헬퍼) 알림 목록 전체를 UI에 그리는 함수
     function updateNotificationUI(notifications) {
-        // [제거] 문제가 되었던 잘못된 console.log 코드를 제거합니다.
         const list = document.getElementById('notification-list');
         list.innerHTML = '';
 

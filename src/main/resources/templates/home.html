@@ -27,10 +27,8 @@
 </head>
 <body>
 
-<!-- 상단 바 -->
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-<!-- 중앙 콘텐츠 영역 -->
 <div class="center-section">
   <h1 class="mb-3">🎓 강의실 예약 시스템에 오신 것을 환영합니다!</h1>
   <p class="mb-4">원하는 강의실을 예약하고, 예약 내역을 간편하게 확인하세요.</p>
@@ -40,10 +38,8 @@
   </div>
 </div>
 
-<!-- 공통 스크립트 -->
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
 
-<!-- 상단 바 자바 스크립트 -->
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
 
 </body>

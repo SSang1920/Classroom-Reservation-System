@@ -167,7 +167,7 @@ public class ReservationService {
                         endOfDay
                 );
 
-         //예약과 겹치는 교시를 찾아 set으로 모은다
+         //예약과 겹치는 교시를 찾아 set으로 모아줌
         return reservationsOnDate.stream()
                 .flatMap(reservation -> reservation.getPeriods().stream())
                 .collect(Collectors.toSet());
@@ -198,7 +198,7 @@ public class ReservationService {
                 java.time.LocalDateTime.now()
         );
 
-        // 각 예약을 '사용 완료' 처리 (엔티티의 autoComplete 비즈니스 로직 호출)
+        // 각 예약을 사용 완료 처리
         targets.forEach(Reservation::autoComplete);
     }
 

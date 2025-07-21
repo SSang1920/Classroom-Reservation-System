@@ -5,18 +5,15 @@
   <title>예약 이력 보기</title>
 </head>
 <body>
-<!-- 상단 바 -->
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
 <div class="container mt-4">
   <h2>📝 예약 이력 보기</h2>
 
-  <!-- 예약 목록이 없을 때 보여줄 메시지 (초기에는 숨김) -->
   <div id="no-reservations-message" class="alert alert-info mt-3 d-none" role="alert">
     예약 내역이 없습니다.
   </div>
 
-  <!-- 예약 테이블 컨테이너 -->
   <div id="reservations-container" class="table-responsive mt-3">
     <table class="table table-hover text-center">
       <thead class="table-light">
@@ -30,7 +27,6 @@
       </tr>
       </thead>
       <tbody id="reservation-tbody">
-      <!-- 로딩 스피너: 데이터 로딩 중에 표시됩니다. -->
       <tr>
         <td colspan="6" class="p-5">
           <div class="spinner-border text-primary" role="status">
@@ -43,14 +39,11 @@
   </div>
 </div>
 
-<!-- 공통 스크립트 -->
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
 
-<!-- 상단 바 자바 스크립트 -->
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
 
 
-<!-- 예약 데이터 로딩 및 취소 처리를 위한 JavaScript -->
 <script>
   // 페이지 로드 시 내 예약 목록을 가져오는 함수를 실행합니다.
   document.addEventListener('DOMContentLoaded', fetchMyReservations);
@@ -62,7 +55,7 @@
       const container = document.getElementById('reservations-container');
       const noDataMessage = document.getElementById('no-reservations-message');
 
-      // 토큰이 없으면 로그인 페이지로 보냅니다.
+      // 토큰이 없으면 로그인 페이지로 되돌려 보냄
       if (!token) {
           alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
           window.location.href = '/login';
@@ -83,7 +76,7 @@
           const result = await response.json();
           const reservations = result.data; // ApiSuccessResponse의 data 필드
 
-          // 예약 데이터가 있는지 확인합니다.
+          // 예약 데이터가 있는지 확인
           if (reservations && reservations.length > 0) {
               container.classList.remove('d-none');
               noDataMessage.classList.add('d-none');
@@ -124,7 +117,7 @@
               break;
       }
 
-      // '예약됨' 상태일 때만 취소 버튼을 생성합니다.
+      // '예약됨' 상태일 때만 취소 버튼을 생성
       let actionButton = '';
       if (reservation.state === 'RESERVED') {
           // [수정] form 대신 button과 onclick을 사용하여 코드를 더 명확하게 만듭니다.

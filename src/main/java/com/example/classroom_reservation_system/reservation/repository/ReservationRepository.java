@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)  //조회한 데이터에 쓰기 기능 잠금
+    @Lock(LockModeType.PESSIMISTIC_WRITE)  //조회한 데이터 쓰기 기능 잠금
     boolean existsByClassroomAndReservationStateNotAndEndTimeAfterAndStartTimeBefore(
             Classroom classroom,
             ReservationState reservationState,
