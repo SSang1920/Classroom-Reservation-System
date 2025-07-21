@@ -81,6 +81,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
+            // 디버깅 코드 - 현재 요청을 보낸 사용자 권한 확인
+            logger.info(">>>> [Auth Check] User: '{}', Authorities: {}", auth.getName(), auth.getAuthorities());
 
             // SecurityContext에 auth 객체 저장
             SecurityContextHolder.getContext().setAuthentication(auth);

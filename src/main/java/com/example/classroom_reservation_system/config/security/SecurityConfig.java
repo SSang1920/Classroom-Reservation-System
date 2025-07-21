@@ -34,7 +34,7 @@ public class SecurityConfig {
                                 // --- View 페이지 (인증 없이 접근 가능) ---
                                 "/", "/login", "/signup", "/find-password", "/reset-password",
                                 "/admin/main", "/admin/members",
-                                "/reserve", "/history",
+                                "reserve", "history",
 
                                 // --- API (인증 없이 접근 가능) ---
                                 "/api/auth/login",              // 로그인
@@ -46,9 +46,8 @@ public class SecurityConfig {
                                 "/api/facilities/**", // 건물 및 강의실 조회
                                 "/api/reservations/classroom/**" //예약 되어있는 시간 조회
                         ).permitAll()
-                        // SSE 구독 경로는 인증된 사용자만 접근 가능하도록 추가
-                        .requestMatchers("/api/notifications/**").authenticated()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")  // 'ADMIN' 역할을 가진 사용자만 접근 가능
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")          // 'ADMIN' 역할을 가진 사용자만 접근 가능
+                        .requestMatchers("/api/notifications/**").authenticated()   // SSE 구독 경로는 인증된 사용자만 접근 가능하도록 추가
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 등록

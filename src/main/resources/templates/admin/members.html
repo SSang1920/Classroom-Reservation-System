@@ -16,6 +16,49 @@
     <p>시스템에 등록된 모든 회원의 목록입니다.</p>
     <hr>
 
+    <!-- 검색 필터 폼 -->
+    <form id="search-form" class="card card-body bg-light mb-4">
+        <div class="row g-3 align-items-end">
+            <!-- 검색 조건 및 키워드 -->
+            <div class="col-md-5">
+                <label for="search-type" class="form-label">검색 조건</label>
+                <div class="input-group">
+                    <select class="form-select" id="search-type" style="flex: 0 0 120px;">
+                        <option value="loginId" selected>아이디</option>
+                        <option value="name">이름</option>
+                        <option value="email">이메일</option>
+                    </select>
+                    <input type="text" class="form-control" id="search-keyword" placeholder="검색어를 입력하세요">
+                </div>
+            </div>
+
+            <!-- 역할 필터 -->
+            <div class="col-md-2">
+                <label for="search-role" class="form-label">역할</label>
+                <select class="form-select" id="search-role">
+                    <option value="">전체</option>
+                    <option value="ADMIN">관리자</option>
+                    <option value="PROFESSOR">교수</option>
+                    <option value="STUDENT">학생</option>
+                </select>
+            </div>
+
+            <!-- 가입일 필터 -->
+            <div class="col-md-3">
+                <label class="form-label">가입일</label>
+                <input type="date" class="form-label" id="search-date">
+            </div>
+
+            <!-- 버튼 -->
+            <div class="col-md-2">
+                <div class="d-grid gap-2 d-md-flex">
+                    <button type="submit" class="btn btn-primary">검색</button>
+                    <button type="button" id="reset-btn" class="btn btn-secondary">초기화</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
     <!-- 회원 목록을 표시할 테이블 -->
     <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -51,7 +94,6 @@
         </ul>
     </nav>
 </div>
-
 <!-- 공통 스크립트 -->
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
 
@@ -64,63 +106,119 @@
 <!-- 회원 목록 조회 및 렌더링 스크립트 -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const page = urlParams.get('page') || 0;
-        fetchMembers(page);
+        const searchForm = document.getElementById('search-form');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // 페이지가 처음 로드될 때 URL의 파라미터를 읽어 폼을 채우고 검색 실행
+        initializeFormFromUrl();
+        const initialUrlParams = new URLSearchParams(window.location.search);
+        const initialPage = initialUrlParams.get('page') || 0;
+        fetchMembers(initialPage);
+
+        // 검색 폼 제출 이벤트
+        searchForm.addEventListener('submit', event => {
+            event.preventDefault();
+            fetchMembers(0);
+        });
     });
 
-    async function fetchMembers(pageNumber) {
-        const token = localStorage.getItem('accessToken');
-        const tbody = document.getElementById('member-list-body');
+    // 페이지 로드 시 URL 파라미터를 읽어 검색 폼의 값을 설정하는 함수
+    function initializeFormFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('search-keyword').value = params.get('loginId') || params.get('name') || params.get('email') || '';
+        document.getElementById('search-role').value = params.get('role') || '';
+        document.getElementById('search-date').value = params.get('date') || '';
 
-        if (!token) return;
+        const searchType = params.get('loginId') ? 'loginId' : (params.get('name') ? 'name' : 'email');
+        if (searchType) document.getElementById('search-type').value = searchType;
+    }
+
+    // 현재 검색 조건으로 서버에 회원 목록을 요청하는 함수
+    async function fetchMembers(pageNumber) {
+        const tbody = document.getElementById('member-list-body');
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> 회원 정보를 불러오는 중...</td></tr>`;
+
+        const params = buildQueryParameters(pageNumber);
+        window.history.replaceState({}, '', `?${params.toString()}`);
 
         try {
-            const response = await fetchWithAuth(`/api/admin/members?page=${pageNumber}&size=10&sort=createdAt,desc`, {
-                method: 'GET',
-            });
-
-            if (!response.ok) throw new Error('데이터 로딩 실패: ' + response.statusText);
+            const response = await fetchWithAuth(`/api/admin/members?${params.toString()}`);
+            if (!response.ok) throw new Error('데이터 로딩 실패: ${response.status}');
 
             const result = await response.json();
-            const pageData = result.data;
-            const members = pageData.content;
-            tbody.innerHTML = '';
+            renderTable(result.data.content);
+            renderPagination(result.data);
 
-            if (members.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center">등록된 회원이 없습니다.</td></tr>';
-            } else {
-                members.forEach(member => {
-                    const createdAt = new Date(member.createdAt).toLocaleString('ko-KR');
-                    const roleBadge = getRoleBadge(member.role);
-                    const row = `
-                        <tr>
-                            <th scope="row">${member.memberPkId}</th>
-                            <td>${member.loginId}</td>
-                            <td>${member.name}</td>
-                            <td>${member.email}</td>
-                            <td>${roleBadge}</td>
-                            <td>${createdAt}</td>
-                            <td><button class="btn btn-sm btn-outline-primary" disabled>관리</button></td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
-            }
-
-            renderPagination(pageData);
         } catch (error) {
             console.error('Error:', error);
             tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">데이터를 불러오는 데 실패했습니다.</td></tr>';
         }
     }
 
+    // 현재 폼 입력값을 읽어 URLSearchParams 객체를 생성하는 헬퍼 함수
+    function buildQueryParameters(pageNumber) {
+        const searchType = document.getElementById('search-type').value;
+        const keyword = document.getElementById('search-keyword').value;
+        const role = document.getElementById('search-role').value;
+        const searchDate = document.getElementById('search-date').value;
+
+        const params = new URLSearchParams({
+            page: pageNumber,
+            size: 10,
+            sort: 'createdAt,desc'
+        });
+
+        if (keyword.trim()) {
+            params.append(searchType, keyword.trim());
+        }
+
+        if (role) {
+            params.append('role', role);
+        }
+
+        if (searchDate) {
+            params.append('date', searchDate);
+        }
+
+        return params;
+    }
+
+    // 받아온 회원 데이터로 테이블 본문을 그리는 함수
+    function renderTable(members) {
+        const tbody = document.getElementById('member-list-body');
+        tbody.innerHTML = '';
+
+        if (!members || members.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">검색 결과가 없습니다.</td></tr>`;
+            return;
+        }
+
+        members.forEach(member => {
+            const createdAt = new Date(member.createdAt).toLocaleString('ko-KR');
+            const roleBadge = getRoleBadge(member.role);
+            const row = `
+                <tr>
+                    <th scope="row">${member.memberPkId}</th>
+                    <td>${member.loginId}</td>
+                    <td>${member.name}</td>
+                    <td>${member.email}</td>
+                    <td>${roleBadge}</td>
+                    <td>${createdAt}</td>
+                    <td><button class="btn btn-sm btn-outline-primary" disabled>관리</button></td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // 역할에 따라 배지 HTML 반환 함수
     function getRoleBadge(role) {
         const roles = { 'ADMIN': 'bg-danger', 'PROFESSOR': 'bg-success', 'STUDENT': 'bg-primary' };
         const roleNames = { 'ADMIN': '관리자', 'PROFESSOR': '교수', 'STUDENT': '학생' };
         return `<span class="badge ${roles[role] || 'bg-secondary'}">${roleNames[role] || role}</span>`;
     }
 
+    // 페이지네이션 UI 그리는 함수
     function renderPagination(pageData) {
         const paginationNav = document.getElementById('pagination-nav');
         const paginationUl = document.getElementById('pagination-ul');
