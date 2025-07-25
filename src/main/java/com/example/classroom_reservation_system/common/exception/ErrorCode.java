@@ -19,6 +19,7 @@ public enum ErrorCode {
     CANNOT_USE_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "CANNOT_USE_OLD_PASSWORD", "이전과 동일한 비밀번호는 사용할 수 없습니다."),
 
     // ===== 토큰/인증 관련 =====
+    UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED_MEMBER", "인증되지 않은 사용자입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "ACCESS_DENIED", "접근 권한이 없습니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED", "AccessToken이 만료되었습니다."),
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_ACCESS_TOKEN", "유효하지 않는 AccessToken입니다."),

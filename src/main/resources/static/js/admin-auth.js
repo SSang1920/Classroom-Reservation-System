@@ -1,8 +1,8 @@
 /**
-관리자 페이지 접근 제어 스크립트
-페이지가 로드될 때 localStorage의 JWT 토큰을 확인하여, 토큰이 없거나 관리자가 아닐 경우
-각각 로그인 페이지 또는 메인 페이지로 리디렉션
-*/
+ * 관리자 페이지 접근 제어 스크립트
+ * 페이지가 로드될 때 localStorage의 JWT 토큰을 확인하여, 토큰이 없거나 관리자가 아닐 경우
+ * 각각 로그인 페이지 또는 메인 페이지로 리디렉션
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('accessToken');
 

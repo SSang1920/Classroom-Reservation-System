@@ -11,10 +11,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
@@ -28,8 +25,8 @@ public class AdminController {
 
     /**
      * 회원 목록을 검색 조건에 따라 조회
-     * @param pageable
-     * @return
+     *
+     * @param pageable 페이징 정보
      */
     @GetMapping("/members")
     public ResponseEntity<ApiSuccessResponse<Page<AdminMemberListResponse>>> getMemberList(
@@ -39,12 +36,18 @@ public class AdminController {
             @RequestParam(required = false) String email,
             @RequestParam(required = false) Role role,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-
-            // 페이지 정보
             @PageableDefault(size = 10, sort = "createdAt,desc") Pageable pageable) {
         Page<AdminMemberListResponse> memberList = adminService.searchMembers(loginId, name, email, role, date, pageable);
-        return ResponseEntity.ok(ApiSuccessResponse.of(200, "전체 회원 조회 성공", memberList));
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "회원 목록 조회에 성공했습니다.", memberList));
     }
 
-
+    /**
+     * 관리자가 특정 회원을 삭제
+     * @param memberPkId 삭제할 회원의 PK
+     */
+    @DeleteMapping("/members/{memberPkId}")
+    public ResponseEntity<ApiSuccessResponse<Void>> deleteMember(@PathVariable Long memberPkId) {
+        adminService.deleteMember(memberPkId);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "회원이 성공적으로 삭제되었습니다.", null));
+    }
 }

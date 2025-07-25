@@ -46,7 +46,7 @@
             <!-- 가입일 필터 -->
             <div class="col-md-3">
                 <label class="form-label">가입일</label>
-                <input type="date" class="form-label" id="search-date">
+                <input type="date" class="form-control" id="search-date">
             </div>
 
             <!-- 버튼 -->
@@ -108,6 +108,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const searchForm = document.getElementById('search-form');
         const resetBtn = document.getElementById('reset-btn');
+        const memberListBody = document.getElementById('member-list-body');
 
         // 페이지가 처음 로드될 때 URL의 파라미터를 읽어 폼을 채우고 검색 실행
         initializeFormFromUrl();
@@ -120,17 +121,60 @@
             event.preventDefault();
             fetchMembers(0);
         });
+
+        // 초기화 버튼 클릭 이벤트
+        resetBtn.addEventListener('click', () => {
+            searchForm.reset();
+            document.getElementById('search-type').value = 'loginId';
+            fetchMembers(0);
+        });
+
+        // 동적으로 생성된 삭제 버튼 처리
+        memberListBody.addEventListener('click', async (event) => {
+            if (event.target.matches('.delete-btn')) {
+                const memberId = event.target.dataset.memberId;
+                const memberName = event.target.dataset.memberName;
+
+                // 사용자에게 삭제 재확인
+                if (confirm(`'${memberName}' 회원을 정말로 삭제하시겠습니까?\n삭제된 회원은 복구할 수 없습니다.`)) {
+                    try {
+                        const response = await fetchWithAuth(`/api/admin/members/${memberId}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || '회원 삭제에 실패했습니다.');
+                        }
+
+                        alert('회원이 성공적으로 삭제되었습니다.');
+                        const currentPage = new URLSearchParams(window.location.search).get('page') || 0;
+                        fetchMembers(currentPage);
+
+                    } catch (error) {
+                        console.error('회원 삭제 실패:', error);
+                        alert('회원 삭제에 실패했습니다. 다시 시도해주세요.');
+                    }
+                }
+            }
+        });
     });
 
     // 페이지 로드 시 URL 파라미터를 읽어 검색 폼의 값을 설정하는 함수
     function initializeFormFromUrl() {
         const params = new URLSearchParams(window.location.search);
-        document.getElementById('search-keyword').value = params.get('loginId') || params.get('name') || params.get('email') || '';
+        const keyword = params.get('loginId') || params.get('name') || params.get('email') || '';
+        document.getElementById('search-keyword').value = keyword;
         document.getElementById('search-role').value = params.get('role') || '';
         document.getElementById('search-date').value = params.get('date') || '';
 
-        const searchType = params.get('loginId') ? 'loginId' : (params.get('name') ? 'name' : 'email');
-        if (searchType) document.getElementById('search-type').value = searchType;
+        if (params.has('loginId')) {
+            document.getElementById('search-type').value = 'loginId';
+        } else if (params.has('name')) {
+            document.getElementById('search-type').value = 'name';
+        } else if (params.has('email')) {
+            document.getElementById('search-type').value = 'email';
+        }
     }
 
     // 현재 검색 조건으로 서버에 회원 목록을 요청하는 함수
@@ -139,7 +183,7 @@
         tbody.innerHTML = `<tr><td colspan="7" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> 회원 정보를 불러오는 중...</td></tr>`;
 
         const params = buildQueryParameters(pageNumber);
-        window.history.replaceState({}, '', `?${params.toString()}`);
+        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 
         try {
             const response = await fetchWithAuth(`/api/admin/members?${params.toString()}`);
@@ -196,6 +240,7 @@
         members.forEach(member => {
             const createdAt = new Date(member.createdAt).toLocaleString('ko-KR');
             const roleBadge = getRoleBadge(member.role);
+
             const row = `
                 <tr>
                     <th scope="row">${member.memberPkId}</th>
@@ -204,7 +249,13 @@
                     <td>${member.email}</td>
                     <td>${roleBadge}</td>
                     <td>${createdAt}</td>
-                    <td><button class="btn btn-sm btn-outline-primary" disabled>관리</button></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger delete-btn"
+                                data-member-id="${member.memberPkId}"
+                                data-member-name="${member.name}">
+                                삭제
+                        </button>
+                    </td>
                 </tr>
             `;
             tbody.innerHTML += row;
