@@ -91,15 +91,5 @@ public class ReservationController {
 
     }
 
-    /**
-     * 예약 강제 취소 API (관리자)
-     */
-    @PatchMapping("/{reservationId}/admin/cancel")
-    @PreAuthorize("hasRole('ADMIN')") // 'ADMIN'을 가진 사용자만 실행 가능
-    public ResponseEntity<ApiSuccessResponse<Void>> cancelReservationByAdmin(@PathVariable Long reservationId){
-        reservationService.cancelReservationByAdmin(reservationId);
-
-        return ResponseEntity.ok(ApiSuccessResponse.of(200, "관리자에 의해 예약이 취소되었습니다."));
-    }
 
 }

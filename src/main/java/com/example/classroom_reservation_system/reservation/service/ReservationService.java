@@ -108,19 +108,6 @@ public class ReservationService {
         eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
     }
 
-    @Transactional
-    public void cancelReservationByAdmin(Long reservationId){
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
-
-        reservation.cancelByAdmin();
-
-        // 관리자에 의한 예약 취소 이벤트 발행
-        String message = String.format("관리자에 의해 '%s' 예약이 취소되었습니다.", reservation.getClassroom().getName());
-        eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
-
-    }
-
     /**
      * 사용자가 사용 완료를 누름
      * @param reservationId 완료할 예약 ID

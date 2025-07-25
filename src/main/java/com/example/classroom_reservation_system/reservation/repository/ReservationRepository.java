@@ -7,9 +7,12 @@ import com.example.classroom_reservation_system.reservation.entity.ReservationSt
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -62,4 +65,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             LocalDateTime start,
             LocalDateTime end
     );
+
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.classroom WHERE r.id = :reservationId")
+    Optional<Reservation> findByIdWithClassroom(@Param("reservationId") Long reservationId);
+
+    boolean existsByClassroomAndIdNotAndReservationStateNotAndEndTimeAfterAndStartTimeBefore(
+            Classroom classroom,
+            Long id,
+            ReservationState reservationState,
+            LocalDateTime startTime,
+            LocalDateTime endTime
+    );
+
 }

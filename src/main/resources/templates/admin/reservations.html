@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
+    <title>관리자 - 예약 관리</title>
+</head>
+<body>
+<div th:replace="~{fragments/topbar :: topbar}"></div>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6">📅 예약 관리</h1>
+        <a href="/admin/main" class="btn btn-outline-secondary">관리자 홈으로</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body bg-light">
+            <form id="search-form" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="username" class="form-label">예약자명</label>
+                    <input type="text" id="username" name="username" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label for="classroomName" class="form-label">강의실명</label>
+                    <input type="text" id="classroomName" name="classroomName" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="startDate" class="form-label">시작일</label>
+                    <input type="date" id="startDate" name="startDate" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="endDate" class="form-label">종료일</label>
+                    <input type="date" id="endDate" name="endDate" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="state" class="form-label">상태</label>
+                    <select id="state" name="state" class="form-select">
+                        <option value="">전체</option>
+                        <!-- Thymeleaf는 Enum의 영문 이름을 값으로 사용합니다 -->
+                        <option th:each="s : ${T(com.example.classroom_reservation_system.reservation.entity.ReservationState).values()}"
+                                th:value="${s.name()}" th:text="${s.name()}"></option>
+                    </select>
+                </div>
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <button type="button" id="reset-btn" class="btn btn-secondary">초기화</button>
+                    <button type="submit" class="btn btn-primary">검색</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="table-responsive">
+        <table class="table table-hover text-center align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>예약자 (ID)</th>
+                <th>강의실</th>
+                <th>예약 시작</th>
+                <th>예약 종료</th>
+                <th>상태</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody id="reservation-table-body">
+
+            </tbody>
+        </table>
+    </div>
+
+    <nav id="pagination-nav">
+        <ul class="pagination justify-content-center">
+
+        </ul>
+    </nav>
+</div>
+
+
+<div class="modal fade" id="editReservationModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+
+</div>
+
+<th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
+<th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
+<script src="/js/admin-auth.js"></script>
+
+<script>
+    // 전역 변수로 현재 페이지와 모달 인스턴스 관리
+    let currentPage = 0;
+    let editModalInstance;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchForm = document.getElementById('search-form');
+        const resetBtn = document.getElementById('reset-btn');
+        const tableBody = document.getElementById('reservation-table-body');
+        const paginationNav = document.getElementById('pagination-nav');
+        editModalInstance = new bootstrap.Modal(document.getElementById('editReservationModal'));
+
+        // 페이지 로드 시 URL 파라미터로 폼 초기화 및 데이터 로드
+        initializeFormFromUrl();
+        const urlParams = new URLSearchParams(window.location.search);
+        fetchReservations(parseInt(urlParams.get('page')) || 0);
+
+        // 검색 버튼 이벤트
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            fetchReservations(0); // 검색 시 항상 첫 페이지부터 조회
+        });
+
+        // 초기화 버튼 이벤트
+        resetBtn.addEventListener('click', () => {
+            searchForm.reset();
+            window.history.replaceState({}, '', '/admin/reservations');
+            fetchReservations(0);
+        });
+
+        // 이벤트 위임 방식으로 테이블 내 버튼 클릭 처리
+        tableBody.addEventListener('click', function (e) {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const reservationId = button.dataset.id;
+            if (button.classList.contains('cancel-btn')) {
+                if (confirm(`예약 ID [${reservationId}] 를 정말로 취소하시겠습니까?`)) {
+                    cancelReservation(reservationId);
+                }
+            } else if (button.classList.contains('edit-btn')) {
+                openEditModal(reservationId);
+            }
+        });
+
+        //이벤트 위임 방식으로 페이지네이션 클릭 처리
+        paginationNav.addEventListener('click', function (e) {
+            e.preventDefault();
+            const pageLink = e.target.closest('.page-link');
+            if (pageLink && !pageLink.parentElement.classList.contains('disabled')) {
+                fetchReservations(parseInt(pageLink.dataset.page));
+            }
+        });
+    });
+
+
+    function initializeFormFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('username').value = params.get('username') || '';
+        document.getElementById('classroomName').value = params.get('classroomName') || '';
+        document.getElementById('startDate').value = params.get('startDate') || '';
+        document.getElementById('endDate').value = params.get('endDate') || '';
+        document.getElementById('state').value = params.get('state') || '';
+    }
+
+    function buildQueryParameters(pageNumber) {
+        const formData = new FormData(document.getElementById('search-form'));
+        const params = new URLSearchParams(formData);
+        params.append('page', pageNumber);
+        params.append('size', 10);
+        params.append('sort', 'startTime,desc');
+        return params;
+    }
+
+    async function fetchReservations(page) {
+        currentPage = page;
+        const params = buildQueryParameters(page);
+        window.history.replaceState({}, '', `/admin/reservations?${params.toString()}`);
+
+        const tableBody = document.getElementById('reservation-table-body');
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> 예약 정보를 불러오는 중...</td></tr>`;
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/reservations?${params.toString()}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '데이터를 불러오는데 실패했습니다.');
+            }
+            const result = await response.json();
+            renderTable(result.data.content);
+            renderPagination(result.data);
+        } catch (error) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${error.message}</td></tr>`;
+        }
+    }
+
+    function renderTable(reservations) {
+        const tableBody = document.getElementById('reservation-table-body');
+        tableBody.innerHTML = '';
+        if (!reservations || reservations.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">검색 결과가 없습니다.</td></tr>';
+            return;
+        }
+        reservations.forEach(res => {
+            // 'RESERVED' 상태일 때만 버튼을 생성하도록 로직 변경
+            let managementButtons = '<span>-</span>'; // 기본값은 '-'
+            if (res.state === 'RESERVED') {
+                managementButtons = `
+                    <button class="btn btn-sm btn-outline-primary me-1 edit-btn" data-id="${res.id}">수정</button>
+                    <button class="btn btn-sm btn-outline-danger cancel-btn" data-id="${res.id}">취소</button>
+                `;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${res.id}</td>
+                <td>${res.username} (${res.loginId})</td>
+                <td>${res.classroomName}</td>
+                <td>${formatDateTime(res.startTime)}</td>
+                <td>${formatDateTime(res.endTime)}</td>
+                <td><span class="badge ${getStateBadgeClass(res.state)}">${getStateName(res.state)}</span></td>
+                <td>${managementButtons}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function renderPagination(pageData) {
+        const paginationNav = document.getElementById('pagination-nav');
+        const ul = paginationNav.querySelector('.pagination');
+        ul.innerHTML = '';
+
+        if (pageData.totalPages <= 1) return;
+
+        ul.innerHTML += `<li class="page-item ${pageData.first ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${pageData.number - 1}">이전</a></li>`;
+        for (let i = 0; i < pageData.totalPages; i++) {
+            ul.innerHTML += `<li class="page-item ${i === pageData.number ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i + 1}</a></li>`;
+        }
+        ul.innerHTML += `<li class="page-item ${pageData.last ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${pageData.number + 1}">다음</a></li>`;
+    }
+
+    async function cancelReservation(id) {
+        try {
+            const response = await fetchWithAuth(`/api/admin/reservations/${id}/cancel`, { method: 'PATCH' });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+            alert('예약이 성공적으로 취소되었습니다.');
+            fetchReservations(currentPage); // 현재 페이지 목록 새로고침
+        } catch (error) {
+            alert(`취소 실패: ${error.message}`);
+        }
+    }
+
+    async function openEditModal(id) {
+        alert(`ID ${id} 예약 수정 기능은 구현 예정입니다.`);
+        // editModalInstance.show();
+    }
+
+    function formatDateTime(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\. /g, '.').slice(0, -1);
+    }
+
+    function getStateBadgeClass(state) {
+        const states = {
+            'RESERVED': 'bg-primary',
+            'CANCELED': 'bg-secondary',
+            'COMPLETED': 'bg-success',
+            'CANCELED_BY_ADMIN': 'bg-danger',
+            'MODIFIED_BY_ADMIN': 'bg-warning text-dark',
+            'COMPLETED_BY_SYSTEM': 'bg-info text-dark'
+        };
+        return states[state] || 'bg-dark';
+    }
+
+    // 모든 상태에 대한 한글 이름을 여기서 관리합니다.
+    function getStateName(state) {
+        const stateMap = {
+            RESERVED: '예약됨',
+            COMPLETED: '완료됨',
+            CANCELED: '취소됨',
+        };
+        return stateMap[state] || state; // 매핑되는 값이 없으면 원래 영문 이름 반환
+    }
+</script>
+</body>
+</html>

@@ -15,6 +15,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -145,6 +146,13 @@ public class Reservation {
 
     }
 
+    public void updateDetailsByAdmin(Classroom newClassroom, LocalDateTime newStartTime, LocalDateTime newEndTime, Set<TimePeriod> newPeriods){
+        this.classroom = newClassroom;
+        this.startTime = newStartTime;
+        this.endTime = newEndTime;
+        this.periods = newPeriods;
+        this.addHistory(HistoryState.UPDATED_BY_ADMIN);
+    }
     public void complete() {
         if (this.reservationState == ReservationState.COMPLETED) {
             throw new CustomException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
