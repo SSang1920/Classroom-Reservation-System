@@ -10,24 +10,28 @@ function parseJwt(token) {
       return JSON.parse(jsonPayload);
 
     } catch (e) {
-      throw new Error("Invalid token");
+      console.error("Invalid token format:", e);
+      return null;
     }
 }
 
 // 로그아웃을 처리하는 공통 함수: 서버에 로그아웃을 요청하고 로컬 스토리지에서 토큰을 제거
-function logout() {
+function logout(showAlert = false) {
     const token = localStorage.getItem('accessToken');
 
     if (token) {
         fetch('/api/auth/logout', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
-        });
+        }).catch(err => console.error("서버 로그아웃 요청 실패:", err));
     }
 
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken")
 
-    alert('로그아웃되었습니다.');
-    window.location.href = "/";
+    if (showAlert) {
+        alert('로그아웃되었습니다.');
+    }
+
+    window.location.href = "/login";
 }

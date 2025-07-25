@@ -6,6 +6,7 @@ import com.example.classroom_reservation_system.notification.dto.NotificationRes
 import com.example.classroom_reservation_system.notification.service.NotificationService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
@@ -25,7 +26,7 @@ public class NotificationController {
      * SSE(Server-Sent Evnets) 구독
      * 클라이언트가 실시간 알림을 받기 위해 연결하는 엔드포인트
      */
-    @GetMapping(value = "/subscribe", produces = "text/event-stream")
+    @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails,
                                 @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         return notificationService.subscribe(userDetails.getMemberUuid(), lastEventId);

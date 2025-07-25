@@ -8,6 +8,7 @@ import com.example.classroom_reservation_system.member.repository.MemberReposito
 import com.example.classroom_reservation_system.member.repository.ProfessorRepository;
 import com.example.classroom_reservation_system.member.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,5 +42,24 @@ public class MemberService {
                 .map(Member.class::cast)
                 .or(() -> professorRepository.findByProfessorId(id).map(Member.class::cast))
                 .or(() -> adminRepository.findByAdminId(id).map(Member.class::cast));
+    }
+
+    /**
+     * 현재 로그인한 사용자의 계정을 삭제
+     * @param authentication 현재 인증 정보
+     */
+    public void deleteMyAccount(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_MEMBER);
+        }
+
+        // SecurityContext에서 사용자의 memberUuid 가져옴
+        String memberUuid = authentication.getName();
+
+        memberRepository.findByMemberUuid(memberUuid)
+                .ifPresentOrElse(
+                        memberRepository::delete,   // 회원이 존재하면 삭제
+                        () -> { throw new CustomException(ErrorCode.MEMBER_NOT_FOUND); }
+                );
     }
 }

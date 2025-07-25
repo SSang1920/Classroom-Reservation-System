@@ -74,16 +74,14 @@
 
         const logoutButton = document.getElementById('logout-button');
         if (logoutButton) {
-            logoutButton.addEventListener('click', logout);
+            logoutButton.addEventListener('click', () => logout(true));
         }
     });
 
-    // 1. (페이지 로드 시) 기존 알림 목록을 가져오는 함수
+    // (페이지 로드 시) 기존 알림 목록을 가져오는 함수
     async function initializeNotifications() {
         try {
-            const response = await fetch('/api/notifications', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
-            });
+            const response = await fetchWithAuth('/api/notifications');
             if (!response.ok) throw new Error('알림 목록 로딩 실패');
 
             const result = await response.json();
@@ -98,13 +96,19 @@
         }
     }
 
-    // 2. (페이지 로드 시) 실시간 알림(SSE) 연결을 시작하는 함수
+    // (페이지 로드 시) 실시간 알림(SSE) 연결을 시작하는 함수
     function connectSSE() {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
 
         const eventSource = new EventSource(`/api/notifications/subscribe?token=${token}`);
 
+        // 서버에서 보낸 connect 이벤트를 수신하는 리스너
+        eventSource.addEventListener("connect", function(event) {
+            console.log("서버로부터 연결 확인:", event.data);
+        });
+
+        // 알림 이벤트를 수신하는 리스너
         eventSource.addEventListener("notification", function(event) {
             //  서버에서 오는 데이터가 JSON이 아닌 경우 방지를 위해  try-catch 사용
             try {
@@ -115,9 +119,10 @@
                 // 새 알림 도착 시 개수 증가 및 배지 업데이트
                 unreadCount++;
                 updateUnreadCountBadge();
+
             } catch (e) {
-                // JSON 파싱 실패 시, 연결 메시지 등으로 간주하고 에러를 무시하거나 로그만 남깁니다.
-                console.log("수신된 비-JSON 메시지 (연결 확인 등):", event.data);
+                // 예기치 못한 비-JSON 데이터 수신 시 로그 기록
+                console.warn("수신된 데이터가 JSON 형식이 아닙니다:", event.data);
             }
         });
 
@@ -181,9 +186,8 @@
         if (!target.classList.contains('fw-bold')) return;
 
         try {
-            const response = await fetch(`/api/notifications/${notificationId}/read`, {
+            const response = await fetchWithAuth(`/api/notifications/${notificationId}/read`, {
                 method: 'PATCH',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
             });
             if (!response.ok) throw new Error('읽음 처리 실패');
 

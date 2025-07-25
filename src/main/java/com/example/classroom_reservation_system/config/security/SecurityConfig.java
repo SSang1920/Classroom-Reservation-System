@@ -43,7 +43,8 @@ public class SecurityConfig {
                                 "/api/members/signup",          // 회원가입
                                 "/api/members/check-id",        // ID 중복 검사
                                 "/api/members/check-email",     // 이메일 중복 검사
-                                "/api/facilities/**", // 건물 및 강의실 조회
+                                "/api/notifications/subscribe",  // SSE 구독
+                                "/api/facilities/**",           // 건물 및 강의실 조회
                                 "/api/reservations/classroom/**" //예약 되어있는 시간 조회
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")          // 'ADMIN' 역할을 가진 사용자만 접근 가능
