@@ -45,7 +45,7 @@
 
             <!-- 가입일 필터 -->
             <div class="col-md-3">
-                <label class="form-label">가입일</label>
+                <label for="search-date" class="form-label">가입일</label>
                 <input type="date" class="form-control" id="search-date">
             </div>
 
@@ -62,7 +62,7 @@
     <!-- 회원 목록을 표시할 테이블 -->
     <div class="table-responsive">
         <table class="table table-hover align-middle">
-            <thead class="table-light">
+            <thead class="table-light text-center">
             <tr>
                 <th scope="col">#PK</th>
                 <th scope="col">로그인 ID</th>
@@ -73,16 +73,8 @@
                 <th scope="col">관리</th>
             </tr>
             </thead>
-            <tbody id="member-list-body">
+            <tbody id="member-list-body" class="text-center">
             <!-- JavaScript로 데이터 렌더링 -->
-            <tr>
-                <td colspan="7" class="text-center">
-                    <div class="spinner-border spinner-border-sm" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    회원 정보를 불러오는 중...
-                </td>
-            </tr>
             </tbody>
         </table>
     </div>
@@ -110,6 +102,12 @@
         const resetBtn = document.getElementById('reset-btn');
         const memberListBody = document.getElementById('member-list-body');
 
+        // flatpickr 라이브러리 'search-date' input에 적용
+        flatpickr('#search-date', {
+            dateFormat: "Y-m-d (D)",
+            locale: "ko"
+        });
+
         // 페이지가 처음 로드될 때 URL의 파라미터를 읽어 폼을 채우고 검색 실행
         initializeFormFromUrl();
         const initialUrlParams = new URLSearchParams(window.location.search);
@@ -126,6 +124,7 @@
         resetBtn.addEventListener('click', () => {
             searchForm.reset();
             document.getElementById('search-type').value = 'loginId';
+            datePicker.clear();
             fetchMembers(0);
         });
 
@@ -238,8 +237,28 @@
         }
 
         members.forEach(member => {
-            const createdAt = new Date(member.createdAt).toLocaleString('ko-KR');
+            const createdAt = new Date(member.createdAt).toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
             const roleBadge = getRoleBadge(member.role);
+
+            // 회원의 역할에 따라 다른 버튼을 생성
+            let managementCellHtml = '';
+            if (member.role === 'ADMIN') {
+                // 관리자일 경우 비활성화된 버튼 표시
+                managementCellHtml = `
+                    <button class="btn btn-sm btn-secondary" disabled title="관리자 계정은 삭제할 수 없습니다.">
+                        삭제 불가
+                    </button>
+                `;
+            } else {
+                managementCellHtml = `
+                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                            data-member-id="${member.memberPkId}"
+                            data-member-name="${member.name}">
+                        삭제
+                    </button>
+                `;
+            }
+
 
             const row = `
                 <tr>
@@ -249,13 +268,7 @@
                     <td>${member.email}</td>
                     <td>${roleBadge}</td>
                     <td>${createdAt}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger delete-btn"
-                                data-member-id="${member.memberPkId}"
-                                data-member-name="${member.name}">
-                                삭제
-                        </button>
-                    </td>
+                    <td>${managementCellHtml}</td>
                 </tr>
             `;
             tbody.innerHTML += row;

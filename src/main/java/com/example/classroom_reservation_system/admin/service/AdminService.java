@@ -3,6 +3,7 @@ package com.example.classroom_reservation_system.admin.service;
 import com.example.classroom_reservation_system.admin.dto.response.AdminMemberListResponse;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
+import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.member.entity.Role;
 import com.example.classroom_reservation_system.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,10 +47,14 @@ public class AdminService {
     @Transactional
     public void deleteMember(Long memberPkId) {
         // 삭제하려는 회원이 존재하는지 확인
-        if (!memberRepository.existsById(memberPkId)) {
-            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+        Member member = memberRepository.findById(memberPkId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 삭제하려는 회원이 관리자인지 확인
+        if (member.getRole() == Role.ADMIN) {
+            throw new CustomException(ErrorCode.CANNOT_DELETE_ADMIN);
         }
 
-        memberRepository.deleteById(memberPkId);
+        memberRepository.delete(member);
     }
 }

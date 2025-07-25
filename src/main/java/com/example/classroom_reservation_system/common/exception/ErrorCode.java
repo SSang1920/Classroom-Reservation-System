@@ -10,6 +10,7 @@ public enum ErrorCode {
 
     // ===== 회원 관련 =====
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "존재하지 않는 회원입니다."),
+    CANNOT_DELETE_ADMIN(HttpStatus.BAD_REQUEST, "CANNOT_DELETE_ADMIN", "관리자 계정은 삭제할 수 없습니다."),
     DUPLICATE_ID(HttpStatus.BAD_REQUEST, "DUPLICATE_ID", "이미 사용 중인 아이디입니다."),
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     INVALID_ROLE_FOR_SIGNUP(HttpStatus.BAD_REQUEST, "INVALID_ROLE_FOR_SIGNUP", "해당 역할로는 회원가입이 불가능합니다."),

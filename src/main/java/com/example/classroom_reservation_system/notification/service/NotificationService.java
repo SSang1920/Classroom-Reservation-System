@@ -114,7 +114,15 @@ public class NotificationService {
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         // 4. 첫 연결시, 503 에러 방지를 위한 더미 데이터 전송
-        sendToClient(emitter, emitterId, emitterId, "EventStream Connected.");
+        try {
+            emitter.send(SseEmitter.event()
+                    .id(emitterId)
+                    .name("connect")
+                    .data("SSE connection established"));
+        } catch (IOException e) {
+            emitterRepository.deleteById(emitterId);
+            log.warn("SSE 연결 오류 발생: {}", emitterId, e);
+        }
 
         // 5. 클라이언트 재연결시, 놓친 이벤트있으면 전송
         if(lastEventId != null && !lastEventId.isEmpty()){
@@ -144,8 +152,8 @@ public class NotificationService {
         Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByMemberId(String.valueOf(reservation.getMember().getMemberId()));
 
         // 재연결 시 유실되지 않도록 캐시에 저장
-        // 이벤트가 사용자당 한번만 캐시됨
         emitterRepository.saveEventCache(eventId, NotificationResponseDto.from(notification));
+
         emitters.forEach(
                 (emitterId, emitter) -> {
                     sendToClient(emitter, emitterId, eventId, NotificationResponseDto.from(notification));
