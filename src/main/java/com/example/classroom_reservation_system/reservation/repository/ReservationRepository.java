@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)  //조회한 데이터에 쓰기 기능 잠금
+    @Lock(LockModeType.PESSIMISTIC_WRITE)  //조회한 데이터 쓰기 기능 잠금
     boolean existsByClassroomAndReservationStateNotAndEndTimeAfterAndStartTimeBefore(
             Classroom classroom,
             ReservationState reservationState,
@@ -43,6 +43,21 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * @return 조건에 맞는 예약 목록
      */
     List<Reservation> findAllByReservationStateNotAndStartTimeBetween(
+            ReservationState reservationState,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    /**
+     * 강의실에 예약목록조회
+     * @param classroomId 조회할 강의실 Id
+     * @param  reservationState 제외할 예약
+     * @param start 조회 시작 시간
+     * @param end 조회 종료 시간
+     * @return 조건에 맞는 예약
+     */
+    List<Reservation> findByClassroom_IdAndReservationStateNotAndStartTimeBetween(
+            Long classroomId,
             ReservationState reservationState,
             LocalDateTime start,
             LocalDateTime end

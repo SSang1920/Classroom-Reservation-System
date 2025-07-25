@@ -17,6 +17,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class InitData implements CommandLineRunner {
@@ -86,27 +88,39 @@ public class InitData implements CommandLineRunner {
         createFacilities();
     }
     private void createFacilities() {
-        // 1. 요청하신 'if...isEmpty' 패턴을 적용하여 건물 데이터를 생성합니다.
         if (buildingRepository.findByName("공학관").isEmpty()) {
             buildingRepository.save(Building.builder().name("공학관").build());
         }
         if (buildingRepository.findByName("인문관").isEmpty()) {
             buildingRepository.save(Building.builder().name("인문관").build());
         }
-
-        // 2. 강의실을 생성하려면 방금 생성했거나 이미 존재하던 건물 엔티티가 필요하므로 다시 조회합니다.
-        Building engineeringBuilding = buildingRepository.findByName("공학관")
-                .orElseThrow(() -> new IllegalStateException("데이터 초기화 오류: 공학관을 찾을 수 없습니다."));
-        Building humanitiesBuilding = buildingRepository.findByName("인문관")
-                .orElseThrow(() -> new IllegalStateException("데이터 초기화 오류: 인문관을 찾을 수 없습니다."));
-
-        // 3. 요청하신 'if...isEmpty' 패턴을 적용하여 강의실 데이터를 생성합니다.
-        if (classroomRepository.findByName("공학관-101호").isEmpty()) {
-            classroomRepository.save(Classroom.builder().name("공학관-101호").capacity(50).building(engineeringBuilding).state(ClassroomState.AVAILABLE).equipmentInfo("프로젝터, 화이트보드").build());
+        if (buildingRepository.findByName("자연관").isEmpty()) {
+            buildingRepository.save(Building.builder().name("자연관").build());
         }
 
-        if (classroomRepository.findByName("인문관-203호").isEmpty()) {
-            classroomRepository.save(Classroom.builder().name("인문관-203호").capacity(30).building(humanitiesBuilding).state(ClassroomState.AVAILABLE).equipmentInfo("프로젝터, 스마트 TV").build());
+        List<Building> buildings = buildingRepository.findAll();
+
+        for(Building building: buildings){
+            for(int floor = 1; floor <=3; floor++){
+                for(int room =1; room<=10; room++){
+                    String roomNumber = String.format("%d%02d", floor,room);
+                    String classroomName = String.format("%s-%s호", building.getName(), roomNumber);
+
+                    if(classroomRepository.findByName(classroomName).isEmpty()){
+                        int capacity = 20 + (int) (Math.random() * 31);
+
+
+                        Classroom classroom = Classroom.builder()
+                                .name(classroomName)
+                                .capacity(capacity)
+                                .building(building)
+                                .state(ClassroomState.AVAILABLE)
+                                .build();
+                        classroomRepository.save(classroom);
+                    }
+                }
+            }
         }
+
     }
 }

@@ -3,28 +3,24 @@
 <body>
 
 <div th:fragment="topbar" class="top-bar bg-white border-bottom shadow-sm">
-    <!-- 왼쪽: 홈으로 가는 링크 -->
     <div>
         <a href="/" class="navbar-brand">
             <strong>🎓 강의실 예약 시스템</strong>
         </a>
     </div>
 
-    <!-- 오른쪽: 사용자 관련 버튼들을 담는 컨테이너 -->
     <div class="d-flex align-items-center">
-        <!-- 로그아웃 상태일 때 보여줄 뷰 -->
         <div id="logged-out-view">
             <a href="/login" class="btn btn-primary">로그인</a>
             <a href="/signup" class="btn btn-secondary ms-2">회원가입</a>
         </div>
 
-        <!-- 로그인 상태일 때 보여줄 뷰 -->
         <div id="logged-in-view" class="d-flex align-items-center d-none">
             <span class="me-3">환영합니다, <strong id="username-display"></strong>님!</span>
             <a id="admin-page-btn" href="/admin/main" class="btn btn-warning btn-sm me-2 d-none">관리자 페이지</a>
             <button id="logout-button" class="btn btn-outline-danger btn-sm">로그아웃</button>
 
-            <!-- 알림 드롭다운 UI -->
+
             <div class="notification dropdown ms-2">
                 <button class="btn btn-outline-secondary btn-sm position-relative" type="button" id="notification-dropdown-btn" data-bs-toggle="dropdown" aria-expanded="false">
                     🔔
@@ -67,15 +63,9 @@
                 return;
             }
 
-            // 페이지 로드 시에는 알림 개수만 조회
-            fetchUnreadCount();
+            // 로그인 상태일 때만 알림 기능 자동 실행
+            initializeNotifications();
             connectSSE();
-
-            // 알림 아이콘을 클릭했을 때 전체 목록을 가져오도록 이벤트 연결(최초 1회만 실행)
-            const notificationDropdownBtn = document.getElementById('notification-dropdown-btn');
-            if (notificationDropdownBtn) {
-                notificationDropdownBtn.addEventListener('click', fetchAllNotifications, { once: true });
-            }
 
         } else {
             loggedOutView.classList.remove('d-none');
@@ -88,38 +78,27 @@
         }
     });
 
-    // (페이지 로드 시) 읽지 않은 알림 개수만 가져오는 함수
-    async function fetchUnreadCount() {
+    // 1. (페이지 로드 시) 기존 알림 목록을 가져오는 함수
+    async function initializeNotifications() {
         try {
-            const response = await fetchWithAuth('/api/notifications/unread-count');
-            if (!response.ok) throw new Error('카운트 로딩 실패');
-
-            const result = await response.json();
-            unreadCount = result.data;
-            updateUnreadCountBadge();
-
-        } catch (error) {
-            console.error("읽지 않은 알림 개수 조회 실패:", error);
-        }
-    }
-
-    // (알림 아이콘 클릭 시) 전체 목록을 가져오는 함수
-    async function fetchAllNotifications() {
-        try {
-            const response = await fetchWithAuth('/api/notifications');
+            const response = await fetch('/api/notifications', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
+            });
             if (!response.ok) throw new Error('알림 목록 로딩 실패');
 
             const result = await response.json();
             updateNotificationUI(result.data);
 
+            // 초기 읽지 않은 알림 개수를 계산하고 배지 업데이트
+            unreadCount = result.data.filter(n => !n.isRead).length;
+            updateUnreadCountBadge();
+
         } catch (error) {
             console.error("알림 초기화 실패:", error);
-            const list = document.getElementById('notification-list');
-            list.innerHTML = `<li><p class="dropdown-item text-danger text-center mb-0">목록을 불러오지 못했습니다.</p></li>`;
         }
     }
 
-    // (페이지 로드 시) 실시간 알림(SSE) 연결을 시작하는 함수
+    // 2. (페이지 로드 시) 실시간 알림(SSE) 연결을 시작하는 함수
     function connectSSE() {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
@@ -127,18 +106,18 @@
         const eventSource = new EventSource(`/api/notifications/subscribe?token=${token}`);
 
         eventSource.addEventListener("notification", function(event) {
-            const newNotification = JSON.parse(event.data);
-            console.log("새 알림 도착:", newNotification);
-            prependNotification(newNotification);
+            //  서버에서 오는 데이터가 JSON이 아닌 경우 방지를 위해  try-catch 사용
+            try {
+                const newNotification = JSON.parse(event.data);
+                console.log("새 알림 도착:", newNotification);
+                prependNotification(newNotification);
 
-            // 새 알림 도착 시 개수 증가 및 배지 업데이트
-            unreadCount++;
-            updateUnreadCountBadge();
-
-            // 드롭다운이 열려있을 때 새 알림이 오면, 목록을 다시 로드
-            const dropdown = document.getElementById('notification-dropdown-btn');
-            if (dropdown.getAttribute('aria-expanded') === 'true') {
-                fetchAllNotifications();
+                // 새 알림 도착 시 개수 증가 및 배지 업데이트
+                unreadCount++;
+                updateUnreadCountBadge();
+            } catch (e) {
+                // JSON 파싱 실패 시, 연결 메시지 등으로 간주하고 에러를 무시하거나 로그만 남깁니다.
+                console.log("수신된 비-JSON 메시지 (연결 확인 등):", event.data);
             }
         });
 
@@ -154,7 +133,7 @@
         list.innerHTML = '';
 
         if (!notifications || notifications.length === 0) {
-            list.innerHTML = `<li><p class="dropdown-item text-center text-muted mb-0">알림이 없습니다.</p></li>`;
+            list.innerHTML = '<li><p class="dropdown-item text-center text-muted mb-0">알림이 없습니다.</p></li>';
             return;
         }
 
@@ -185,7 +164,6 @@
                     <div class="d-flex w-100 justify-content-between align-items-center">
                         <div class="me-2">
                             <small>${notification.message}</small>
-                            <!-- [추가] '(읽음)' 상태를 표시할 span -->
                             <span class="read-status text-muted small ms-1 ${readStatusClass}">(읽음)</span>
                         </div>
                         <small class="text-muted text-nowrap">${timeAgo}</small>
@@ -203,17 +181,21 @@
         if (!target.classList.contains('fw-bold')) return;
 
         try {
-            const response = await fetchWithAuth(`/api/notifications/${notificationId}/read`, {
+            const response = await fetch(`/api/notifications/${notificationId}/read`, {
                 method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` }
             });
             if (!response.ok) throw new Error('읽음 처리 실패');
 
-            // UI 즉시 변경하고 카운트 줄임
             target.classList.remove('fw-bold');
-            const readStatusSpan = target.querySelector('.read-status');
-            if(readStatusSpan) readStatusSpan.classList.remove('d-none');
+
             unreadCount--;
             updateUnreadCountBadge();
+
+            const readStatusSpan = target.querySelector('.read-status');
+            if (readStatusSpan) {
+                readStatusSpan.classList.remove('d-none');
+            }
 
         } catch (error) {
             console.error("알림 읽음 처리 실패:", error);

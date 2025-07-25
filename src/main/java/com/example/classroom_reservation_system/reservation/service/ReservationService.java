@@ -10,6 +10,7 @@ import com.example.classroom_reservation_system.reservation.dto.request.Reservat
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import com.example.classroom_reservation_system.reservation.entity.ReservationState;
+import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import com.example.classroom_reservation_system.reservation.event.ReservationStatusChangedEvent;
 import com.example.classroom_reservation_system.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,36 +51,42 @@ public class ReservationService {
         Classroom classroom = classroomRepository.findById(request.getClassroomId())
                 .orElseThrow(() -> new CustomException(ErrorCode.CLASSROOM_NOT_FOUND));
 
-        // 2. 예약 시간 유효성 검증 (시작 시간이 종료 시간보다 늦을 수 없음)
-        if(request.getStartTime().isAfter(request.getEndTime())){
-            throw new CustomException(ErrorCode.INVALID_RESERVATION_TIME);
-        }
+        // 2. 예약 목록을 시간순으로 정렬
+        List<TimePeriod> periods = request.getPeriods();
+        periods.sort(Comparator.naturalOrder()); // ENUM 정의순으로 정렬
 
-        // 3. 예약 중복 확인 (Pessimistic Lock)
+        // 3.DB에 저장될 시작& 종료 시간 계산
+        LocalDate date = request.getReservationDate();
+        LocalDateTime finalStartTime = date.atTime(periods.get(0).getStartTime());
+        LocalDateTime finalEndTime = date.atTime(periods.get(periods.size() - 1).getEndTime());
+
+
+        // 4. 예약 중복 확인 (Pessimistic Lock)
         boolean isOverlapping = reservationRepository.existsByClassroomAndReservationStateNotAndEndTimeAfterAndStartTimeBefore(
                 classroom,
                 ReservationState.CANCELED,
-                request.getStartTime(),
-                request.getEndTime()
+                finalStartTime,
+                finalEndTime
         );
 
-        // 4. 중복 시 예외 발생
+        // 5. 중복 시 예외 발생
         if (isOverlapping){
             throw new CustomException(ErrorCode.CLASSROOM_ALREADY_RESERVED);
         }
 
-        // 5. 예약 생성
+        // 6. 예약 생성
         Reservation reservation = Reservation.create(
                 member,
                 classroom,
-                request.getStartTime(),
-                request.getEndTime()
+                finalStartTime,
+                finalEndTime,
+                EnumSet.copyOf(periods) //List 를 EnumSet으로 변환하여 전달
         );
 
-        // 6. 예약 저장
+        // 7. 예약 저장
         Reservation savedReservation = reservationRepository.save(reservation);
 
-        // 7. 예약 성공 이벤트 발행
+        // 8. 예약 성공 이벤트 발행
         String message = String.format("'%s' 예약이 완료되었습니다.", savedReservation.getClassroom().getName());
         eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, savedReservation, message));
 
@@ -140,6 +150,29 @@ public class ReservationService {
 
         return reservation;
     }
+    /**
+     * 특정 강의실 특정 날짜에 대한 예약 목록 조회
+     */
+    public Set<TimePeriod> getReservedPeriodsForDate(Long classroomId, LocalDate date){
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        // Repository를 통해 해당 날짜의 모든 예약 조회
+        List<Reservation> reservationsOnDate = reservationRepository
+                .findByClassroom_IdAndReservationStateNotAndStartTimeBetween(
+                        classroomId,
+                        ReservationState.CANCELED,
+                        startOfDay,
+                        endOfDay
+                );
+
+         //예약과 겹치는 교시를 찾아 set으로 모아줌
+        return reservationsOnDate.stream()
+                .flatMap(reservation -> reservation.getPeriods().stream())
+                .collect(Collectors.toSet());
+
+    }
 
     /**
      * API/View를 위한 내 예약 목록 조회 (DTO 변환)
@@ -165,7 +198,7 @@ public class ReservationService {
                 java.time.LocalDateTime.now()
         );
 
-        // 각 예약을 '사용 완료' 처리 (엔티티의 autoComplete 비즈니스 로직 호출)
+        // 각 예약을 사용 완료 처리
         targets.forEach(Reservation::autoComplete);
     }
 

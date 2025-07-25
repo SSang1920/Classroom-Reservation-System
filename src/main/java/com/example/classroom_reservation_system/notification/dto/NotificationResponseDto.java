@@ -2,6 +2,7 @@ package com.example.classroom_reservation_system.notification.dto;
 
 
 import com.example.classroom_reservation_system.notification.entity.Notification;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -13,6 +14,8 @@ public class NotificationResponseDto {
 
     private Long id;
     private String message;
+
+    @JsonProperty("isRead") //
     private boolean isRead;
     private LocalDateTime createdAt;
 

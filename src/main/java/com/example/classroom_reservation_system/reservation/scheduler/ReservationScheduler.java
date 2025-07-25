@@ -25,7 +25,7 @@ public class ReservationScheduler {
     private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * 매일 새벽 4시에 실행되어, 종료 시간이 지난 예약을 자동으로 'COMPLETED' 상태로 변경
+     * 매일 새벽 4시에 종료 시간이 지난 예약을 자동으로 'COMPLETED' 상태로 변경
      * cron = "0 0 4 * * *"
      */
     @Scheduled(cron = "0 0 4 * * *")
@@ -36,7 +36,7 @@ public class ReservationScheduler {
     }
 
     /**
-     * 30마다 실행되어, 1시간 뒤에 시작되는 예약에 대해 알림을 전송
+     * 30분마다 실행되어 1시간 뒤에 시작되는 예약에 대해 알림을 전송
      * cron = "0 0/30 * * * *" (0, 30분에 실행)
      */
     @Scheduled(cron = "0 0/30 * * * *")
@@ -58,7 +58,6 @@ public class ReservationScheduler {
         for (Reservation reservation : upcomingReservations) {
             log.info("1시간 전 알림 발송 대상: 예약 ID {}", reservation.getId());
             String message = String.format("'%s' 예약 시작까지 1시간 남았습니다.", reservation.getClassroom().getName());
-            // 이벤트를 발행하면, NotificationEventListener가 이 이벤트를 받아서 실제 알림을 생성
             eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
         }
     }
