@@ -10,28 +10,15 @@
     </div>
 
     <div class="d-flex align-items-center">
+        <!-- 로그아웃 상태일 때 보여질 뷰 -->
         <div id="logged-out-view">
             <a href="/login" class="btn btn-primary">로그인</a>
             <a href="/signup" class="btn btn-secondary ms-2">회원가입</a>
         </div>
 
+        <!-- 로그인 상태일 때 보여질 뷰 -->
         <div id="logged-in-view" class="d-flex align-items-center d-none">
-            <span class="me-3">환영합니다, <strong id="username-display"></strong>님!</span>
-            <a id="admin-page-btn" href="/admin/main" class="btn btn-warning btn-sm me-2 d-none">관리자 페이지</a>
-            <button id="logout-button" class="btn btn-outline-danger btn-sm">로그아웃</button>
-
-
-            <div class="notification dropdown ms-2">
-                <button class="btn btn-outline-secondary btn-sm position-relative" type="button" id="notification-dropdown-btn" data-bs-toggle="dropdown" aria-expanded="false">
-                    🔔
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notification-count-badge">
-                        0
-                    </span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notification-dropdown-btn" id="notification-list" style="width: 350px; max-height: 400px; overflow-y: auto;">
-                    <li><p class="dropdown-item text-center text-muted mb-0">알림이 없습니다.</p></li>
-                </ul>
-            </div>
+            <!-- 동적으로 생성 -->
         </div>
     </div>
 </div>
@@ -53,28 +40,45 @@
 
             try {
                 const payload = parseJwt(token);
-                document.getElementById('username-display').textContent = payload.name || '사용자';
+
+                let adminButtonHtml = '';
                 if (payload.role === 'ROLE_ADMIN') {
-                    document.getElementById('admin-page-btn').classList.remove('d-none');
+                    adminButtonHtml = `<a href="/admin/main" class="btn btn-warning btn-sm me-2">관리자 페이지</a>`;
                 }
+
+                loggedInView.innerHTML = `
+                    <span class="me-2">환영합니다, <strong id="username-display">${payload.name || '사용자'}</strong>님!</span>
+                    <a href="/mypage" class="btn btn-outline-info btn-sm me-2">내 정보</a>
+                    ${adminButtonHtml}
+                    <button id="logout-button" class="btn btn-outline-danger btn-sm">로그아웃</button>
+
+                    <div class="notification dropdown ms-2">
+                        <button class="btn btn-outline-secondary btn-sm position-relative" type="button" id="notification-dropdown-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                        🔔
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notification-count-badge">
+                            0
+                        </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notification-dropdown-btn" id="notification-list" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                            <li><p class="dropdown-item text-center text-muted mb-0">알림이 없습니다.</p></li>
+                        </ul>
+                    </div>
+                `;
+
+                document.getElementById('logout-button').addEventListener('click', () => logout(true));
+
+                // 로그인 상태일 때만 알림 기능 자동 실행
+                initializeNotifications();
+                connectSSE();
+
             } catch (e) {
                 console.error("토큰 파싱 오류:", e);
                 logout();
-                return;
             }
-
-            // 로그인 상태일 때만 알림 기능 자동 실행
-            initializeNotifications();
-            connectSSE();
 
         } else {
             loggedOutView.classList.remove('d-none');
             loggedInView.classList.add('d-none');
-        }
-
-        const logoutButton = document.getElementById('logout-button');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', () => logout(true));
         }
     });
 
