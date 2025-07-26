@@ -139,7 +139,7 @@ public class Reservation {
         }
 
         // 예약 상태를 'CANCELED' 변경
-        this.reservationState = ReservationState.CANCELED;
+        this.reservationState = ReservationState.CANCELED_BY_ADMIN;
 
         // 히스토리 기록 추가
         this.addHistory(HistoryState.CANCELED_BY_ADMIN);
@@ -151,8 +151,11 @@ public class Reservation {
         this.startTime = newStartTime;
         this.endTime = newEndTime;
         this.periods = newPeriods;
+        this.reservationState = ReservationState.MODIFIED_BY_ADMIN;
+
         this.addHistory(HistoryState.UPDATED_BY_ADMIN);
     }
+
     public void complete() {
         if (this.reservationState == ReservationState.COMPLETED) {
             throw new CustomException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
@@ -177,7 +180,7 @@ public class Reservation {
             return;
         }
 
-        this.reservationState = ReservationState.COMPLETED;
+        this.reservationState = ReservationState.COMPLETED_BY_SYSTEM;
         this.addHistory(HistoryState.COMPLETED_BY_SYSTEM);
     }
 

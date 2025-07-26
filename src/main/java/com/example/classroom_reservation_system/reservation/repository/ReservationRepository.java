@@ -77,4 +77,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             LocalDateTime endTime
     );
 
+    /**
+     * 예약 수정할때 다른 사람의 예약은 비활성화 처리 (현재 변경할 예약의 예약됨은 건드릴수잇게)
+     */
+    List<Reservation> findByClassroom_IdAndIdNotAndReservationStateNotAndStartTimeBetween(
+            Long classroomId,
+            Long id,
+            ReservationState reservationState,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
 }

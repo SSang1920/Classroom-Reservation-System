@@ -1,6 +1,7 @@
 package com.example.classroom_reservation_system.admin.service;
 
 import com.example.classroom_reservation_system.admin.dto.reqeust.AdminReservationUpdateRequest;
+import com.example.classroom_reservation_system.admin.dto.response.AdminReservationDetailResponse;
 import com.example.classroom_reservation_system.admin.dto.response.AdminReservationResponse;
 import com.example.classroom_reservation_system.admin.repository.AdminReservationRepository;
 import com.example.classroom_reservation_system.common.exception.CustomException;
@@ -58,6 +59,15 @@ public class AdminReservationService {
         );
         // 조회된 엔티티 DTO로 변환
         return reservations.map(AdminReservationResponse::from);
+    }
+    /**
+     * 단일 예약 상세 정보 조회
+     */
+    public AdminReservationDetailResponse getReservationDetails(Long reservationId){
+        Reservation reservation = adminReservationRepository.findById(reservationId)
+                .orElseThrow(()-> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        return AdminReservationDetailResponse.from(reservation);
     }
 
     /**

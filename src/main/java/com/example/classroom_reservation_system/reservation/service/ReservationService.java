@@ -140,19 +140,36 @@ public class ReservationService {
     /**
      * 특정 강의실 특정 날짜에 대한 예약 목록 조회
      */
-    public Set<TimePeriod> getReservedPeriodsForDate(Long classroomId, LocalDate date){
+    public Set<TimePeriod> getReservedPeriodsForDate(Long classroomId, LocalDate date, Long excludeReservationId){
 
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
-        // Repository를 통해 해당 날짜의 모든 예약 조회
-        List<Reservation> reservationsOnDate = reservationRepository
-                .findByClassroom_IdAndReservationStateNotAndStartTimeBetween(
-                        classroomId,
-                        ReservationState.CANCELED,
-                        startOfDay,
-                        endOfDay
-                );
+        List<Reservation> reservationsOnDate;
+
+
+        if(excludeReservationId != null){
+            //특정 예약 제외하고 조회
+            reservationsOnDate = reservationRepository
+                    .findByClassroom_IdAndIdNotAndReservationStateNotAndStartTimeBetween(
+                            classroomId,
+                            excludeReservationId,
+                            ReservationState.CANCELED,
+                            startOfDay,
+                            endOfDay
+                    );
+
+        } else{
+            // Repository를 통해 해당 날짜의 모든 예약 조회
+            reservationsOnDate = reservationRepository
+                    .findByClassroom_IdAndReservationStateNotAndStartTimeBetween(
+                            classroomId,
+                            ReservationState.CANCELED,
+                            startOfDay,
+                            endOfDay
+                    );
+
+        }
 
          //예약과 겹치는 교시를 찾아 set으로 모아줌
         return reservationsOnDate.stream()

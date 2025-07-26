@@ -44,9 +44,8 @@
                     <label for="state" class="form-label">상태</label>
                     <select id="state" name="state" class="form-select">
                         <option value="">전체</option>
-                        <!-- Thymeleaf는 Enum의 영문 이름을 값으로 사용합니다 -->
                         <option th:each="s : ${T(com.example.classroom_reservation_system.reservation.entity.ReservationState).values()}"
-                                th:value="${s.name()}" th:text="${s.name()}"></option>
+                                th:value="${s.name()}" th:text="${s.description}"></option>
                     </select>
                 </div>
                 <div class="col-12 d-flex justify-content-end gap-2">
@@ -72,21 +71,72 @@
             </tr>
             </thead>
             <tbody id="reservation-table-body">
-
+            <!-- 예약 목록이 여기에 동적으로 채워집니다. -->
             </tbody>
         </table>
     </div>
 
     <nav id="pagination-nav">
         <ul class="pagination justify-content-center">
-
+            <!-- 페이지네이션이 여기에 동적으로 채워집니다. -->
         </ul>
     </nav>
 </div>
 
 
+<!-- Edit Reservation Modal -->
 <div class="modal fade" id="editReservationModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">📅 예약 수정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- 모달 로딩 스피너 -->
+                <div id="modal-loader" class="text-center d-none p-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">예약 정보를 불러오는 중입니다...</p>
+                </div>
 
+                <!-- 모달 폼 -->
+                <form id="edit-reservation-form" class="d-none">
+                    <input type="hidden" id="edit-reservation-id">
+
+                    <div class="mb-3">
+                        <label for="edit-building-select" class="form-label">건물</label>
+                        <select class="form-select" id="edit-building-select" required></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-classroom-select" class="form-label">강의실</label>
+                        <select class="form-select" id="edit-classroom-select" name="classroomId" required></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit-reservation-date" class="form-label">날짜</label>
+                        <input type="text" class="form-control" id="edit-reservation-date" name="reservationDate" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">시간(교시) 선택</label>
+                        <small class="form-text text-muted d-block mb-2">최대 2개까지 선택 가능합니다.</small>
+                        <div id="edit-time-periods-container" class="border p-3 rounded" style="max-height: 200px; overflow-y: auto;">
+                            <!-- 시간표가 여기에 동적으로 생성됩니다. -->
+                        </div>
+                    </div>
+
+                    <div id="edit-error-message" class="alert alert-danger d-none" role="alert"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary" id="save-changes-btn">변경사항 저장</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
@@ -96,7 +146,9 @@
 <script>
     // 전역 변수
     let currentPage = 0;
-    let startDatePicker, endDatePicker; // flatpickr 인스턴스 저장
+    let searchStartDatePicker, searchEndDatePicker; // 검색용 flatpickr
+    let editDatePicker; // 수정 모달용 flatpickr
+    let editModal; // 수정 모달 인스턴스
 
     document.addEventListener('DOMContentLoaded', function () {
         // DOM 요소 가져오기
@@ -105,110 +157,121 @@
         const tableBody = document.getElementById('reservation-table-body');
         const paginationNav = document.getElementById('pagination-nav');
         const buildingSelect = document.getElementById('building-select');
+        editModal = new bootstrap.Modal(document.getElementById('editReservationModal'));
 
-        //  flatpickr 초기화
-        startDatePicker = flatpickr('#startDate', {
-            altFormat: "Y-m-d (D)",
-            dateFormat: "Y-m-d",
-            locale: "ko"
-        });
-        endDatePicker = flatpickr('#endDate', {
-            altFormat: "Y-m-d (D)",
-            dateFormat: "Y-m-d",
-            locale: "ko"
+        // flatpickr 초기화
+        searchStartDatePicker = flatpickr('#startDate', { altFormat: "Y-m-d", dateFormat: "Y-m-d", locale: "ko" });
+        searchEndDatePicker = flatpickr('#endDate', { altFormat: "Y-m-d", dateFormat: "Y-m-d", locale: "ko" });
+        editDatePicker = flatpickr('#edit-reservation-date', {
+            altFormat: "Y-m-d", dateFormat: "Y-m-d", locale: "ko", minDate: "today",
+            onChange: function(selectedDates, dateStr, instance) {
+                const currentSelections = getSelectedPeriodsFromModal();
+                updateEditModalTimes(currentSelections);
+            }
         });
 
         // 페이지 로드 시 초기화 함수 호출
         initializePage();
 
         // --- 이벤트 리스너 등록 ---
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            fetchReservations(0);
-        });
-
+        searchForm.addEventListener('submit', (e) => { e.preventDefault(); fetchReservations(0); });
         resetBtn.addEventListener('click', () => {
             searchForm.reset();
-            startDatePicker.clear(); // flatpickr 초기화
-            endDatePicker.clear();   // flatpickr 초기화
+            searchStartDatePicker.clear();
+            searchEndDatePicker.clear();
             resetClassroomSelect();
             window.history.replaceState({}, '', '/admin/reservations');
             fetchReservations(0);
         });
-
         buildingSelect.addEventListener('change', () => {
             const selectedBuildingId = buildingSelect.value;
-            if (selectedBuildingId) {
-                fetchClassroomsForBuilding(selectedBuildingId);
-            } else {
-                resetClassroomSelect();
-            }
+            fetchClassroomsForBuilding(selectedBuildingId, 'classroom-select');
         });
-
         tableBody.addEventListener('click', handleTableButtonClick);
         paginationNav.addEventListener('click', handlePaginationClick);
+
+        // 수정 모달 이벤트 리스너
+        document.getElementById('save-changes-btn').addEventListener('click', saveReservationChanges);
+        document.getElementById('edit-time-periods-container').addEventListener('change', handleEditCheckboxChange);
+        document.getElementById('edit-building-select').addEventListener('change', (e) => {
+            fetchClassroomsForBuilding(e.target.value, 'edit-classroom-select');
+        });
+        document.getElementById('edit-classroom-select').addEventListener('change', () => {
+             const currentSelections = getSelectedPeriodsFromModal();
+             updateEditModalTimes(currentSelections);
+         });
     });
 
     // --- 함수 선언부 ---
 
     async function initializePage() {
-        await initializeBuildingFilter(); // 1. 건물 필터 먼저 초기화
-        await initializeFormFromUrl();      // 2. URL 파라미터로 폼 채우기
+        await initializeBuildingFilter('building-select');
+        await initializeFormFromUrl();
         const urlParams = new URLSearchParams(window.location.search);
-        fetchReservations(parseInt(urlParams.get('page')) || 0); // 3. 데이터 로드
+        fetchReservations(parseInt(urlParams.get('page')) || 0);
     }
+    //  현재 모델에서 선택된 교시 목록을 가져오는 헬퍼 함수
+     function getSelectedPeriodsFromModal() {
+         const checkedBoxes = document.querySelectorAll('#edit-time-periods-container .form-check-input:checked');
+         return Array.from(checkedBoxes).map(cb => cb.value);
+     }
 
-    async function initializeBuildingFilter() {
+    //  selectId를 받아 검색폼과 수정모달에서 재사용
+    async function initializeBuildingFilter(selectId) {
+        const selectElement = document.getElementById(selectId);
         try {
             const response = await fetchWithAuth('/api/facilities/buildings');
             if (!response.ok) throw new Error('건물 목록 로딩 실패');
             const result = await response.json();
             const buildings = result.data;
-            const buildingSelect = document.getElementById('building-select');
+
+            selectElement.innerHTML = `<option value="">-- 건물 선택 --</option>`;
             buildings.forEach(b => {
-                buildingSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+                selectElement.innerHTML += `<option value="${b.id}">${b.name}</option>`;
             });
         } catch (error) {
             console.error(error);
+            selectElement.innerHTML = `<option value="">오류 발생</option>`;
         }
     }
 
     async function initializeFormFromUrl() {
         const params = new URLSearchParams(window.location.search);
         document.getElementById('username').value = params.get('username') || '';
-        if(params.get('startDate')) startDatePicker.setDate(params.get('startDate'), false);
-        if(params.get('endDate')) endDatePicker.setDate(params.get('endDate'), false);
+        if(params.get('startDate')) searchStartDatePicker.setDate(params.get('startDate'), false);
+        if(params.get('endDate')) searchEndDatePicker.setDate(params.get('endDate'), false);
         document.getElementById('state').value = params.get('state') || '';
 
         const buildingId = params.get('buildingId');
         if (buildingId) {
-            const buildingSelect = document.getElementById('building-select');
-            buildingSelect.value = buildingId;
-            // 건물이 선택되었으면, 해당 건물의 강의실 목록을 불러와서 채움
-            await fetchClassroomsForBuilding(buildingId, params.get('classroomId'));
+            document.getElementById('building-select').value = buildingId;
+            await fetchClassroomsForBuilding(buildingId, 'classroom-select', params.get('classroomId'));
         }
     }
 
-    async function fetchClassroomsForBuilding(buildingId, selectedClassroomId = null) {
-        const classroomSelect = document.getElementById('classroom-select');
-        resetClassroomSelect();
-        classroomSelect.innerHTML = '<option value="">로딩 중...</option>';
+    //  selectId와 selectedClassroomId를 받아 재사용
+    async function fetchClassroomsForBuilding(buildingId, selectId, selectedClassroomId = null) {
+        const classroomSelect = document.getElementById(selectId);
+        const isSearchForm = selectId === 'classroom-select';
+        classroomSelect.innerHTML = isSearchForm ? '<option value="">건물 먼저 선택</option>' : '';
+        classroomSelect.disabled = true;
 
+        if (!buildingId) return;
+
+        classroomSelect.innerHTML = '<option value="">강의실 로딩 중...</option>';
         try {
             const response = await fetchWithAuth(`/api/facilities/buildings/${buildingId}/classrooms`);
             if (!response.ok) throw new Error('강의실 목록 로딩 실패');
             const result = await response.json();
             const classrooms = result.data;
 
-            classroomSelect.innerHTML = '<option value="">전체</option>';
+            classroomSelect.innerHTML = isSearchForm ? '<option value="">전체</option>' : '';
             classrooms.forEach(c => {
                 classroomSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
             });
             classroomSelect.disabled = false;
 
-            if (selectedClassroomId) {
-                classroomSelect.value = selectedClassroomId;
-            }
+            if (selectedClassroomId) classroomSelect.value = selectedClassroomId;
         } catch (error) {
             console.error(error);
             classroomSelect.innerHTML = '<option value="">오류</option>';
@@ -221,29 +284,147 @@
         classroomSelect.disabled = true;
     }
 
+    //  수정 모델 열기
+    async function openEditModal(reservationId) {
+        editModal.show();
+        const loader = document.getElementById('modal-loader');
+        const form = document.getElementById('edit-reservation-form');
+        const errorDiv = document.getElementById('edit-error-message');
+
+        loader.classList.remove('d-none');
+        form.classList.add('d-none');
+        errorDiv.classList.add('d-none');
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/reservations/${reservationId}`);
+            if (!response.ok) throw new Error('예약 정보 로딩 실패');
+            const result = await response.json();
+            await populateEditModal(result.data);
+            form.classList.remove('d-none');
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.classList.remove('d-none');
+        } finally {
+            loader.classList.add('d-none');
+        }
+    }
+
+    //  모델 폼에 데이터 채우기
+    async function populateEditModal(data) {
+        document.getElementById('edit-reservation-id').value = data.reservationId;
+
+        const buildingSelect = document.getElementById('edit-building-select');
+        await initializeBuildingFilter('edit-building-select');
+        buildingSelect.value = data.buildingId;
+
+        await fetchClassroomsForBuilding(data.buildingId, 'edit-classroom-select', data.classroomId);
+
+        editDatePicker.setDate(data.reservationDate, false);
+        await updateEditModalTimes(data.periods);
+    }
+
+    //  수정 모델의 시간표 업데이트
+    async function updateEditModalTimes(preSelectedPeriods = []) {
+        const timeContainer = document.getElementById('edit-time-periods-container');
+        const classroomId = document.getElementById('edit-classroom-select').value;
+        const selectedDate = document.getElementById('edit-reservation-date').value;
+        const reservationId = document.getElementById('edit-reservation-id').value;
+
+        if (!classroomId || !selectedDate) {
+            timeContainer.innerHTML = '<p class="text-muted mb-0">강의실과 날짜를 선택해주세요.</p>';
+            return;
+        }
+
+        timeContainer.innerHTML = '<div class="spinner-border spinner-border-sm"></div>';
+        try {
+            const response = await fetchWithAuth(`/api/reservations/classroom/${classroomId}/reserved-periods?date=${selectedDate}&excludeReservationId=${reservationId}`);
+            if (!response.ok) throw new Error('예약 시간 조회 실패');
+            const result = await response.json();
+            const reservedPeriodsByOthers = new Set(result.data);
+            const allPeriods = ['PERIOD_1', 'PERIOD_2', 'PERIOD_3', 'PERIOD_4', 'PERIOD_5', 'PERIOD_6', 'PERIOD_7', 'PERIOD_8'];
+
+            timeContainer.innerHTML = '';
+            allPeriods.forEach((period, index) => {
+                const isReserved = reservedPeriodsByOthers.has(period);
+                const isChecked = preSelectedPeriods.includes(period);
+                timeContainer.innerHTML += `
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="${period}" id="edit-${period}" ${isReserved ? 'disabled' : ''} ${isChecked ? 'checked' : ''}>
+                        <label class="form-check-label ${isReserved ? 'text-danger' : ''}" for="edit-${period}">${index + 1}교시 ${isReserved ? '(예약됨)' : ''}</label>
+                    </div>
+                `;
+            });
+        } catch (error) {
+            timeContainer.innerHTML = `<p class="text-danger">${error.message}</p>`;
+        }
+    }
+
+    // 수정 사항 저장
+    async function saveReservationChanges() {
+        const errorDiv = document.getElementById('edit-error-message');
+        errorDiv.classList.add('d-none');
+
+        const reservationId = document.getElementById('edit-reservation-id').value;
+        const selectedPeriods = Array.from(document.querySelectorAll('#edit-time-periods-container .form-check-input:checked')).map(cb => cb.value);
+
+        if (selectedPeriods.length === 0) {
+            errorDiv.textContent = '시간을 1개 이상 선택해야 합니다.';
+            errorDiv.classList.remove('d-none');
+            return;
+        }
+
+        const payload = {
+            classroomId: document.getElementById('edit-classroom-select').value,
+            reservationDate: document.getElementById('edit-reservation-date').value,
+            periods: selectedPeriods
+        };
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/reservations/${reservationId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            alert('예약이 성공적으로 수정되었습니다.');
+            editModal.hide();
+            fetchReservations(currentPage);
+        } catch (error) {
+            errorDiv.textContent = error.message;
+            errorDiv.classList.remove('d-none');
+        }
+    }
+
+    //  수정 모델 체크박스 개수 제한
+    function handleEditCheckboxChange(event) {
+        if (event.target.type === 'checkbox') {
+            const checkedBoxes = document.querySelectorAll('#edit-time-periods-container .form-check-input:checked');
+            if (checkedBoxes.length > 2) {
+                alert('시간은 최대 2개까지만 선택할 수 있습니다.');
+                event.target.checked = false;
+            }
+        }
+    }
+
+    // --- 기존 함수들 (검색, 페이징, 취소 등) ---
     function buildQueryParameters(pageNumber) {
         const formData = new FormData(document.getElementById('search-form'));
         const params = new URLSearchParams(formData);
         params.append('page', pageNumber);
         params.append('size', 10);
         params.append('sort', 'startTime,desc');
+        // buildingId는 form의 name 속성이 없으므로 수동으로 추가
+        const buildingId = document.getElementById('building-select').value;
+        if(buildingId) params.set('buildingId', buildingId);
         return params;
     }
 
     async function fetchReservations(page) {
         currentPage = page;
         const params = buildQueryParameters(page);
-
-        // URL 상태 유지를 위해 buildingId도 함께 저장
-        const urlParams = new URLSearchParams(params);
-        const buildingId = document.getElementById('building-select').value;
-        // buildingId는 form의 name 속성이 없으므로 FormData에 포함되지 않음. 수동으로 추가.
-        if(buildingId) {
-            urlParams.set('buildingId', buildingId);
-        } else {
-            urlParams.delete('buildingId'); // 값이 없으면 파라미터에서 제거
-        }
-        window.history.replaceState({}, '', `/admin/reservations?${urlParams.toString()}`);
+        window.history.replaceState({}, '', `/admin/reservations?${params.toString()}`);
 
         const tableBody = document.getElementById('reservation-table-body');
         tableBody.innerHTML = `<tr><td colspan="7" class="text-center"><div class="spinner-border spinner-border-sm"></div> 예약 정보 로딩 중...</td></tr>`;
@@ -271,7 +452,7 @@
         }
         reservations.forEach(res => {
             let managementButtons = '<span>-</span>';
-            if (res.state === 'RESERVED') {
+            if (res.state === '예약됨' || res.state === '관리자에 의해 변경됨') {
                 managementButtons = `
                     <button class="btn btn-sm btn-outline-primary me-1 edit-btn" data-id="${res.id}">수정</button>
                     <button class="btn btn-sm btn-outline-danger cancel-btn" data-id="${res.id}">취소</button>
@@ -284,7 +465,7 @@
                 <td>${res.classroomName}</td>
                 <td>${formatDateTime(res.startTime)}</td>
                 <td>${formatDateTime(res.endTime)}</td>
-                <td><span class="badge ${getStateBadgeClass(res.state)}">${getStateName(res.state)}</span></td>
+                <td><span class="badge ${getStateBadgeClass(res.state)}">${res.state}</span></td>
                 <td>${managementButtons}</td>
             `;
             tableBody.appendChild(tr);
@@ -335,41 +516,30 @@
         }
     }
 
-    function openEditModal(id) {
-        alert(`ID ${id} 예약 수정 기능은 구현 예정입니다.`);
-    }
-
     function formatDateTime(isoString) {
-    if (!isoString) return '';
-
-    const days = ['일', '월', '화', '수', '목', '금', '토']; // 요일 배열
-    const d = new Date(isoString);
-
-    const yyyy = d.getFullYear();
-    const MM = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    const dayName = days[d.getDay()]; // 요일 가져오기
-
-    return `${yyyy}.${MM}.${dd} (${dayName}) ${hh}:${mm}`;
+        if (!isoString) return '';
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        const d = new Date(isoString);
+        const yyyy = d.getFullYear();
+        const MM = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        const dayName = days[d.getDay()];
+        return `${yyyy}.${MM}.${dd} (${dayName}) ${hh}:${mm}`;
     }
 
     function getStateBadgeClass(state) {
-        const states = { 'RESERVED': 'bg-primary', 'CANCELED': 'bg-secondary', 'COMPLETED': 'bg-success', 'CANCELED_BY_ADMIN': 'bg-danger', 'MODIFIED_BY_ADMIN': 'bg-warning text-dark', 'COMPLETED_BY_SYSTEM': 'bg-info text-dark' };
+        const states = {
+            '예약됨': 'bg-primary',
+            '사용 완료': 'bg-success',
+            '사용자 취소': 'bg-secondary',
+            '관리자에 의해 취소됨': 'bg-danger',
+            '관리자에 의해 변경됨': 'bg-warning text-dark',
+            '자동 완료됨': 'bg-info text-dark'
+        };
         return states[state] || 'bg-dark';
     }
-
-    // 모든 상태에 대한 한글 이름을 여기서 관리합니다.
-    function getStateName(state) {
-        const stateMap = {
-            RESERVED: '예약됨',
-            COMPLETED: '완료됨',
-            CANCELED: '취소됨',
-        };
-        return stateMap[state] || state; // 매핑되는 값이 없으면 원래 영문 이름 반환
-    }
-</script>
 </script>
 </body>
 </html>
