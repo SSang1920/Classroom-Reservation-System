@@ -20,9 +20,17 @@
                     <label for="username" class="form-label">예약자명</label>
                     <input type="text" id="username" name="username" class="form-control">
                 </div>
+                <div class="col-md-2">
+                    <label for="building-select" class="form-label">건물</label>
+                    <select id="building-select" class="form-select">
+                        <option value="">전체</option>
+                    </select>
+                </div>
                 <div class="col-md-3">
-                    <label for="classroomName" class="form-label">강의실명</label>
-                    <input type="text" id="classroomName" name="classroomName" class="form-control">
+                    <label for="classroom-select" class="form-label">강의실</label>
+                    <select id="classroom-select" name="classroomId" class="form-select" disabled>
+                        <option value="">건물 먼저 선택</option>
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <label for="startDate" class="form-label">시작일</label>
@@ -86,80 +94,131 @@
 <script src="/js/admin-auth.js"></script>
 
 <script>
-    // 전역 변수로 현재 페이지와 모달 인스턴스 관리
+    // 전역 변수
     let currentPage = 0;
-    let editModalInstance;
+    let startDatePicker, endDatePicker; // flatpickr 인스턴스 저장
 
     document.addEventListener('DOMContentLoaded', function () {
+        // DOM 요소 가져오기
         const searchForm = document.getElementById('search-form');
         const resetBtn = document.getElementById('reset-btn');
         const tableBody = document.getElementById('reservation-table-body');
         const paginationNav = document.getElementById('pagination-nav');
-        editModalInstance = new bootstrap.Modal(document.getElementById('editReservationModal'));
+        const buildingSelect = document.getElementById('building-select');
 
-        flatpickr('#startDate', {
+        //  flatpickr 초기화
+        startDatePicker = flatpickr('#startDate', {
             altFormat: "Y-m-d (D)",
-            dateFormat : "Y-m-d",
+            dateFormat: "Y-m-d",
+            locale: "ko"
+        });
+        endDatePicker = flatpickr('#endDate', {
+            altFormat: "Y-m-d (D)",
+            dateFormat: "Y-m-d",
             locale: "ko"
         });
 
-        flatpickr('#endDate', {
-            altFormat: "Y-m-d (D)",
-            dateFormat : "Y-m-d",
-            locale: "ko"
-        });
+        // 페이지 로드 시 초기화 함수 호출
+        initializePage();
 
-        // 페이지 로드 시 URL 파라미터로 폼 초기화 및 데이터 로드
-        initializeFormFromUrl();
-        const urlParams = new URLSearchParams(window.location.search);
-        fetchReservations(parseInt(urlParams.get('page')) || 0);
-
-        // 검색 버튼 이벤트
-        searchForm.addEventListener('submit', function (e) {
+        // --- 이벤트 리스너 등록 ---
+        searchForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            fetchReservations(0); // 검색 시 항상 첫 페이지부터 조회
+            fetchReservations(0);
         });
 
-        // 초기화 버튼 이벤트
         resetBtn.addEventListener('click', () => {
             searchForm.reset();
+            startDatePicker.clear(); // flatpickr 초기화
+            endDatePicker.clear();   // flatpickr 초기화
+            resetClassroomSelect();
             window.history.replaceState({}, '', '/admin/reservations');
             fetchReservations(0);
         });
 
-        // 이벤트 위임 방식으로 테이블 내 버튼 클릭 처리
-        tableBody.addEventListener('click', function (e) {
-            const button = e.target.closest('button');
-            if (!button) return;
-
-            const reservationId = button.dataset.id;
-            if (button.classList.contains('cancel-btn')) {
-                if (confirm(`예약 ID [${reservationId}] 를 정말로 취소하시겠습니까?`)) {
-                    cancelReservation(reservationId);
-                }
-            } else if (button.classList.contains('edit-btn')) {
-                openEditModal(reservationId);
+        buildingSelect.addEventListener('change', () => {
+            const selectedBuildingId = buildingSelect.value;
+            if (selectedBuildingId) {
+                fetchClassroomsForBuilding(selectedBuildingId);
+            } else {
+                resetClassroomSelect();
             }
         });
 
-        //이벤트 위임 방식으로 페이지네이션 클릭 처리
-        paginationNav.addEventListener('click', function (e) {
-            e.preventDefault();
-            const pageLink = e.target.closest('.page-link');
-            if (pageLink && !pageLink.parentElement.classList.contains('disabled')) {
-                fetchReservations(parseInt(pageLink.dataset.page));
-            }
-        });
+        tableBody.addEventListener('click', handleTableButtonClick);
+        paginationNav.addEventListener('click', handlePaginationClick);
     });
 
+    // --- 함수 선언부 ---
 
-    function initializeFormFromUrl() {
+    async function initializePage() {
+        await initializeBuildingFilter(); // 1. 건물 필터 먼저 초기화
+        await initializeFormFromUrl();      // 2. URL 파라미터로 폼 채우기
+        const urlParams = new URLSearchParams(window.location.search);
+        fetchReservations(parseInt(urlParams.get('page')) || 0); // 3. 데이터 로드
+    }
+
+    async function initializeBuildingFilter() {
+        try {
+            const response = await fetchWithAuth('/api/facilities/buildings');
+            if (!response.ok) throw new Error('건물 목록 로딩 실패');
+            const result = await response.json();
+            const buildings = result.data;
+            const buildingSelect = document.getElementById('building-select');
+            buildings.forEach(b => {
+                buildingSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function initializeFormFromUrl() {
         const params = new URLSearchParams(window.location.search);
         document.getElementById('username').value = params.get('username') || '';
-        document.getElementById('classroomName').value = params.get('classroomName') || '';
-        document.getElementById('startDate').value = params.get('startDate') || '';
-        document.getElementById('endDate').value = params.get('endDate') || '';
+        if(params.get('startDate')) startDatePicker.setDate(params.get('startDate'), false);
+        if(params.get('endDate')) endDatePicker.setDate(params.get('endDate'), false);
         document.getElementById('state').value = params.get('state') || '';
+
+        const buildingId = params.get('buildingId');
+        if (buildingId) {
+            const buildingSelect = document.getElementById('building-select');
+            buildingSelect.value = buildingId;
+            // 건물이 선택되었으면, 해당 건물의 강의실 목록을 불러와서 채움
+            await fetchClassroomsForBuilding(buildingId, params.get('classroomId'));
+        }
+    }
+
+    async function fetchClassroomsForBuilding(buildingId, selectedClassroomId = null) {
+        const classroomSelect = document.getElementById('classroom-select');
+        resetClassroomSelect();
+        classroomSelect.innerHTML = '<option value="">로딩 중...</option>';
+
+        try {
+            const response = await fetchWithAuth(`/api/facilities/buildings/${buildingId}/classrooms`);
+            if (!response.ok) throw new Error('강의실 목록 로딩 실패');
+            const result = await response.json();
+            const classrooms = result.data;
+
+            classroomSelect.innerHTML = '<option value="">전체</option>';
+            classrooms.forEach(c => {
+                classroomSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+            classroomSelect.disabled = false;
+
+            if (selectedClassroomId) {
+                classroomSelect.value = selectedClassroomId;
+            }
+        } catch (error) {
+            console.error(error);
+            classroomSelect.innerHTML = '<option value="">오류</option>';
+        }
+    }
+
+    function resetClassroomSelect() {
+        const classroomSelect = document.getElementById('classroom-select');
+        classroomSelect.innerHTML = '<option value="">건물 먼저 선택</option>';
+        classroomSelect.disabled = true;
     }
 
     function buildQueryParameters(pageNumber) {
@@ -174,16 +233,26 @@
     async function fetchReservations(page) {
         currentPage = page;
         const params = buildQueryParameters(page);
-        window.history.replaceState({}, '', `/admin/reservations?${params.toString()}`);
+
+        // URL 상태 유지를 위해 buildingId도 함께 저장
+        const urlParams = new URLSearchParams(params);
+        const buildingId = document.getElementById('building-select').value;
+        // buildingId는 form의 name 속성이 없으므로 FormData에 포함되지 않음. 수동으로 추가.
+        if(buildingId) {
+            urlParams.set('buildingId', buildingId);
+        } else {
+            urlParams.delete('buildingId'); // 값이 없으면 파라미터에서 제거
+        }
+        window.history.replaceState({}, '', `/admin/reservations?${urlParams.toString()}`);
 
         const tableBody = document.getElementById('reservation-table-body');
-        tableBody.innerHTML = `<tr><td colspan="7" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> 예약 정보를 불러오는 중...</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center"><div class="spinner-border spinner-border-sm"></div> 예약 정보 로딩 중...</td></tr>`;
 
         try {
             const response = await fetchWithAuth(`/api/admin/reservations?${params.toString()}`);
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || '데이터를 불러오는데 실패했습니다.');
+                throw new Error(errorData.message || '데이터 로딩 실패');
             }
             const result = await response.json();
             renderTable(result.data.content);
@@ -201,15 +270,13 @@
             return;
         }
         reservations.forEach(res => {
-            // 'RESERVED' 상태일 때만 버튼을 생성하도록 로직 변경
-            let managementButtons = '<span>-</span>'; // 기본값은 '-'
+            let managementButtons = '<span>-</span>';
             if (res.state === 'RESERVED') {
                 managementButtons = `
                     <button class="btn btn-sm btn-outline-primary me-1 edit-btn" data-id="${res.id}">수정</button>
                     <button class="btn btn-sm btn-outline-danger cancel-btn" data-id="${res.id}">취소</button>
                 `;
             }
-
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${res.id}</td>
@@ -228,9 +295,7 @@
         const paginationNav = document.getElementById('pagination-nav');
         const ul = paginationNav.querySelector('.pagination');
         ul.innerHTML = '';
-
         if (pageData.totalPages <= 1) return;
-
         ul.innerHTML += `<li class="page-item ${pageData.first ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${pageData.number - 1}">이전</a></li>`;
         for (let i = 0; i < pageData.totalPages; i++) {
             ul.innerHTML += `<li class="page-item ${i === pageData.number ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i + 1}</a></li>`;
@@ -238,38 +303,49 @@
         ul.innerHTML += `<li class="page-item ${pageData.last ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${pageData.number + 1}">다음</a></li>`;
     }
 
+    function handleTableButtonClick(e) {
+        const button = e.target.closest('button');
+        if (!button) return;
+        const reservationId = button.dataset.id;
+        if (button.classList.contains('cancel-btn')) {
+            if (confirm(`예약 ID [${reservationId}] 를 정말로 취소하시겠습니까?`)) {
+                cancelReservation(reservationId);
+            }
+        } else if (button.classList.contains('edit-btn')) {
+            openEditModal(reservationId);
+        }
+    }
+
+    function handlePaginationClick(e) {
+        e.preventDefault();
+        const pageLink = e.target.closest('.page-link');
+        if (pageLink && !pageLink.parentElement.classList.contains('disabled')) {
+            fetchReservations(parseInt(pageLink.dataset.page));
+        }
+    }
+
     async function cancelReservation(id) {
         try {
             const response = await fetchWithAuth(`/api/admin/reservations/${id}/cancel`, { method: 'PATCH' });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
+            if (!response.ok) throw new Error((await response.json()).message);
             alert('예약이 성공적으로 취소되었습니다.');
-            fetchReservations(currentPage); // 현재 페이지 목록 새로고침
+            fetchReservations(currentPage);
         } catch (error) {
             alert(`취소 실패: ${error.message}`);
         }
     }
 
-    async function openEditModal(id) {
+    function openEditModal(id) {
         alert(`ID ${id} 예약 수정 기능은 구현 예정입니다.`);
-        // editModalInstance.show();
     }
 
     function formatDateTime(isoString) {
         if (!isoString) return '';
-        const date = new Date(isoString);
-        return date.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\. /g, '.').slice(0, -1);
+        return new Date(isoString).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\. /g, '.').slice(0, -1);
     }
 
     function getStateBadgeClass(state) {
-        const states = {
-            'RESERVED': 'bg-primary',
-            'CANCELED': 'bg-secondary',
-            'COMPLETED': 'bg-success',
-            'CANCELED_BY_ADMIN': 'bg-danger',
-            'MODIFIED_BY_ADMIN': 'bg-warning text-dark',
-            'COMPLETED_BY_SYSTEM': 'bg-info text-dark'
-        };
+        const states = { 'RESERVED': 'bg-primary', 'CANCELED': 'bg-secondary', 'COMPLETED': 'bg-success', 'CANCELED_BY_ADMIN': 'bg-danger', 'MODIFIED_BY_ADMIN': 'bg-warning text-dark', 'COMPLETED_BY_SYSTEM': 'bg-info text-dark' };
         return states[state] || 'bg-dark';
     }
 
@@ -277,11 +353,12 @@
     function getStateName(state) {
         const stateMap = {
             RESERVED: '예약됨',
-            COMPLETED: '완료됨',
-            CANCELED: '취소됨',
+            COMPLETED: '사용 완료',
+            CANCELED: '사용자 취소',
         };
         return stateMap[state] || state; // 매핑되는 값이 없으면 원래 영문 이름 반환
     }
+</script>
 </script>
 </body>
 </html>

@@ -30,7 +30,7 @@ public class AdminReservationRepositoryImpl implements AdminReservationRepositor
     @Override
     public Page<Reservation> search(
             String username,
-            String classroomName,
+            Long classroomId,
             LocalDate startDate,
             LocalDate endDate,
             ReservationState state,
@@ -43,7 +43,7 @@ public class AdminReservationRepositoryImpl implements AdminReservationRepositor
                 .join(reservation.classroom, classroom).fetchJoin()
                 .where(
                         usernameContains(username),
-                        classroomNameContains(classroomName),
+                        classroomIdContains(classroomId),
                         startDateGoe(startDate),
                         endDateLoe(endDate),
                         stateEq(state)
@@ -61,7 +61,7 @@ public class AdminReservationRepositoryImpl implements AdminReservationRepositor
                 .join(reservation.classroom, classroom)
                 .where(
                         usernameContains(username),
-                        classroomNameContains(classroomName),
+                        classroomIdContains(classroomId),
                         startDateGoe(startDate),
                         endDateLoe(endDate),
                         stateEq(state)
@@ -74,8 +74,8 @@ public class AdminReservationRepositoryImpl implements AdminReservationRepositor
         return StringUtils.hasText(username) ? member.name.containsIgnoreCase(username) : null;
     }
 
-    private BooleanExpression classroomNameContains(String classroomName){
-        return StringUtils.hasText(classroomName) ? classroom.name.containsIgnoreCase(classroomName) : null;
+    private BooleanExpression classroomIdContains(Long classroomId){
+        return classroomId != null ? reservation.classroom.id.eq(classroomId) : null;
     }
 
     private BooleanExpression startDateGoe(LocalDate startDate){

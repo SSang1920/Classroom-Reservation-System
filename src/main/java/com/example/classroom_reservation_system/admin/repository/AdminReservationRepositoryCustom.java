@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public interface AdminReservationRepositoryCustom {
     Page<Reservation> search(
             String username,
-            String classroomName,
+            Long classroomId,
             LocalDate startDate,
             LocalDate endDate,
             ReservationState state,

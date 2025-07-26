@@ -30,14 +30,14 @@ public class AdminReservationController {
     @GetMapping("/reservations")
     public ResponseEntity<ApiSuccessResponse<Page<AdminReservationResponse>>> getReservations(
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) String classroomName,
+            @RequestParam(required = false) Long classroomId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false)ReservationState state,
             Pageable pageable
         ){
         Page<AdminReservationResponse> reservations = adminReservationService.getReservations(
-                username, classroomName, startDate, endDate, state, pageable
+                username, classroomId, startDate, endDate, state, pageable
         );
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약 목록 조회 성공", reservations));
     }

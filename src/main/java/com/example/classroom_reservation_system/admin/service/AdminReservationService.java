@@ -37,7 +37,7 @@ public class AdminReservationService {
     /**
      * 관리자용 예약 목록 검색
      * @param username
-     * @param classroomName
+     * @param classroomId
      * @param startDate
      * @param endDate
      * @param state
@@ -46,7 +46,7 @@ public class AdminReservationService {
      */
     public Page<AdminReservationResponse> getReservations(
             String username,
-            String classroomName,
+            Long classroomId,
             LocalDate startDate,
             LocalDate endDate,
             ReservationState state,
@@ -54,7 +54,7 @@ public class AdminReservationService {
     ) {
         // Querydsl을 사용하여 동적 조건으로 예약 검색
         Page<Reservation> reservations = adminReservationRepository.search(
-                username, classroomName, startDate, endDate, state, pageable
+                username, classroomId, startDate, endDate, state, pageable
         );
         // 조회된 엔티티 DTO로 변환
         return reservations.map(AdminReservationResponse::from);
