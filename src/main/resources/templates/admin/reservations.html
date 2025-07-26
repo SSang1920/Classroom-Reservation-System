@@ -97,6 +97,18 @@
         const paginationNav = document.getElementById('pagination-nav');
         editModalInstance = new bootstrap.Modal(document.getElementById('editReservationModal'));
 
+        flatpickr('#startDate', {
+            altFormat: "Y-m-d (D)",
+            dateFormat : "Y-m-d",
+            locale: "ko"
+        });
+
+        flatpickr('#endDate', {
+            altFormat: "Y-m-d (D)",
+            dateFormat : "Y-m-d",
+            locale: "ko"
+        });
+
         // 페이지 로드 시 URL 파라미터로 폼 초기화 및 데이터 로드
         initializeFormFromUrl();
         const urlParams = new URLSearchParams(window.location.search);
