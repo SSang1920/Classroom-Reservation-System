@@ -340,8 +340,19 @@
     }
 
     function formatDateTime(isoString) {
-        if (!isoString) return '';
-        return new Date(isoString).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\. /g, '.').slice(0, -1);
+    if (!isoString) return '';
+
+    const days = ['일', '월', '화', '수', '목', '금', '토']; // 요일 배열
+    const d = new Date(isoString);
+
+    const yyyy = d.getFullYear();
+    const MM = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const dayName = days[d.getDay()]; // 요일 가져오기
+
+    return `${yyyy}.${MM}.${dd} (${dayName}) ${hh}:${mm}`;
     }
 
     function getStateBadgeClass(state) {
@@ -353,8 +364,8 @@
     function getStateName(state) {
         const stateMap = {
             RESERVED: '예약됨',
-            COMPLETED: '사용 완료',
-            CANCELED: '사용자 취소',
+            COMPLETED: '완료됨',
+            CANCELED: '취소됨',
         };
         return stateMap[state] || state; // 매핑되는 값이 없으면 원래 영문 이름 반환
     }

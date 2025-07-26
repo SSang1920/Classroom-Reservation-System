@@ -45,7 +45,7 @@ public class AdminReservationController {
     /**
      * 관리자용 예약 강제취소 API
      */
-    @PatchMapping("/{reservationId}/cancel")
+    @PatchMapping("/reservations/{reservationId}/cancel")
     public ResponseEntity<ApiSuccessResponse<Void>> cancelReservationByAdmin(@PathVariable Long reservationId){
         adminReservationService.cancelReservationByAdmin(reservationId);
 
