@@ -16,10 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "reservation", indexes = {
@@ -67,7 +64,7 @@ public class Reservation {
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<History> histories = new ArrayList<>();
+    private Set<History> histories = new HashSet<>();
 
     @OneToMany(mappedBy = "reservation")
     private List<Notification> notifications = new ArrayList<>();

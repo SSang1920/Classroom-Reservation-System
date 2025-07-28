@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,8 +21,14 @@ public class AdminReservationDetailResponse {
     private Long buildingId;
     private LocalDate reservationDate;
     private List<TimePeriod> periods;
+    private List<ReservationHistoryResponse> histories;
 
     public static AdminReservationDetailResponse from(Reservation reservation){
+        List<ReservationHistoryResponse> historyResponses = reservation.getHistories().stream()
+                .sorted(Comparator.comparing(h -> h.getCreatedAt()))
+                .map(ReservationHistoryResponse::from)
+                .collect(Collectors.toList());
+
         return AdminReservationDetailResponse.builder()
                 .reservationId(reservation.getId())
                 .classroomId(reservation.getClassroom().getId())
@@ -31,7 +38,9 @@ public class AdminReservationDetailResponse {
                 .periods(reservation.getPeriods().stream()
                         .sorted()
                         .collect(Collectors.toList()))
+                .histories(historyResponses)
                 .build();
+
     }
 
 

@@ -3,6 +3,11 @@
 <head>
     <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
     <title>관리자 - 예약 관리</title>
+    <style>
+    #reservation-table-body tr {
+    cursor: pointer;
+    }
+    </style>
 </head>
 <body>
 <div th:replace="~{fragments/topbar :: topbar}"></div>
@@ -71,20 +76,25 @@
             </tr>
             </thead>
             <tbody id="reservation-table-body">
-            <!-- 예약 목록이 여기에 동적으로 채워집니다. -->
             </tbody>
+            <template id="history-detail-template">
+                <tr class="history-detail-row">
+                    <td colspan="7" class="p-3 bg-light">
+                        <div class="history-content">
+                        </div>
+                    </td>
+                </tr>
+            </template>
         </table>
     </div>
 
     <nav id="pagination-nav">
         <ul class="pagination justify-content-center">
-            <!-- 페이지네이션이 여기에 동적으로 채워집니다. -->
         </ul>
     </nav>
 </div>
 
 
-<!-- Edit Reservation Modal -->
 <div class="modal fade" id="editReservationModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -93,7 +103,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- 모달 로딩 스피너 -->
+                <!-- 모델 로딩 스피너 -->
                 <div id="modal-loader" class="text-center d-none p-5">
                     <div class="spinner-border" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -101,7 +111,7 @@
                     <p class="mt-2 text-muted">예약 정보를 불러오는 중입니다...</p>
                 </div>
 
-                <!-- 모달 폼 -->
+                <!-- 모델 폼 -->
                 <form id="edit-reservation-form" class="d-none">
                     <input type="hidden" id="edit-reservation-id">
 
@@ -124,7 +134,6 @@
                         <label class="form-label">시간(교시) 선택</label>
                         <small class="form-text text-muted d-block mb-2">최대 2개까지 선택 가능합니다.</small>
                         <div id="edit-time-periods-container" class="border p-3 rounded" style="max-height: 200px; overflow-y: auto;">
-                            <!-- 시간표가 여기에 동적으로 생성됩니다. -->
                         </div>
                     </div>
 
@@ -187,7 +196,8 @@
             const selectedBuildingId = buildingSelect.value;
             fetchClassroomsForBuilding(selectedBuildingId, 'classroom-select');
         });
-        tableBody.addEventListener('click', handleTableButtonClick);
+        // [수정] 이벤트 핸들러 이름을 더 명확하게 변경
+        tableBody.addEventListener('click', handleTableClick);
         paginationNav.addEventListener('click', handlePaginationClick);
 
         // 수정 모달 이벤트 리스너
@@ -210,13 +220,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         fetchReservations(parseInt(urlParams.get('page')) || 0);
     }
-    //  현재 모델에서 선택된 교시 목록을 가져오는 헬퍼 함수
-     function getSelectedPeriodsFromModal() {
+
+    function getSelectedPeriodsFromModal() {
          const checkedBoxes = document.querySelectorAll('#edit-time-periods-container .form-check-input:checked');
          return Array.from(checkedBoxes).map(cb => cb.value);
-     }
+    }
 
-    //  selectId를 받아 검색폼과 수정모달에서 재사용
     async function initializeBuildingFilter(selectId) {
         const selectElement = document.getElementById(selectId);
         try {
@@ -249,7 +258,6 @@
         }
     }
 
-    //  selectId와 selectedClassroomId를 받아 재사용
     async function fetchClassroomsForBuilding(buildingId, selectId, selectedClassroomId = null) {
         const classroomSelect = document.getElementById(selectId);
         const isSearchForm = selectId === 'classroom-select';
@@ -284,7 +292,6 @@
         classroomSelect.disabled = true;
     }
 
-    //  수정 모델 열기
     async function openEditModal(reservationId) {
         editModal.show();
         const loader = document.getElementById('modal-loader');
@@ -309,7 +316,6 @@
         }
     }
 
-    //  모델 폼에 데이터 채우기
     async function populateEditModal(data) {
         document.getElementById('edit-reservation-id').value = data.reservationId;
 
@@ -323,7 +329,6 @@
         await updateEditModalTimes(data.periods);
     }
 
-    //  수정 모델의 시간표 업데이트
     async function updateEditModalTimes(preSelectedPeriods = []) {
         const timeContainer = document.getElementById('edit-time-periods-container');
         const classroomId = document.getElementById('edit-classroom-select').value;
@@ -359,7 +364,6 @@
         }
     }
 
-    // 수정 사항 저장
     async function saveReservationChanges() {
         const errorDiv = document.getElementById('edit-error-message');
         errorDiv.classList.add('d-none');
@@ -397,7 +401,6 @@
         }
     }
 
-    //  수정 모델 체크박스 개수 제한
     function handleEditCheckboxChange(event) {
         if (event.target.type === 'checkbox') {
             const checkedBoxes = document.querySelectorAll('#edit-time-periods-container .form-check-input:checked');
@@ -408,14 +411,12 @@
         }
     }
 
-    // --- 기존 함수들 (검색, 페이징, 취소 등) ---
     function buildQueryParameters(pageNumber) {
         const formData = new FormData(document.getElementById('search-form'));
         const params = new URLSearchParams(formData);
         params.append('page', pageNumber);
         params.append('size', 10);
         params.append('sort', 'startTime,desc');
-        // buildingId는 form의 name 속성이 없으므로 수동으로 추가
         const buildingId = document.getElementById('building-select').value;
         if(buildingId) params.set('buildingId', buildingId);
         return params;
@@ -459,6 +460,8 @@
                 `;
             }
             const tr = document.createElement('tr');
+            // 각 행에 예약 ID를 데이터 속성으로 저장합니다. 이것이 누락되면 클릭이 동작하지 않습니다.
+            tr.dataset.reservationId = res.id;
             tr.innerHTML = `
                 <td>${res.id}</td>
                 <td>${res.username} (${res.loginId})</td>
@@ -484,16 +487,95 @@
         ul.innerHTML += `<li class="page-item ${pageData.last ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${pageData.number + 1}">다음</a></li>`;
     }
 
-    function handleTableButtonClick(e) {
+    //  함수 이름을 handleTableClick으로 변경하고 로직을 확장합니다.
+    function handleTableClick(e) {
         const button = e.target.closest('button');
-        if (!button) return;
-        const reservationId = button.dataset.id;
-        if (button.classList.contains('cancel-btn')) {
-            if (confirm(`예약 ID [${reservationId}] 를 정말로 취소하시겠습니까?`)) {
-                cancelReservation(reservationId);
+        const row = e.target.closest('tr');
+
+        // 1. '수정' 또는 '취소' 버튼을 눌렀을 경우
+        if (button) {
+            e.stopPropagation(); // 행 클릭 이벤트가 중복 발생하지 않도록 전파를 막음
+            const reservationId = button.dataset.id;
+            if (button.classList.contains('cancel-btn')) {
+                if (confirm(`예약 ID [${reservationId}] 를 정말로 취소하시겠습니까?`)) {
+                    cancelReservation(reservationId);
+                }
+            } else if (button.classList.contains('edit-btn')) {
+                openEditModal(reservationId);
             }
-        } else if (button.classList.contains('edit-btn')) {
-            openEditModal(reservationId);
+            return; // 버튼 클릭 시에는 아래 로직을 실행하지 않음
+        }
+
+        // 2. 버튼이 아닌 테이블 행의 다른 부분을 클릭했을 경우
+        if (row && row.dataset.reservationId) {
+            toggleHistoryDetail(row, row.dataset.reservationId);
+        }
+    }
+
+    // 예약 이력을 보여주거나 숨기는 토글 함수
+    async function toggleHistoryDetail(clickedRow, reservationId) {
+        const existingDetailRow = document.querySelector(`.history-detail-row[data-reservation-id="${reservationId}"]`);
+
+        // 이미 열려있는 행을 다시 클릭한 경우, 닫고 함수 종료
+        if (existingDetailRow) {
+            existingDetailRow.remove();
+            return;
+        }
+
+        // 다른 이력 행이 열려있다면 먼저 닫기
+        const anyOpenDetailRow = document.querySelector('.history-detail-row');
+        if (anyOpenDetailRow) {
+            anyOpenDetailRow.remove();
+        }
+
+        // 템플릿을 복제하여 새로운 상세 정보 행 생성
+        const template = document.getElementById('history-detail-template');
+        const detailRow = template.content.cloneNode(true).firstElementChild;
+        detailRow.dataset.reservationId = reservationId;
+        const contentDiv = detailRow.querySelector('.history-content');
+        contentDiv.innerHTML = `
+            <div class="d-flex align-items-center justify-content-center p-3">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                <span>변경 이력을 불러오는 중입니다...</span>
+            </div>
+        `;
+
+        // 클릭된 행 바로 아래에 상세 정보 행 삽입
+        clickedRow.after(detailRow);
+
+        try {
+            // 기존 API를 재활용하여 상세 정보와 이력을 함께 가져옴
+            const response = await fetchWithAuth(`/api/admin/reservations/${reservationId}`);
+            if (!response.ok) throw new Error('이력 정보를 불러오는 데 실패했습니다.');
+            const result = await response.json();
+            const histories = result.data.histories;
+
+            // 받아온 데이터로 이력 목록 렌더링
+            if (histories && histories.length > 0) {
+                // 시간순으로 정렬 (백엔드에서 정렬했지만, 프론트에서도 확인차 정렬)
+                histories.sort((a, b) => new Date(a.changedAt) - new Date(b.changedAt));
+
+                let historyHtml = '<h6 class="mb-3 text-start">📖 예약 변경 이력</h6><ul class="list-group text-start">';
+                histories.forEach(h => {
+                    historyHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">${h.state}</div>
+                                <small class="text-muted">
+                                    ${h.classroomName} / ${formatDateTime(h.startTime)} ~ ${formatDateTime(h.endTime).split(' ')[1]}
+                                </small>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">${formatDateTime(h.changedAt)}</span>
+                        </li>
+                    `;
+                });
+                historyHtml += '</ul>';
+                contentDiv.innerHTML = historyHtml;
+            } else {
+                contentDiv.innerHTML = '<p class="text-muted text-center mb-0">변경 이력이 없습니다.</p>';
+            }
+        } catch (error) {
+            contentDiv.innerHTML = `<p class="text-danger text-center mb-0">${error.message}</p>`;
         }
     }
 
@@ -533,7 +615,7 @@
         const states = {
             '예약됨': 'bg-primary',
             '사용 완료': 'bg-success',
-            '사용자 취소': 'bg-secondary',
+            '취소됨': 'bg-secondary',
             '관리자에 의해 취소됨': 'bg-danger',
             '관리자에 의해 변경됨': 'bg-warning text-dark',
             '자동 완료됨': 'bg-info text-dark'

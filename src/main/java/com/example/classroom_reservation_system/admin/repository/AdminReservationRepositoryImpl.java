@@ -16,8 +16,10 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.classroom_reservation_system.faciliity.entity.QClassroom.classroom;
+import static com.example.classroom_reservation_system.history.entity.QHistory.history;
 import static com.example.classroom_reservation_system.member.entity.QMember.member;
 import static com.example.classroom_reservation_system.reservation.entity.QReservation.reservation;
 
@@ -68,6 +70,17 @@ public class AdminReservationRepositoryImpl implements AdminReservationRepositor
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public Optional<Reservation> findByIdWithHistories(Long reservationId){
+        Reservation result = queryFactory
+                .selectFrom(reservation)
+                .leftJoin(reservation.histories, history).fetchJoin()
+                .where(reservation.id.eq(reservationId))
+                .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 
     private BooleanExpression usernameContains(String username) {

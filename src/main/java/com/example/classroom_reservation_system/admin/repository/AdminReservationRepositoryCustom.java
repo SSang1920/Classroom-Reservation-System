@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface AdminReservationRepositoryCustom {
     Page<Reservation> search(
@@ -17,5 +18,5 @@ public interface AdminReservationRepositoryCustom {
             Pageable pageable
     );
 
-
+    Optional<Reservation> findByIdWithHistories(Long reservationId);
 }

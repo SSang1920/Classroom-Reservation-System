@@ -64,7 +64,7 @@ public class AdminReservationService {
      * 단일 예약 상세 정보 조회
      */
     public AdminReservationDetailResponse getReservationDetails(Long reservationId){
-        Reservation reservation = adminReservationRepository.findById(reservationId)
+        Reservation reservation = adminReservationRepository.findByIdWithHistories(reservationId)
                 .orElseThrow(()-> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
 
         return AdminReservationDetailResponse.from(reservation);
