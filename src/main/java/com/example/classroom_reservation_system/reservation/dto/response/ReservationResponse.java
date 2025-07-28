@@ -14,7 +14,7 @@ public class ReservationResponse {
     private String classroomName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private ReservationState state;
+    private String state;
 
     //엔티티 -> DTO 변환 정적 팩토리 메소드
     public static  ReservationResponse from(Reservation reservation){
@@ -23,7 +23,7 @@ public class ReservationResponse {
                 .classroomName(reservation.getClassroom().getName())
                 .startTime(reservation.getStartTime())
                 .endTime(reservation.getEndTime())
-                .state(reservation.getReservationState())
+                .state(reservation.getReservationState().getDescription())
                 .build();
     }
 }

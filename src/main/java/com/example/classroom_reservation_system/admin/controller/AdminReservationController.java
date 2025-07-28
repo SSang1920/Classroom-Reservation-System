@@ -1,6 +1,7 @@
 package com.example.classroom_reservation_system.admin.controller;
 
 import com.example.classroom_reservation_system.admin.dto.reqeust.AdminReservationUpdateRequest;
+import com.example.classroom_reservation_system.admin.dto.response.AdminReservationDetailResponse;
 import com.example.classroom_reservation_system.admin.dto.response.AdminReservationResponse;
 import com.example.classroom_reservation_system.admin.service.AdminReservationService;
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
@@ -30,14 +31,14 @@ public class AdminReservationController {
     @GetMapping("/reservations")
     public ResponseEntity<ApiSuccessResponse<Page<AdminReservationResponse>>> getReservations(
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) String classroomName,
+            @RequestParam(required = false) Long classroomId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false)ReservationState state,
             Pageable pageable
         ){
         Page<AdminReservationResponse> reservations = adminReservationService.getReservations(
-                username, classroomName, startDate, endDate, state, pageable
+                username, classroomId, startDate, endDate, state, pageable
         );
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약 목록 조회 성공", reservations));
     }
@@ -45,7 +46,7 @@ public class AdminReservationController {
     /**
      * 관리자용 예약 강제취소 API
      */
-    @PatchMapping("/{reservationId}/cancel")
+    @PatchMapping("/reservations/{reservationId}/cancel")
     public ResponseEntity<ApiSuccessResponse<Void>> cancelReservationByAdmin(@PathVariable Long reservationId){
         adminReservationService.cancelReservationByAdmin(reservationId);
 
@@ -53,9 +54,20 @@ public class AdminReservationController {
     }
 
     /**
+     * 관리자용 단일 예약 상세 조회 API
+     * @param reservationId
+     */
+    @GetMapping("/reservations/{reservationId}")
+    public ResponseEntity<ApiSuccessResponse<AdminReservationDetailResponse>> getReservationDetails(@PathVariable Long reservationId){
+        AdminReservationDetailResponse reservationDetails = adminReservationService.getReservationDetails(reservationId);
+
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약 상세 정보 조회 성공", reservationDetails));
+    }
+
+    /**
      * 관리자용 예약 변경 API
      */
-    @PutMapping("/{reservationId}")
+    @PutMapping("/reservations/{reservationId}")
     public ResponseEntity<ApiSuccessResponse<Void>> updateReservationByAdmin(
             @PathVariable Long reservationId,
             @Valid @RequestBody AdminReservationUpdateRequest request
@@ -64,6 +76,9 @@ public class AdminReservationController {
 
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "관리자에 의해 예약이 변경되었습니다."));
     }
+
+
+
 
 
 }

@@ -96,36 +96,49 @@
       }
   }
 
+  // 상태 이름에 맞는 Bootstrap 배지를 생성하는 헬퍼 함수
+  function getStateBadge(state) {
+      const states = {
+          '예약됨': 'bg-primary',
+          '사용 완료': 'bg-success',
+          '취소됨': 'bg-secondary',
+          '관리자에 의해 취소됨': 'bg-danger',
+          '관리자에 의해 변경됨': 'bg-warning text-dark',
+          '자동 완료됨': 'bg-info text-dark'
+      };
+      const badgeClass = states[state] || 'bg-dark';
+      return `<span class="badge ${badgeClass}">${state}</span>`;
+  }
+
   // 예약 데이터로 테이블의 한 행(<tr>)을 생성하는 함수
   function createReservationRow(reservation, count) {
-      // Javascript의 Date 객체를 사용하여 날짜와 시간을 원하는 형식으로 포맷팅합니다.
       const startTime = new Date(reservation.startTime);
       const endTime = new Date(reservation.endTime);
       const date = startTime.toLocaleDateString('ko-KR');
       const time = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')} ~ ${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
 
-      let stateBadge = '';
-      switch (reservation.state) {
-          case 'RESERVED':
-              stateBadge = '<span class="badge bg-primary">예약됨</span>';
-              break;
-          case 'COMPLETED':
-              stateBadge = '<span class="badge bg-success">사용완료</span>';
-              break;
-          case 'CANCELED':
-              stateBadge = '<span class="badge bg-secondary">취소됨</span>';
-              break;
-      }
+      //상태 배지 생성 로직을 헬퍼 함수로 분리
+      const stateBadge = getStateBadge(reservation.state);
 
-      // '예약됨' 상태일 때만 취소 버튼을 생성
-      let actionButton = '';
-      if (reservation.state === 'RESERVED') {
-          // [수정] form 대신 button과 onclick을 사용하여 코드를 더 명확하게 만듭니다.
-          actionButton = `
+      // 상태에 따라 '취소' 및 '사용 완료' 버튼을 동적으로 생성
+      let actionButtons = '';
+      const now = new Date();
+      const cancellableStates = ['예약됨', '관리자에 의해 변경됨'];
+
+      if (cancellableStates.includes(reservation.state)) {
+          actionButtons += `
               <button type="button" class="btn btn-sm btn-outline-danger" onclick="handleCancelClick(this, ${reservation.id})">
                   취소
               </button>
           `;
+          // 시작 시간 이후이고, 아직 완료되지 않은 예약에 '사용 완료' 버튼 표시
+          if (now >= startTime) {
+              actionButtons += `
+                  <button type="button" class="btn btn-sm btn-outline-success ms-1" onclick="handleCompleteClick(this, ${reservation.id})">
+                      사용 완료
+                  </button>
+              `;
+          }
       }
 
       return `
@@ -135,12 +148,12 @@
             <td>${date}</td>
             <td>${time}</td>
             <td>${stateBadge}</td>
-            <td>${actionButton}</td>
+            <td>${actionButtons || '-'}</td>
           </tr>
       `;
   }
 
-  //  예약 취소 버튼 클릭을 처리하는 비동기 함수
+  // 예약 취소 버튼 클릭을 처리하는 비동기 함수
   async function handleCancelClick(button, reservationId) {
       if (!confirm('정말로 예약을 취소하시겠습니까?')) return;
 
@@ -154,30 +167,47 @@
           });
 
           const result = await response.json();
+          if (!response.ok) throw new Error(result.message || '취소에 실패했습니다.');
 
-          if (!response.ok) {
-              throw new Error(result.message || '취소에 실패했습니다.');
-          }
-
-          // 성공 시, 페이지 새로고침 없이 UI를 직접 업데이트합니다.
-          // alert(result.message); // 성공 메시지는 실시간 알림으로 대체되므로 굳이 띄울 필요가 없습니다.
-
+          // 성공 시, 페이지 새로고침 없이 UI를 직접 업데이트
           const row = button.closest('tr');
           if (row) {
-              // 1. 상태 배지를 '취소됨'으로 변경
-              const statusCell = row.cells[4]; // 5번째 셀 (상태)
-              statusCell.innerHTML = '<span class="badge bg-secondary">취소됨</span>';
-
-              // 2. '취소' 버튼을 제거
-              button.remove();
+              row.cells[4].innerHTML = getStateBadge('사용자 취소');
+              row.cells[5].innerHTML = '-'; // 모든 버튼 제거
           }
-
       } catch (error) {
           console.error('취소 처리 중 에러 발생:', error);
           alert(error.message);
       }
   }
 
+  // 예약 사용 완료 버튼 클릭을 처리하는 비동기 함수
+  async function handleCompleteClick(button, reservationId) {
+      if (!confirm('해당 예약을 사용 완료 처리하시겠습니까?')) return;
+
+      const token = localStorage.getItem('accessToken');
+      const url = `/api/reservations/${reservationId}/complete`;
+
+      try {
+          const response = await fetch(url, {
+              method: 'PATCH',
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.message || '사용 완료 처리에 실패했습니다.');
+
+          // 성공 시, UI를 직접 업데이트
+          const row = button.closest('tr');
+          if (row) {
+              row.cells[4].innerHTML = getStateBadge('사용 완료');
+              row.cells[5].innerHTML = '-'; // 모든 버튼 제거
+          }
+      } catch (error) {
+          console.error('사용 완료 처리 중 에러 발생:', error);
+          alert(error.message);
+      }
+  }
 </script>
 
 </body>

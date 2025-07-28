@@ -17,7 +17,7 @@ public class AdminReservationResponse {
     private String classroomName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private ReservationState state;
+    private String state;
     private LocalDateTime createAt;
 
     /**
@@ -33,7 +33,7 @@ public class AdminReservationResponse {
                 .classroomName(reservation.getClassroom().getName())
                 .startTime(reservation.getStartTime())
                 .endTime(reservation.getEndTime())
-                .state(reservation.getReservationState())
+                .state(reservation.getReservationState().getDescription())
                 .createAt(reservation.getCreatedAt())
                 .build();
     }

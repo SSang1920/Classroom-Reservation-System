@@ -1,6 +1,7 @@
 package com.example.classroom_reservation_system.admin.service;
 
 import com.example.classroom_reservation_system.admin.dto.reqeust.AdminReservationUpdateRequest;
+import com.example.classroom_reservation_system.admin.dto.response.AdminReservationDetailResponse;
 import com.example.classroom_reservation_system.admin.dto.response.AdminReservationResponse;
 import com.example.classroom_reservation_system.admin.repository.AdminReservationRepository;
 import com.example.classroom_reservation_system.common.exception.CustomException;
@@ -37,7 +38,7 @@ public class AdminReservationService {
     /**
      * 관리자용 예약 목록 검색
      * @param username
-     * @param classroomName
+     * @param classroomId
      * @param startDate
      * @param endDate
      * @param state
@@ -46,7 +47,7 @@ public class AdminReservationService {
      */
     public Page<AdminReservationResponse> getReservations(
             String username,
-            String classroomName,
+            Long classroomId,
             LocalDate startDate,
             LocalDate endDate,
             ReservationState state,
@@ -54,10 +55,19 @@ public class AdminReservationService {
     ) {
         // Querydsl을 사용하여 동적 조건으로 예약 검색
         Page<Reservation> reservations = adminReservationRepository.search(
-                username, classroomName, startDate, endDate, state, pageable
+                username, classroomId, startDate, endDate, state, pageable
         );
         // 조회된 엔티티 DTO로 변환
         return reservations.map(AdminReservationResponse::from);
+    }
+    /**
+     * 단일 예약 상세 정보 조회
+     */
+    public AdminReservationDetailResponse getReservationDetails(Long reservationId){
+        Reservation reservation = adminReservationRepository.findByIdWithHistories(reservationId)
+                .orElseThrow(()-> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        return AdminReservationDetailResponse.from(reservation);
     }
 
     /**

@@ -4,4 +4,5 @@ import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AdminReservationRepository extends JpaRepository<Reservation, Long> , AdminReservationRepositoryCustom {
+
 }

@@ -47,8 +47,9 @@ public class ReservationController {
     @GetMapping("/classroom/{classroomId}/reserved-periods")
     public ResponseEntity<ApiSuccessResponse<Set<TimePeriod>>> getReservedPeriodsForDate(
             @PathVariable Long classroomId,
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
-        Set<TimePeriod> reservedPeriods = reservationService.getReservedPeriodsForDate(classroomId, date);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date,
+            @RequestParam(required = false) Long excludeReservationId) {
+        Set<TimePeriod> reservedPeriods = reservationService.getReservedPeriodsForDate(classroomId, date, excludeReservationId);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약된 시간 조회 성공", reservedPeriods));
     }
 
