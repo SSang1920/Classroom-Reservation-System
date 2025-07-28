@@ -77,6 +77,20 @@ public abstract class Member {
         this.password = newPassword;
     }
 
+    /**
+     * 이름 변경 메서드
+     */
+    public void changeName(String newName) {
+        this.name = newName;
+    }
+
+    /**
+     * 이메일 변경 메서드
+     */
+    public void changeEmail(String newEmail) {
+        this.email = newEmail;
+    }
+
 
     public abstract String getId();
 }
