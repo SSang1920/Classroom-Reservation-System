@@ -150,20 +150,24 @@
 
     function validatePassword() {
       const pw = document.getElementById('password').value;
-      const box = document.getElementById('password-check-result');
+      const errorBox = document.getElementById('password-check-result');
+      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
 
       if (!pw) {
-        box.innerText = '';
+        errorBox.innerText = '';
+        errorBox.className = 'form-text';
         return;
       }
 
-      if (pw.length >= 8) {
-        box.innerText = '사용 가능한 비밀번호입니다.';
-        box.className = 'form-text text-success';
+      if (passwordRegex.test(pw)) {
+        errorBox.innerText = '사용 가능한 비밀번호입니다.';
+        errorBox.className = 'form-text text-success';
       } else {
-        box.innerText = '비밀번호는 8자 이상이어야 합니다.';
-        box.className = 'form-text text-danger';
+        errorBox.innerText = '비밀번호는 8~20자 이내의 영문, 숫자, 특수문자를 모두 포함해야 합니다.';
+        errorBox.className = 'form-text text-danger';
       }
+
+      validatePasswordConfirm();
     }
 
     function validatePasswordConfirm() {

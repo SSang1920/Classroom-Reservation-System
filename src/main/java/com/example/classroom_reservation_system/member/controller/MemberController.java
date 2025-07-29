@@ -4,6 +4,7 @@ import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.config.security.CustomUserDetails;
 import com.example.classroom_reservation_system.member.dto.request.MyInfoUpdateRequest;
+import com.example.classroom_reservation_system.member.dto.request.PasswordChangeRequest;
 import com.example.classroom_reservation_system.member.dto.response.MyInfoResponse;
 import com.example.classroom_reservation_system.member.service.MemberService;
 import jakarta.validation.Valid;
@@ -50,5 +51,17 @@ public class MemberController {
             @Valid @RequestBody MyInfoUpdateRequest request) {
         TokenResponse newTokens = memberService.updateMyInfoAndReissueTokens(userDetails.getMemberUuid(), request);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "회원 정보가 성공적으로 수정되었으며, 토큰이 갱신되었습니다.", newTokens));
+    }
+
+    /**
+     * 내 비밀번호 변경
+     */
+    @PatchMapping("/me/password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiSuccessResponse<Void>> changePassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody PasswordChangeRequest request) {
+        memberService.changePassword(userDetails.getMemberUuid(), request);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "비밀번호가 성공적으로 변경되었습니다.", null));
     }
 }

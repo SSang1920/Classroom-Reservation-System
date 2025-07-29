@@ -34,6 +34,7 @@ public enum ErrorCode {
     INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "INVALID_RESET_TOKEN", "유효하지 않은 비밀번호 재설정 토큰입니다."),
     PASSWORD_RESET_TOKEN_ALREADY_USED(HttpStatus.BAD_REQUEST, "PASSWORD_RESET_TOKEN_ALREADY_USED", "이미 사용된 토큰입니다."),
     PASSWORD_RESET_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "PASSWORD_RESET_TOKEN_EXPIRED", "만료된 토큰입니다."),
+    CURRENT_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "CURRENT_PASSWORD_NOT_MATCH", "현재 비밀번호와 일치하지 않습니다."),
 
     // ===== 강의실 관련 =====
     BUILDING_NOT_FOUND(HttpStatus.NOT_FOUND, "BUILDING_NOT_FOUND", "존재하지 않는 건물입니다."),

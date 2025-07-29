@@ -2,8 +2,8 @@ package com.example.classroom_reservation_system.member.service;
 
 import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
 import com.example.classroom_reservation_system.config.jwt.JwtUtil;
-import com.example.classroom_reservation_system.config.security.CustomUserDetails;
 import com.example.classroom_reservation_system.member.dto.request.MyInfoUpdateRequest;
+import com.example.classroom_reservation_system.member.dto.request.PasswordChangeRequest;
 import com.example.classroom_reservation_system.member.dto.response.MyInfoResponse;
 import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.common.exception.CustomException;
@@ -13,8 +13,7 @@ import com.example.classroom_reservation_system.member.repository.MemberReposito
 import com.example.classroom_reservation_system.member.repository.ProfessorRepository;
 import com.example.classroom_reservation_system.member.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +29,7 @@ public class MemberService {
     private final ProfessorRepository professorRepository;
     private final AdminRepository adminRepository;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * UUID로 회원 찾기
@@ -84,6 +84,7 @@ public class MemberService {
         String newName = request.getName();
         String newEmail = request.getEmail();
 
+        // 정보 업데이트
         if (newName != null && !newName.isBlank()) {
             member.changeName(newName);
         }
@@ -112,5 +113,32 @@ public class MemberService {
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .build();
+    }
+
+    /**
+     * 로그인한 사용자의 비밀번호 변경
+     * @param memberUuid 현재 로그인한 사용자의 UUID
+     * @param request 변경할 비밀번호 정보
+     */
+    @Transactional
+    public void changePassword(String memberUuid, PasswordChangeRequest request) {
+        Member member = findByMemberUuid(memberUuid);
+
+        // 현재 비밀번호 일치 여부 확인
+        if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+            throw new CustomException(ErrorCode.CURRENT_PASSWORD_NOT_MATCH);
+        }
+
+        // 새 비밀번호와 확인용 비밀번호 일치 여부 확인
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new CustomException(ErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
+        }
+
+        // 이전 비밀번호과 동일한지 확인
+        if (passwordEncoder.matches(request.getNewPassword(), member.getPassword())) {
+            throw new CustomException(ErrorCode.CANNOT_USE_OLD_PASSWORD);
+        }
+
+        member.changePassword(passwordEncoder.encode(request.getNewPassword()));
     }
 }
