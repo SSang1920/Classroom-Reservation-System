@@ -2,7 +2,6 @@ package com.example.classroom_reservation_system.admin.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,8 +30,9 @@ public class AdminViewController {
         return "admin/reservations";
     }
 
-    @GetMapping("/notices")
-    public String adminNoticePage() {
-        return "admin/notices";
+    @GetMapping("/requests")
+    public String adminRequestsPage() {
+        return "admin/requests";
     }
+
 }

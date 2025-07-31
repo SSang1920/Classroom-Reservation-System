@@ -2,12 +2,14 @@ package com.example.classroom_reservation_system.reservation.controller;
 
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.config.security.CustomUserDetails;
+import com.example.classroom_reservation_system.reservation.dto.AvailableTimeDto;
 import com.example.classroom_reservation_system.reservation.dto.request.ReservationRequest;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationCreationResponse;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
 import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import com.example.classroom_reservation_system.reservation.service.ReservationService;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +54,18 @@ public class ReservationController {
         Set<TimePeriod> reservedPeriods = reservationService.getReservedPeriodsForDate(classroomId, date, excludeReservationId);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약된 시간 조회 성공", reservedPeriods));
     }
+
+    /**
+     * 특정 날짜 예약 가능 시간 목록 조회 API
+     */
+    @GetMapping("/classroom/{classroomId}/available-times")
+    public ResponseEntity<ApiSuccessResponse<List<AvailableTimeDto>>> getAvailableTimes(
+            @PathVariable Long classroomId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        List<AvailableTimeDto> availableTimes = reservationService.getAvailableTimes(classroomId, date);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "예약 가능 시간 조회 성공", availableTimes));
+    }
+
 
     /**
      * 예약 생성 API (사용자)
