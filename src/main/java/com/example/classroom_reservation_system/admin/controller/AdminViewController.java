@@ -26,13 +26,17 @@ public class AdminViewController {
     }
 
     @GetMapping("/reservations")
-    public String adminReservationsPage() {
+    public String adminReservationsPage(){
         return "admin/reservations";
     }
 
     @GetMapping("/requests")
-    public String adminRequestsPage() {
+    public String adminRequestsPage(){
         return "admin/requests";
     }
 
+    @GetMapping("/notices")
+    public String adminNoticePage() {
+        return "admin/notices";
+    }
 }

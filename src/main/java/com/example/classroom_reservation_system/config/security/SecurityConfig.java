@@ -20,6 +20,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -32,7 +33,7 @@ public class SecurityConfig {
 
                                 // --- View 페이지 (인증 없이 접근 가능) ---
                                 "/", "/login", "/signup", "/find-password", "/reset-password", "/mypage",
-                                "/admin/main", "/admin/members", "/admin/reservations", "/admin/notices", "/admin/requests",
+                                "/admin/main", "/admin/members", "/admin/reservations", "/admin/requests",
                                 "/reserve", "/history",
 
                                 // --- API (인증 없이 접근 가능) ---

@@ -50,7 +50,7 @@ public enum ErrorCode {
     RESERVATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "RESERVATION_ACCESS_DENIED", "해당 예약에 접근할 권한이 없습니다."),
     INVALID_RESERVATION_TIME(HttpStatus.BAD_REQUEST, "INVALID_RESERVATION_TIME", "유효하지 않은 예약 시간입니다."),
 
-    // ===== 예약 관련 =====
+    // ===== 알림 관련 =====
     NOTIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "NOTIFICATION_NOT_FOUND", "알림을 찾을 수 없습니다."),
     NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "NOTIFICATION_ACCESS_DENIED", "자신의 알림만 읽을 수 있습니다.."),
 
