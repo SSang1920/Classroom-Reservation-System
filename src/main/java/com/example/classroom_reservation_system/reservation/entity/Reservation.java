@@ -147,7 +147,7 @@ public class Reservation {
         this.classroom = newClassroom;
         this.startTime = newStartTime;
         this.endTime = newEndTime;
-        this.periods = newPeriods;
+        this.periods = new HashSet<>(newPeriods);
         this.reservationState = ReservationState.MODIFIED_BY_ADMIN;
 
         this.addHistory(HistoryState.UPDATED_BY_ADMIN);

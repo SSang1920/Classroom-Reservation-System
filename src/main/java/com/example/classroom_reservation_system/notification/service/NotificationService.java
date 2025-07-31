@@ -2,7 +2,9 @@ package com.example.classroom_reservation_system.notification.service;
 
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
+import com.example.classroom_reservation_system.member.entity.Admin;
 import com.example.classroom_reservation_system.member.entity.Member;
+import com.example.classroom_reservation_system.member.repository.AdminRepository;
 import com.example.classroom_reservation_system.member.repository.MemberRepository;
 import com.example.classroom_reservation_system.notification.dto.NotificationResponseDto;
 import com.example.classroom_reservation_system.notification.entity.Notification;
@@ -34,6 +36,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final MemberRepository memberRepository;
     private final EmitterRepository emitterRepository;
+    private final AdminRepository adminRepository;
 
     /**
      * 현재 로그인한 회원 알림 목록 조회
@@ -161,6 +164,28 @@ public class NotificationService {
         );
     }
 
+    /**
+     * 관리자 그룹에게 알림 전송
+     */
+    @Transactional
+    public void sendToAdmins(Reservation reservation, String message){
+        List<Admin> admins = adminRepository.findAll();
+
+        for(Member admin : admins){
+            Notification notification = createNotificationForAdmin(admin, reservation, message);
+            String eventId = String.valueOf(admin.getMemberId()) + "_" + System.currentTimeMillis();
+
+            //관리자에게 연결된 모든 Emitter을 찾아 알림 전송
+            Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByMemberId(String.valueOf(admin.getMemberId()));
+
+            emitterRepository.saveEventCache(eventId, NotificationResponseDto.from(notification));
+
+            emitters.forEach(
+                    (emitterId, emitter) -> sendToClient(emitter, emitterId, eventId, NotificationResponseDto.from(notification))
+            );
+        }
+    }
+
     // 알림 엔티티를 생성하고 DB에 저장하는 private 메서드
     private Notification createNotification(Reservation reservation, String message) {
         Notification notification = Notification.builder()
@@ -171,6 +196,18 @@ public class NotificationService {
                 .build();
         return notificationRepository.save(notification);
     }
+
+    private Notification createNotificationForAdmin(Member admin, Reservation reservation, String message){
+        Notification notification = Notification.builder()
+                .member(admin)
+                .reservation(reservation)
+                .message(message)
+                .isRead(false)
+                .build();
+        return notificationRepository.save(notification);
+    }
+
+
 
     // 클라이언트에게 데이터를 전송하는 private 헬퍼 메서드
     private void sendToClient(SseEmitter emitter, String emitterId, String eventId, Object data) {

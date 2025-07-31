@@ -8,6 +8,7 @@ import com.example.classroom_reservation_system.common.exception.CustomException
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.faciliity.entity.Classroom;
 import com.example.classroom_reservation_system.faciliity.repository.ClassroomRepository;
+import com.example.classroom_reservation_system.request.entity.ReservationChangeRequest;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import com.example.classroom_reservation_system.reservation.entity.ReservationState;
 import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
@@ -22,9 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -81,49 +83,77 @@ public class AdminReservationService {
 
         reservation.cancelByAdmin();
 
-        String message = String.format("관리자에 의해 '%s' 예약이 취소되엇습니다.", reservation.getClassroom().getName());
+        String message = String.format("관리자에 의해 '%s' 예약이 취소되었습니다.", reservation.getClassroom().getName());
         eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
     }
 
     @Transactional
     public void updateReservationByAdmin(Long reservationId, AdminReservationUpdateRequest request){
-        // 수정할 예약과 강의실 조회
+        // 수정할 예약
         Reservation reservation = reservationRepository.findByIdWithClassroom(reservationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
-        Classroom newClassroom = classroomRepository.findById(request.getClassroomId())
+
+        performReservationUpdate(
+                reservation,
+                request.getClassroomId(),
+                request.getReservationDate(),
+                EnumSet.copyOf(request.getPeriods())
+        );
+        // 예약 수정
+        String message = String.format("관리자에 의해 '%s' 예약이 수정되었습니다. (수정된 시간: %s)",
+                reservation.getClassroom().getName(), request.getReservationDate());
+        eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
+
+    }
+
+    /**
+     * 예약 변경 요청에 따라 예약 수정
+     */
+    @Transactional
+    public void updateReservationByChangeRequest(Long reservationId, ReservationChangeRequest request){
+        Reservation reservation = reservationRepository.findByIdWithClassroom(reservationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.RESERVATION_NOT_FOUND));
+
+        performReservationUpdate(
+                reservation,
+                request.getNewClassroomId(),
+                request.getNewReservationDate(),
+                request.getNewPeriods()
+        );
+    }
+
+    /**
+     * 예약 수정 처리 공통 로직
+     */
+    private void performReservationUpdate(Reservation reservation, Long newClassroomId, LocalDate newReservationDate, Set<TimePeriod> newPeriods){
+        Classroom newClassroom = classroomRepository.findById(newClassroomId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CLASSROOM_NOT_FOUND));
 
-        // 수정될 시간 정보
-        List<TimePeriod> periods = request.getPeriods();
-        periods.sort(Comparator.naturalOrder());
-        LocalDateTime newStartTime = request.getReservationDate().atTime(periods.get(0).getStartTime());
-        LocalDateTime newEndTime = request.getReservationDate().atTime(periods.get(periods.size() -1).getEndTime());
+        if(newPeriods == null || newPeriods.isEmpty()){
+            throw new CustomException(ErrorCode.INVALID_RESERVATION_TIME);
+        }
+
+        List<TimePeriod> sortedPeriods = newPeriods.stream().sorted().collect(Collectors.toList());
+        LocalDateTime newStartTime = newReservationDate.atTime(sortedPeriods.get(0).getStartTime());
+        LocalDateTime newEndTime = newReservationDate.atTime(sortedPeriods.get(sortedPeriods.size() - 1).getEndTime());
 
         boolean isOverlapping = reservationRepository.existsByClassroomAndIdNotAndReservationStateNotAndEndTimeAfterAndStartTimeBefore(
                 newClassroom,
-                reservationId,
+                reservation.getId(),
                 ReservationState.CANCELED,
                 newStartTime,
                 newEndTime
         );
 
-        if( isOverlapping){
+        if(isOverlapping){
             throw new CustomException(ErrorCode.CLASSROOM_ALREADY_RESERVED);
         }
 
-        // 업데이트
         reservation.updateDetailsByAdmin(
                 newClassroom,
                 newStartTime,
                 newEndTime,
-                EnumSet.copyOf(periods)
+                newPeriods
         );
-
-        // 예약 수정
-        String message = String.format("관리자에 의해 '%s' 예약이 수정되었습니다. (수정된 시간: %s)",
-                reservation.getClassroom().getName(), newStartTime.toLocalDate());
-        eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, reservation, message));
-
-
     }
 }

@@ -54,6 +54,10 @@ public enum ErrorCode {
     NOTIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "NOTIFICATION_NOT_FOUND", "알림을 찾을 수 없습니다."),
     NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "NOTIFICATION_ACCESS_DENIED", "자신의 알림만 읽을 수 있습니다.."),
 
+    // ===== 예약 변경 관련 =====ErrorCode.REQUEST_NOT_FOUND
+    REQUEST_NOT_FOUND(HttpStatus.BAD_REQUEST, "REQUEST_NOT_FOUND", "요청을 찾을 수 없습니다."),
+    ALREADY_PROCESSED_REQUEST(HttpStatus.BAD_REQUEST, "ALREADY_PROCESSED_REQUEST", "이미 처리된 요청입니다."),
+
     // ===== 입력값 검증 관련 =====
     VALIDATION_FAIL(HttpStatus.BAD_REQUEST, "VALIDATION_FAIL", "입력값 검증 실패"),
 

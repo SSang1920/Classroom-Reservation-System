@@ -23,4 +23,10 @@ public class AdminViewController {
     public String adminReservationsPage(){
         return "admin/reservations";
     }
+
+    @GetMapping("/requests")
+    public String adminRequestsPage(){
+        return "admin/requests";
+    }
+
 }

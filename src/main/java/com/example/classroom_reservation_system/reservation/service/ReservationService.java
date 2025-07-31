@@ -6,6 +6,7 @@ import com.example.classroom_reservation_system.faciliity.entity.Classroom;
 import com.example.classroom_reservation_system.faciliity.repository.ClassroomRepository;
 import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.member.service.MemberService;
+import com.example.classroom_reservation_system.reservation.dto.AvailableTimeDto;
 import com.example.classroom_reservation_system.reservation.dto.request.ReservationRequest;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
@@ -176,6 +177,18 @@ public class ReservationService {
                 .flatMap(reservation -> reservation.getPeriods().stream())
                 .collect(Collectors.toSet());
 
+    }
+
+    /**
+     * 특정 날짜 예약 가능한 시간 목록 조회
+     */
+    public List<AvailableTimeDto> getAvailableTimes(Long classroomId, LocalDate date){
+        Set<TimePeriod> reservedPeriods = getReservedPeriodsForDate(classroomId, date, null);
+
+        return Arrays.stream(TimePeriod.values())
+                .filter(period -> !reservedPeriods.contains(period))
+                .map(AvailableTimeDto::from)
+                .collect(Collectors.toList());
     }
 
     /**

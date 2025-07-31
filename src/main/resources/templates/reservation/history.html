@@ -2,6 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <title>예약 이력 보기</title>
 </head>
 <body>
@@ -39,14 +40,68 @@
   </div>
 </div>
 
-<th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
+<div class="modal fade" id="changeRequestModal" tabindex="-1" aria-labelledby="changeRequestModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changeRequestModalLabel">예약 변경 요청</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="changeRequestForm">
+          <!-- API 호출에 필요한 예약 ID를 임시 저장하는 숨겨진 필드 -->
+          <input type="hidden" id="modalReservationId">
 
+          <div class="mb-3">
+            <label for="newBuildingId" class="form-label">변경할 건물</label>
+            <select class="form-select" id="newBuildingId" required>
+              <option value="" selected disabled>건물을 먼저 선택하세요</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="newClassroomId" class="form-label">변경할 강의실</label>
+            <select class="form-select" id="newClassroomId" required>
+              <option value="" selected disabled>강의실을 선택하세요</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="newReservationDate" class="form-label">변경할 날짜</label>
+            <input type="text" class="form-control" id="newReservationDate" required disabled>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">변경할 시간</label>
+            <div id="newPeriods" class="d-flex flex-wrap border rounded p-2" style="gap: 0.5rem;">
+              <small class="text-muted">강의실과 날짜를 선택하면 예약 가능한 시간이 표시됩니다.</small>
+            </div>
+            <div id="periods-error" class="invalid-feedback d-block"></div>
+          </div>
+          <div class="mb-3">
+            <label for="requestMessage" class="form-label">요청 메시지 (선택)</label>
+            <textarea class="form-control" id="requestMessage" rows="3" placeholder="관리자에게 전달할 메시지를 입력하세요."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="submitChangeRequest">요청 제출</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
 
 
 <script>
   // 페이지 로드 시 내 예약 목록을 가져오는 함수를 실행합니다.
-  document.addEventListener('DOMContentLoaded', fetchMyReservations);
+  document.addEventListener('DOMContentLoaded', function() {
+     fetchMyReservations();
+     initializeChangeRequestModal();
+   });
 
   // API를 호출하여 내 예약 목록을 가져오는 비동기 함수
   async function fetchMyReservations() {
@@ -126,11 +181,19 @@
       const cancellableStates = ['예약됨', '관리자에 의해 변경됨'];
 
       if (cancellableStates.includes(reservation.state)) {
-          actionButtons += `
+        actionButtons += `
               <button type="button" class="btn btn-sm btn-outline-danger" onclick="handleCancelClick(this, ${reservation.id})">
                   취소
               </button>
           `;
+        actionButtons += `
+         <button type="button" class="btn btn-sm btn-warning ms-1"
+                 data-bs-toggle="modal"
+                 data-bs-target="#changeRequestModal"
+                 data-reservation-id="${reservation.id}">
+             변경 요청
+         </button>
+       `;
           // 시작 시간 이후이고, 아직 완료되지 않은 예약에 '사용 완료' 버튼 표시
           if (now >= startTime) {
               actionButtons += `
@@ -207,6 +270,206 @@
           console.error('사용 완료 처리 중 에러 발생:', error);
           alert(error.message);
       }
+  }
+
+  // 예약 변경 요청 모달을 위한 JavaScript 로직
+  function initializeChangeRequestModal() {
+    const modalEl = document.getElementById('changeRequestModal');
+    const form = document.getElementById('changeRequestForm');
+    const buildingSelect = document.getElementById('newBuildingId');
+    const classroomSelect = document.getElementById('newClassroomId');
+    const dateInput = document.getElementById('newReservationDate');
+    const periodsDiv = document.getElementById('newPeriods');
+    const submitBtn = document.getElementById('submitChangeRequest');
+    const token = localStorage.getItem('accessToken');
+
+    //  flatpickr 초기화
+    const datePicker = flatpickr(dateInput, {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "Y-m-d (D)",
+        locale: "ko",
+        minDate: "today", // 과거 날짜 선택 불가
+        onChange: function(selectedDates, dateStr, instance) {
+            fetchAvailableTimes(); // 날짜 변경 시 시간 조회 함수 호출
+        }
+    });
+
+    // 모달이 열릴 때 실행되는 이벤트
+    modalEl.addEventListener('show.bs.modal', async function (event) {
+      form.reset();
+      classroomSelect.innerHTML = '<option value="" selected disabled>건물을 먼저 선택하세요</option>';
+      classroomSelect.disabled = true;
+      datePicker.clear(); // 날짜 초기화
+      dateInput.disabled = true; // 날짜 선택 비활성화
+      if (datePicker.altInput) datePicker.altInput.disabled = true;
+      periodsDiv.innerHTML = '<small class="text-muted">건물, 강의실, 날짜를 선택하면 예약 가능한 시간이 표시됩니다.</small>';
+      document.getElementById('periods-error').textContent = '';
+
+      const button = event.relatedTarget;
+      const reservationId = button.getAttribute('data-reservation-id');
+      document.getElementById('modalReservationId').value = reservationId;
+
+      await populateBuildingSelect();
+    });
+
+    // 건물 목록을 가져와 select 태그에 채우는 함수
+    async function populateBuildingSelect() {
+      try {
+        const response = await fetch('/api/facilities/buildings', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('건물 목록 로딩 실패');
+        const result = await response.json();
+        const buildings = result.data;
+
+        buildingSelect.innerHTML = '<option value="" selected disabled>건물을 선택하세요</option>';
+        buildings.forEach(b => {
+          buildingSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+        });
+      } catch (error) {
+        console.error(error);
+        buildingSelect.innerHTML = `<option value="">${error.message}</option>`;
+      }
+    }
+
+    // 건물 선택 시, 해당 건물의 강의실 목록을 불러온다.
+    buildingSelect.addEventListener('change', async function() {
+      const buildingId = this.value;
+      classroomSelect.disabled = true;
+      classroomSelect.innerHTML = '<option value="">불러오는 중...</option>';
+      datePicker.clear();
+      dateInput.disabled = true;
+      if (datePicker.altInput) datePicker.altInput.disabled = true;
+      periodsDiv.innerHTML = '<small class="text-muted">강의실과 날짜를 선택하세요.</small>';
+
+      if (!buildingId) return;
+
+      try {
+        const response = await fetch(`/api/facilities/buildings/${buildingId}/classrooms`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('강의실 목록 로딩 실패');
+        const result = await response.json();
+        const classrooms = result.data;
+
+        classroomSelect.innerHTML = '<option value="" selected disabled>강의실을 선택하세요</option>';
+        classrooms.forEach(c => {
+          classroomSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+        classroomSelect.disabled = false;
+      } catch (error) {
+        console.error(error);
+        classroomSelect.innerHTML = `<option value="">${error.message}</option>`;
+      }
+    });
+
+    // 강의실 선택 시 날짜 선택기 활성화
+    classroomSelect.addEventListener('change', function() {
+        datePicker.clear();
+        const isDisabled = !this.value;
+        dateInput.disabled = isDisabled;
+        if (datePicker.altInput) datePicker.altInput.disabled = isDisabled;
+        periodsDiv.innerHTML = '<small class="text-muted">날짜를 선택해주세요.</small>';
+    });
+
+    // 예약 가능한 시간대를 가져와 체크박스로 표시하는 함수
+    async function fetchAvailableTimes() {
+      const classroomId = classroomSelect.value;
+      const date = dateInput.value;
+
+      if (!classroomId || !date) {
+        periodsDiv.innerHTML = '<small class="text-muted">강의실과 날짜를 선택하세요.</small>';
+        return;
+      }
+
+      periodsDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
+
+      try {
+        const url = `/api/reservations/classroom/${classroomId}/available-times?date=${date}`;
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('시간 조회 실패');
+
+        const result = await response.json();
+        const availablePeriods = result.data;
+
+        // 오늘 날짜인지, 현재 시간은 몇 시인지 확인
+        const now = new Date();
+        const selectedDateStr = new Date(date).toDateString();
+        const isToday = now.toDateString() === selectedDateStr;
+        const currentHour = now.getHours();
+
+        periodsDiv.innerHTML = '';
+        if (availablePeriods.length > 0) {
+          availablePeriods.forEach(period => {
+            // 과거 시간인지 판별
+            const startHour = parseInt(period.time.substring(0, 2), 10);
+            const isPast = isToday && startHour < currentHour;
+            const disabledAttr = isPast ? 'disabled' : '';
+
+            periodsDiv.innerHTML += `
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="${period.name}" id="period-${period.name}" ${disabledAttr}>
+                <label class="form-check-label ${isPast ? 'text-muted' : ''}" for="period-${period.name}">
+                  ${period.time} ${isPast ? '(시간 지남)' : ''}
+                </label>
+              </div>
+            `;
+          });
+        } else {
+          periodsDiv.innerHTML = '<small class="text-muted">선택한 날짜에 예약 가능한 시간이 없습니다.</small>';
+        }
+      } catch (error) {
+        console.error(error);
+        periodsDiv.innerHTML = `<small class="text-danger">${error.message}</small>`;
+      }
+    }
+
+    // '요청 제출' 버튼 클릭 이벤트
+    submitBtn.addEventListener('click', async function () {
+      const errorDiv = document.getElementById('periods-error');
+      const reservationId = document.getElementById('modalReservationId').value;
+      const selectedPeriods = Array.from(document.querySelectorAll('#newPeriods input:checked')).map(cb => cb.value);
+
+      // 유효성 검사
+      if (!buildingSelect.value || !classroomSelect.value || !dateInput.value || selectedPeriods.length === 0) {
+        errorDiv.textContent = '건물, 강의실, 날짜, 시간을 모두 선택해야 합니다.';
+        return;
+      }
+      errorDiv.textContent = '';
+
+      const requestData = {
+        newClassroomId: classroomSelect.value,
+        newReservationDate: dateInput.value,
+        newPeriods: selectedPeriods,
+        requestMessage: document.getElementById('requestMessage').value
+      };
+
+      try {
+        const response = await fetch(`/api/reservations/${reservationId}/change-requests`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message);
+          window.location.reload();
+        } else {
+          alert(`오류: ${result.message}`);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('요청 중 오류가 발생했습니다.');
+      }
+    });
   }
 </script>
 
