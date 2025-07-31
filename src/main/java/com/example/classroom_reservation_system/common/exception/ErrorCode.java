@@ -50,13 +50,17 @@ public enum ErrorCode {
     RESERVATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "RESERVATION_ACCESS_DENIED", "해당 예약에 접근할 권한이 없습니다."),
     INVALID_RESERVATION_TIME(HttpStatus.BAD_REQUEST, "INVALID_RESERVATION_TIME", "유효하지 않은 예약 시간입니다."),
 
-    // ===== 예약 관련 =====
+    // ===== 알림 관련 =====
     NOTIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "NOTIFICATION_NOT_FOUND", "알림을 찾을 수 없습니다."),
     NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "NOTIFICATION_ACCESS_DENIED", "자신의 알림만 읽을 수 있습니다.."),
 
     // ===== 예약 변경 관련 =====ErrorCode.REQUEST_NOT_FOUND
     REQUEST_NOT_FOUND(HttpStatus.BAD_REQUEST, "REQUEST_NOT_FOUND", "요청을 찾을 수 없습니다."),
     ALREADY_PROCESSED_REQUEST(HttpStatus.BAD_REQUEST, "ALREADY_PROCESSED_REQUEST", "이미 처리된 요청입니다."),
+
+    // ===== 공지사항 관련 =====
+    NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTICE_NOT_FOUND", "존재하지 않는 공지사항입니다."),
+    NO_UPDATE_CONTENT(HttpStatus.BAD_REQUEST, "NO_UPDATE_CONTENT", "수정할 내용이 없습니다."),
 
     // ===== 입력값 검증 관련 =====
     VALIDATION_FAIL(HttpStatus.BAD_REQUEST, "VALIDATION_FAIL", "입력값 검증 실패"),

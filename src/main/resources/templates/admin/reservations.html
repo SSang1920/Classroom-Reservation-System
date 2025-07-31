@@ -150,7 +150,7 @@
 
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
-<script src="/js/admin-auth.js"></script>
+<script th:src="@{/js/admin-auth.js}"></script>
 
 <script>
     // 전역 변수

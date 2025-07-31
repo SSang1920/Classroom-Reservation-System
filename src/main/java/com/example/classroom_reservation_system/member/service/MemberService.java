@@ -1,6 +1,8 @@
 package com.example.classroom_reservation_system.member.service;
 
 import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
+import com.example.classroom_reservation_system.auth.service.RefreshTokenService;
+import com.example.classroom_reservation_system.config.jwt.JwtProperties;
 import com.example.classroom_reservation_system.config.jwt.JwtUtil;
 import com.example.classroom_reservation_system.member.dto.request.MyInfoUpdateRequest;
 import com.example.classroom_reservation_system.member.dto.request.PasswordChangeRequest;
@@ -28,7 +30,9 @@ public class MemberService {
     private final StudentRepository studentRepository;
     private final ProfessorRepository professorRepository;
     private final AdminRepository adminRepository;
+    private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
+    private final JwtProperties jwtProperties;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -108,6 +112,13 @@ public class MemberService {
 
         String newRefreshToken = jwtUtil.generateRefreshToken(member.getMemberUuid());
 
+        // DB의 Refresh Token 갱신
+        refreshTokenService.saveRefreshToken(
+                member.getMemberUuid(),
+                newRefreshToken,
+                jwtProperties.getRefreshTokenExpirationTime()
+        );
+
         // TokenResponse DTO를 생성하여 반환
         return TokenResponse.builder()
                 .accessToken(newAccessToken)
@@ -139,6 +150,10 @@ public class MemberService {
             throw new CustomException(ErrorCode.CANNOT_USE_OLD_PASSWORD);
         }
 
+        // 비밀번호 변경
         member.changePassword(passwordEncoder.encode(request.getNewPassword()));
+
+        // 비밀번호 변경 후 다른 모든 기기 로그아웃 처리
+        refreshTokenService.deleteByMemberUuid(memberUuid);
     }
 }

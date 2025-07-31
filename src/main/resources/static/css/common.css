@@ -1,26 +1,87 @@
 /* 기본 body 배경색 설정 */
 body {
-background-color: #f8fafa;
+    background-color: #f8fafa;
 }
 
 /* 모든 페이지의 상단바 스타일 */
 .top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1020;
+
     display: flex;
-     justify-content: space-between; /* 내용을 양쪽 끝으로 정렬 */
-     align-items: center;
-     padding: 0.75rem 1.5rem; /* 패딩 조정 */
+    justify-content: space-between; /* 내용을 양쪽 끝으로 정렬 */
+    align-items: center;
+    padding: 0.75rem 1.5rem; /* 패딩 조정 */
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
  }
 
  /* 홈으로 가는 링크 스타일 */
- .navbar-brand {
-     font-size: 1.25rem;
-     text-decoration: none;
-     color: #343a40;
-     font-weight: 600;
+.navbar-brand {
+    font-size: 1.25rem;
+    text-decoration: none;
+    color: #343a40;
+    font-weight: 600;
 }
 
 /* 알림 아이콘 스타일 (필요 시 사용) */
 .notification {
-position: relative;
-margin-left: 10px;
+    position: relative;
+    margin-left: 10px;
+}
+
+/* ==================== */
+/* 관리자 페이지 사이드바 */
+/* ==================== */
+.admin-content {
+    margin-top: 56px;
+    margin-left: 200px;
+}
+
+/* 사이드바 전체 컨테이너 스타일 */
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 56px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    width: 200px;
+}
+
+/* 사이드바 내부 스크롤 가능한 영역 */
+.sidebar .position-sticky {
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+}
+
+/* 사이드바 메뉴 링크 기본 스타일 */
+.sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+    padding: 12px 20px;
+    border-left: 3px solid transparent;
+    transition:  background-color 0.2s, color 0.2s;
+}
+
+/* 사이드바 메뉴 링크에 마우스 올렸을 때 */
+.sidebar .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #000;
+}
+
+/* 현재 활성화된 메뉴 링크 스타일 */
+.sidebar .nav-link.active {
+    background-color: #e6f0ff;
+    color: #0d6efd;
+    border-left-color: #0d6efd;
+}
+
+/* 활성화된 메뉴 링크의 아이콘 색상도 파란색으로 변경 */
+.sidebar .nav-link.active i {
+    color: #0d6efd;
 }
