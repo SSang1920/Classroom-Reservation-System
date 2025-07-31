@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
+    <title>공지사항 관리</title>
+</head>
+<body class="bg-light">
+<!-- 상단바 -->
+<div th:replace="~{fragments/topbar :: topbar}"></div>
+
+<div class="container-fluid">
+    <!-- 사이드바 -->
+    <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
+
+    <main class="admin-content px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">공지사항 관리</h1>
+        </div>
+
+        <!-- 공지사항 등록 폼 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                새 공지사항 등록
+            </div>
+            <div class="card-body">
+                <form id="notice-form">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">제목</label>
+                        <input type="text" class="form-control" id="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">내용</label>
+                        <textarea class="form-control" id="content" rows="10" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">등록하기</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 공지사항 목록 -->
+        <h2>공지사항 목록</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr class="text-center">
+                    <th scope="col">ID</th>
+                    <th scope="col">제목</th>
+                    <th scope="col">작성자</th>
+                    <th scope="col">작성일</th>
+                    <th scope="col">조회수</th>
+                    <th scope="col">관리</th>
+                </tr>
+                </thead>
+                <tbody id="notice-list-body" class="text-center">
+                <!-- JavaScript로 데이터 렌더링 -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- 공지사항 상세보기 모달 -->
+<div class="modal fade" id="viewNoticeModal" tabindex="-1" aria-labelledby="viewNoticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewNoticeModalLabel">공지사항 상세 정보</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="view-notice-loader" class="text-center p-5">
+                    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+                </div>
+                <div id="view-notice-content-area" class="d-none">
+                    <h3 id="view-title" class="mb-3"></h3>
+                    <div class="d-flex justify-content-between text-muted border-bottom pb-2 mb-3">
+                        <span><strong>작성자:</strong> <span id="view-author"></span></span>
+                        <span><strong>작성일:</strong> <span id="view-createdAt"></span></span>
+                        <span><strong>조회수:</strong> <span id="view-viewCount"></span></span>
+                    </div>
+                    <div id="view-content" style="white-space: pre-wrap; min-height: 200px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 공지사항 수정 모달 -->
+<div class="modal fade" id="updateNoticeModal" tabindex="-1" aria-labelledby="updateNoticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateNoticeModalLabel">공지사항 수정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="update-notice-form">
+                    <input type="hidden" id="update-notice-id">
+                    <div class="mb-3">
+                        <label for="update-title" class="form-label">제목</label>
+                        <input type="text" class="form-control" id="update-title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update-content" class="form-label">내용</label>
+                        <textarea class="form-control" id="update-content" rows="10" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary" id="save-update-btn">수정 완료</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 공통 스크립트 -->
+<th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
+
+<!-- 상단 바 자바 스크립트 -->
+<th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
+
+<!-- 관리자 페이지 접근 제어 스크립트 -->
+<script th:src="@{/js/admin-auth.js}"></script>
+
+<script>
+    let viewModalInstance;
+    let updateModalInstance;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        viewModalInstance = new bootstrap.Modal(document.getElementById('viewNoticeModal'), { backdrop: 'static' });
+        updateModalInstance = new bootstrap.Modal(document.getElementById('updateNoticeModal'), { backdrop: 'static' });
+        loadNotices();
+
+        // 새 공지사항 등록 이벤트 리스너
+        document.getElementById('notice-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            createNotice();
+        });
+
+        // 수정 모달의 수정 완료 버튼 클릭
+        document.getElementById('save-update-btn').addEventListener('click', updateNotice);
+
+        // 공지사항 목록의 버튼 클릭
+        document.getElementById('notice-list-body').addEventListener('click', function(e) {
+            const target = e.target;
+            const noticeId = target.dataset.noticeId || target.closest('a, button')?.dataset.noticeId;
+
+            if (!noticeId) return;
+
+            if (target.matches('.view-notice-link, .view-notice-link *')) {
+                e.preventDefault();
+                openViewModal(noticeId);
+            } else if (target.matches('.update-notice-btn, .update-notice-btn *')) {
+                openUpdateModal(noticeId);
+            } else if (target.matches('.delete-notice-btn, .delete-notice-btn *')) {
+                deleteNotice(noticeId);
+            }
+        });
+    });
+
+    // 공지사항 목록 불러오기
+    async function loadNotices() {
+        try {
+            const response = await fetch('/api/notices');
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            const tbody = document.getElementById('notice-list-body');
+            tbody.innerHTML = '';
+            result.data.forEach(notice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${notice.id}</td>
+                    <td><a href="#" class="text-decoration-none view-notice-link" data-notice-id="${notice.id}">${escapeHtml(notice.title)}</a></td>
+                    <td>${escapeHtml(notice.authorName)}</td>
+                    <td>${new Date(notice.createdAt).toLocaleString()}</td>
+                    <td>${notice.viewCount}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary me-1 update-notice-btn" data-notice-id="${notice.id}">수정</button>
+                        <button class="btn btn-sm btn-outline-danger delete-notice-btn" data-notice-id="${notice.id}">삭제</button>
+                    </td>
+                `;
+            tbody.appendChild(row);
+            });
+        } catch (error) {
+            alert('공지사항 목록을 불러오는 데 실패했습니다: ' + error.message);
+        }
+    }
+
+    // 공지사항 생성
+    async function createNotice() {
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+        const submitBtn = document.querySelector('#notice-form button[type="submit"]');
+
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 등록 중...`;
+
+        try {
+            const response = await fetchWithAuth('/api/notices/admin', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            alert('공지사항이 등록되었습니다.');
+            document.getElementById('notice-form').reset();
+            loadNotices();
+
+        } catch (error) {
+            alert('공지사항 등록에 실패했습니다: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    }
+
+    // 상세보기 모달 열기
+    async function openViewModal(noticeId) {
+        viewModalInstance.show();
+        const loader = document.getElementById('view-notice-loader');
+        const contentArea = document.getElementById('view-notice-content-area');
+
+        loader.classList.remove('d-none');
+        contentArea.classList.add('d-none');
+
+        try {
+            const response = await fetch(`/api/notices/${noticeId}`);
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || '공지사항 정보를 불러오지 못했습니다.');
+            }
+
+            const result = await response.json();
+            const notice = result.data;
+
+            document.getElementById('view-title').textContent = notice.title;
+            document.getElementById('view-author').textContent = notice.authorName;
+            document.getElementById('view-createdAt').textContent = new Date(notice.createdAt).toLocaleString();
+            document.getElementById('view-viewCount').textContent = notice.viewCount;
+            document.getElementById('view-content').textContent = notice.content;
+
+            loader.classList.add('d-none');
+            contentArea.classList.remove('d-none');
+
+        } catch (error) {
+            loader.classList.add('d-none');
+            contentArea.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            contentArea.classList.remove('d-none');
+        }
+    }
+
+    // 수정 모달 열기
+    async function openUpdateModal(noticeId) {
+        document.getElementById('update-notice-id').value = noticeId;
+
+        const response = await fetch(`/api/notices/${noticeId}`);
+        if (!response.ok) {
+            const result = await response.json();
+            throw new Error(errorData.message || '공지사항 정보를 불러오지 못했습니다.');
+        }
+
+        const result = await response.json();
+
+        document.getElementById('update-title').value = result.data.title;
+        document.getElementById('update-content').value = result.data.content;
+        updateModalInstance.show();
+    }
+
+    // 공지사항 수정
+    async function updateNotice() {
+        const id = document.getElementById('update-notice-id').value;
+        const title = document.getElementById('update-title').value;
+        const content = document.getElementById('update-content').value;
+
+        try {
+            const response = await fetchWithAuth(`/api/notices/admin/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
+
+            alert('공지사항이 수정되었습니다.');
+            updateModalInstance.hide();
+            loadNotices();
+
+        } catch (error) {
+            alert('공지사항 수정에 실패했습니다: ' + error.message);
+        }
+    }
+
+    // 공지사항 삭제
+    async function deleteNotice(id) {
+        if (!confirm(`정말로 ${id}번 공지사항을 삭제하시겠습니까?`)) return;
+
+        try {
+            const response = await fetchWithAuth(`/api/notices/admin/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const result = await response.json();
+                throw new Error(result.message);
+            }
+
+            alert('공지사항이 삭제되었습니다.');
+            loadNotices();
+
+        } catch (error) {
+            alert('공지사항 삭제에 실패했습니다: ' + error.message);
+        }
+    }
+
+    // XSS 방지 헬퍼 함수
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return unsafe;
+
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+
+</body>
+</html>

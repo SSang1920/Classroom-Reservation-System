@@ -4,88 +4,93 @@
     <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
     <title>회원 관리</title>
 </head>
-<body>
+<body class="bg-light">
 <!-- 상단 바 -->
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="display-6">회원 관리</h1>
-        <a href="/admin/main" class="btn btn-outline-secondary">관리자 홈으로</a>
-    </div>
-    <p>시스템에 등록된 모든 회원의 목록입니다.</p>
-    <hr>
+<div class="container-fluid">
+    <!-- 사이드바 -->
+    <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
 
-    <!-- 검색 필터 폼 -->
-    <form id="search-form" class="card card-body bg-light mb-4">
-        <div class="row g-3 align-items-end">
-            <!-- 검색 조건 및 키워드 -->
-            <div class="col-md-5">
-                <label for="search-type" class="form-label">검색 조건</label>
-                <div class="input-group">
-                    <select class="form-select" id="search-type" style="flex: 0 0 120px;">
-                        <option value="loginId" selected>아이디</option>
-                        <option value="name">이름</option>
-                        <option value="email">이메일</option>
-                    </select>
-                    <input type="text" class="form-control" id="search-keyword" placeholder="검색어를 입력하세요">
-                </div>
-            </div>
-
-            <!-- 역할 필터 -->
-            <div class="col-md-2">
-                <label for="search-role" class="form-label">역할</label>
-                <select class="form-select" id="search-role">
-                    <option value="">전체</option>
-                    <option value="ADMIN">관리자</option>
-                    <option value="PROFESSOR">교수</option>
-                    <option value="STUDENT">학생</option>
-                </select>
-            </div>
-
-            <!-- 가입일 필터 -->
-            <div class="col-md-3">
-                <label for="search-date" class="form-label">가입일</label>
-                <input type="date" class="form-control" id="search-date">
-            </div>
-
-            <!-- 버튼 -->
-            <div class="col-md-2">
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="submit" class="btn btn-primary">검색</button>
-                    <button type="button" id="reset-btn" class="btn btn-secondary">초기화</button>
-                </div>
-            </div>
+    <main class="admin-content px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">회원 관리</h1>
         </div>
-    </form>
 
-    <!-- 회원 목록을 표시할 테이블 -->
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light text-center">
-            <tr>
-                <th scope="col">#PK</th>
-                <th scope="col">로그인 ID</th>
-                <th scope="col">이름</th>
-                <th scope="col">이메일</th>
-                <th scope="col">역할</th>
-                <th scope="col">가입일</th>
-                <th scope="col">관리</th>
-            </tr>
-            </thead>
-            <tbody id="member-list-body" class="text-center">
-            <!-- JavaScript로 데이터 렌더링 -->
-            </tbody>
-        </table>
-    </div>
+        <p>시스템에 등록된 모든 회원의 목록입니다.</p>
 
-    <!-- 페이지네이션 -->
-    <nav id="pagination-nav" class="d-none">
-        <ul class="pagination justify-content-center" id="pagination-ul">
-            <!-- JavaScript로 페이지네이션 렌더링 -->
-        </ul>
-    </nav>
+        <!-- 검색 필터 폼 -->
+        <form id="search-form" class="card card-body bg-light mb-4">
+            <div class="row g-3 align-items-end">
+                <!-- 검색 조건 및 키워드 -->
+                <div class="col-md-5">
+                    <label for="search-type" class="form-label">검색 조건</label>
+                    <div class="input-group">
+                        <select class="form-select" id="search-type" style="flex: 0 0 120px;">
+                            <option value="loginId" selected>아이디</option>
+                            <option value="name">이름</option>
+                            <option value="email">이메일</option>
+                        </select>
+                        <input type="text" class="form-control" id="search-keyword" placeholder="검색어를 입력하세요">
+                    </div>
+                </div>
+
+                <!-- 역할 필터 -->
+                <div class="col-md-2">
+                    <label for="search-role" class="form-label">역할</label>
+                    <select class="form-select" id="search-role">
+                        <option value="">전체</option>
+                        <option value="ADMIN">관리자</option>
+                        <option value="PROFESSOR">교수</option>
+                        <option value="STUDENT">학생</option>
+                    </select>
+                </div>
+
+                <!-- 가입일 필터 -->
+                <div class="col-md-3">
+                    <label for="search-date" class="form-label">가입일</label>
+                    <input type="date" class="form-control" id="search-date">
+                </div>
+
+                <!-- 버튼 -->
+                <div class="col-md-2">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary">검색</button>
+                        <button type="button" id="reset-btn" class="btn btn-secondary">초기화</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- 회원 목록을 표시할 테이블 -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light text-center">
+                <tr>
+                    <th scope="col">#PK</th>
+                    <th scope="col">로그인 ID</th>
+                    <th scope="col">이름</th>
+                    <th scope="col">이메일</th>
+                    <th scope="col">역할</th>
+                    <th scope="col">가입일</th>
+                    <th scope="col">관리</th>
+                </tr>
+                </thead>
+                <tbody id="member-list-body" class="text-center">
+                <!-- JavaScript로 데이터 렌더링 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <nav id="pagination-nav" class="d-none">
+            <ul class="pagination justify-content-center" id="pagination-ul">
+                <!-- JavaScript로 페이지네이션 렌더링 -->
+            </ul>
+        </nav>
+    </main>
 </div>
+
 <!-- 공통 스크립트 -->
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
 
@@ -93,7 +98,7 @@
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
 
 <!-- 관리자 페이지 접근 제어 스크립트 -->
-<script src="/js/admin-auth.js"></script>
+<script th:src="@{/js/admin-auth.js}"></script>
 
 <!-- 회원 목록 조회 및 렌더링 스크립트 -->
 <script>

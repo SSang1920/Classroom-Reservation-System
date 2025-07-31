@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav id="sidebarMenu" class="d-md-block bg-white sidebar collapse" th:fragment="admin-sidebar">
+    <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${currentPath.startsWith('/admin/main')} ? 'active' : ''" th:href="@{/admin/main}">
+                    <i class="bi bi-house-door-fill me-2"></i>
+                    대시보드
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${currentPath.startsWith('/admin/members')} ? 'active' : ''" th:href="@{/admin/members}">
+                    <i class="bi bi-people-fill me-2"></i>
+                    회원 관리
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${currentPath.startsWith('/admin/reservations')} ? 'active' : ''" th:href="@{/admin/reservations}">
+                    <i class="bi bi-calendar-check-fill me-2"></i>
+                    예약 관리
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:classappend="${currentPath.startsWith('/admin/notices')} ? 'active' : ''" th:href="@{/admin/notices}">
+                    <i class="bi bi-megaphone-fill me-2"></i>
+                    공지사항 관리
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+</body>
+</html>
