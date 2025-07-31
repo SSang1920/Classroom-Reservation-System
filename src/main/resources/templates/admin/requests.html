@@ -1,199 +1,199 @@
-<!-- src/main/resources/templates/admin/requests.html -->
-
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
-  <!-- [추가] flatpickr CSS 로드 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <title>관리자 - 예약 변경 요청 관리</title>
+    <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
+    <title>관리자 - 예약 변경 요청 관리</title>
 </head>
 <body>
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-<div class="container-fluid mt-4">
-  <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
+<div class="container-fluid">
+    <!-- 사이드바 -->
+    <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
 
-  <h2 class="mb-4">📅 예약 변경 요청 관리</h2>
+    <main class="admin-content px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">📅 예약 변경 요청 관리</h1>
+        </div>
 
-  <div class="card">
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover text-center align-middle">
-          <thead class="table-light">
-          <tr>
-            <th>요청 ID</th>
-            <th>학생명</th>
-            <th>기존 예약</th>
-            <th>변경 요청 내용</th>
-            <th>요청 메시지</th>
-            <th>상태</th>
-            <th>요청일</th>
-            <th>처리</th>
-          </tr>
-          </thead>
-          <tbody id="requests-tbody">
-          <!-- JS로 채워질 영역 -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover text-center align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>요청 ID</th>
+                            <th>학생명</th>
+                            <th>기존 예약</th>
+                            <th>변경 요청 내용</th>
+                            <th>요청 메시지</th>
+                            <th>상태</th>
+                            <th>요청일</th>
+                            <th>처리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="requests-tbody">
+                        <!-- JS로 채워질 영역 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
 
 <!-- 거절 사유 입력 모달 -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">요청 거절</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="rejectRequestId">
-        <div class="mb-3">
-          <label for="rejectionReason" class="form-label">거절 사유</label>
-          <textarea class="form-control" id="rejectionReason" rows="3" required></textarea>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">요청 거절</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rejectRequestId">
+                <div class="mb-3">
+                    <label for="rejectionReason" class="form-label">거절 사유</label>
+                    <textarea class="form-control" id="rejectionReason" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn">거절 확정</button>
+            </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-        <button type="button" class="btn btn-danger" id="confirmRejectBtn">거절 확정</button>
-      </div>
     </div>
-  </div>
 </div>
 
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
 
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
-<script src="/js/admin-auth.js"></script>
+
+<script th:src="@{/js/admin-auth.js}"></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-      const token = localStorage.getItem('accessToken');
-      const tbody = document.getElementById('requests-tbody');
-      const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
-      const rejectRequestIdInput = document.getElementById('rejectRequestId');
-      const rejectionReasonTextarea = document.getElementById('rejectionReason');
-      const confirmRejectBtn = document.getElementById('confirmRejectBtn');
+    document.addEventListener('DOMContentLoaded', function () {
+        const token = localStorage.getItem('accessToken');
+        const tbody = document.getElementById('requests-tbody');
+        const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
+        const rejectRequestIdInput = document.getElementById('rejectRequestId');
+        const rejectionReasonTextarea = document.getElementById('rejectionReason');
+        const confirmRejectBtn = document.getElementById('confirmRejectBtn');
 
-      // 1. 페이지 로드 시 모든 요청 목록을 불러옵니다.
-      async function fetchAllRequests() {
-          tbody.innerHTML = '<tr><td colspan="8" class="p-5"><div class="spinner-border"></div></td></tr>';
-          try {
-              const response = await fetch('/api/admin/change-requests', {
-                  headers: { 'Authorization': `Bearer ${token}` }
-              });
-              if (!response.ok) throw new Error('요청 목록 조회 실패');
-              const result = await response.json();
-              renderTable(result.data);
-          } catch (error) {
-              tbody.innerHTML = `<tr><td colspan="8" class="text-danger p-4">${error.message}</td></tr>`;
-          }
-      }
+        // 1. 페이지 로드 시 모든 요청 목록을 불러옵니다.
+        async function fetchAllRequests() {
+            tbody.innerHTML = '<tr><td colspan="8" class="p-5"><div class="spinner-border"></div></td></tr>';
+            try {
+                const response = await fetch('/api/admin/change-requests', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('요청 목록 조회 실패');
+                const result = await response.json();
+                renderTable(result.data);
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-danger p-4">${error.message}</td></tr>`;
+            }
+        }
 
-      // 2. 받아온 데이터로 테이블을 그립니다.
-      function renderTable(requests) {
-          if (!requests || requests.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="8" class="p-4">대기 중인 요청이 없습니다.</td></tr>';
-              return;
-          }
-          tbody.innerHTML = requests.map(req => createRow(req)).join('');
-      }
+        // 2. 받아온 데이터로 테이블을 그립니다.
+        function renderTable(requests) {
+            if (!requests || requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4">대기 중인 요청이 없습니다.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = requests.map(req => createRow(req)).join('');
+        }
 
-      // 상태에 따라 다른 색상의 배지를 반환하는 헬퍼 함수
-      function getStatusBadge(status) {
-          const statusClasses = {
-              '대기중': 'bg-warning text-dark',
-              '승인됨': 'bg-success',
-              '거절됨': 'bg-danger'
-          };
-          const badgeClass = statusClasses[status] || 'bg-secondary';
-          return `<span class="badge ${badgeClass}">${status}</span>`;
-      }
+        // 상태에 따라 다른 색상의 배지를 반환하는 헬퍼 함수
+        function getStatusBadge(status) {
+            const statusClasses = {
+                '대기중': 'bg-warning text-dark',
+                '승인됨': 'bg-success',
+                '거절됨': 'bg-danger'
+            };
+            const badgeClass = statusClasses[status] || 'bg-secondary';
+            return `<span class="badge ${badgeClass}">${status}</span>`;
+        }
 
-      // 3. 테이블의 한 행(tr)을 생성합니다.
-      function createRow(req) {
-          // flatpickr를 사용하여 날짜 형식 통일
-          const originalTime = flatpickr.formatDate(new Date(req.originalStartTime), "Y-m-d H:i");
-          const newDate = flatpickr.formatDate(new Date(req.newReservationDate), "Y-m-d (D)");
-          const requestedAt = flatpickr.formatDate(new Date(req.requestedAt), "Y-m-d H:i");
-          const statusBadge = getStatusBadge(req.status);
+        // 3. 테이블의 한 행(tr)을 생성합니다.
+        function createRow(req) {
+            // flatpickr를 사용하여 날짜 형식 통일
+            const originalTime = flatpickr.formatDate(new Date(req.originalStartTime), "Y-m-d H:i");
+            const newDate = flatpickr.formatDate(new Date(req.newReservationDate), "Y-m-d (D)");
+            const requestedAt = flatpickr.formatDate(new Date(req.requestedAt), "Y-m-d H:i");
+            const statusBadge = getStatusBadge(req.status);
 
-          // 상태에 따라 버튼을 다르게 표시
-          let actionButtons = '';
-          if (req.status === '대기중') {
-              actionButtons = `
-                  <button class="btn btn-sm btn-success" onclick="handleApprove(${req.requestId})">승인</button>
-                  <button class="btn btn-sm btn-danger ms-1" onclick="openRejectModal(${req.requestId})">거절</button>
-              `;
-          }
+            // 상태에 따라 버튼을 다르게 표시
+            let actionButtons = '';
+            if (req.status === '대기중') {
+                actionButtons = `
+                    <button class="btn btn-sm btn-success" onclick="handleApprove(${req.requestId})">승인</button>
+                    <button class="btn btn-sm btn-danger ms-1" onclick="openRejectModal(${req.requestId})">거절</button>
+                `;
+            }
 
-          return `
-              <tr id="request-row-${req.requestId}">
-                  <td>${req.requestId}</td>
-                  <td>${req.studentName}</td>
-                  <td>${req.originalClassroom}<br><small class="text-muted">${originalTime}</small></td>
-                  <td>(ID: ${req.newClassroomId}) 강의실<br><small class="text-muted">${newDate}</small></td>
-                  <td>${req.requestMessage || '-'}</td>
-                  <td>${statusBadge}</td>
-                  <td><small class="text-muted">${requestedAt}</small></td>
-                  <td>${actionButtons || '처리 완료'}</td>
-              </tr>
-          `;
-      }
+            return `
+                <tr id="request-row-${req.requestId}">
+                    <td>${req.requestId}</td>
+                    <td>${req.studentName}</td>
+                    <td>${req.originalClassroom}<br><small class="text-muted">${originalTime}</small></td>
+                    <td>(ID: ${req.newClassroomId}) 강의실<br><small class="text-muted">${newDate}</small></td>
+                    <td>${req.requestMessage || '-'}</td>
+                    <td>${statusBadge}</td>
+                    <td><small class="text-muted">${requestedAt}</small></td>
+                    <td>${actionButtons || '처리 완료'}</td>
+                </tr>
+            `;
+        }
 
-      // 4. '승인' 처리
-      window.handleApprove = async function(requestId) {
-          if (!confirm(`요청(ID: ${requestId})을 승인하시겠습니까?`)) return;
-          await processRequest(requestId, true, '관리자에 의해 승인됨');
-      }
+        // 4. '승인' 처리
+        window.handleApprove = async function(requestId) {
+            if (!confirm(`요청(ID: ${requestId})을 승인하시겠습니까?`)) return;
+            await processRequest(requestId, true, '관리자에 의해 승인됨');
+        }
 
-      // 5. '거절' 모달 열기
-      window.openRejectModal = function(requestId) {
-          rejectRequestIdInput.value = requestId;
-          rejectionReasonTextarea.value = '';
-          rejectModal.show();
-      }
+        // 5. '거절' 모달 열기
+        window.openRejectModal = function(requestId) {
+            rejectRequestIdInput.value = requestId;
+            rejectionReasonTextarea.value = '';
+            rejectModal.show();
+        }
 
-      // 6. 모달에서 '거절 확정' 버튼 클릭
-      confirmRejectBtn.addEventListener('click', async () => {
-          const requestId = rejectRequestIdInput.value;
-          const reason = rejectionReasonTextarea.value;
-          if (!reason.trim()) {
-              alert('거절 사유를 입력해주세요.');
-              return;
-          }
-          await processRequest(requestId, false, reason);
-          rejectModal.hide();
-      });
+        // 6. 모달에서 '거절 확정' 버튼 클릭
+        confirmRejectBtn.addEventListener('click', async () => {
+            const requestId = rejectRequestIdInput.value;
+            const reason = rejectionReasonTextarea.value;
+            if (!reason.trim()) {
+                alert('거절 사유를 입력해주세요.');
+                return;
+            }
+            await processRequest(requestId, false, reason);
+            rejectModal.hide();
+        });
 
-      // 7. 승인/거절 API를 호출하는 공통 함수
-      async function processRequest(requestId, isApprove, message) {
-          try {
-              const response = await fetch(`/api/admin/change-requests/${requestId}/process`, {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify({ approve: isApprove, responseMessage: message })
-              });
-              const result = await response.json();
-              if (!response.ok) throw new Error(result.message);
+        // 7. 승인/거절 API를 호출하는 공통 함수
+        async function processRequest(requestId, isApprove, message) {
+            try {
+                const response = await fetch(`/api/admin/change-requests/${requestId}/process`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ approve: isApprove, responseMessage: message })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
 
-              alert(result.message);
-              fetchAllRequests(); // 성공 시 테이블 새로고침
-          } catch (error) {
-              alert(`처리 실패: ${error.message}`);
-          }
-      }
+                alert(result.message);
+                fetchAllRequests(); // 성공 시 테이블 새로고침
+            } catch (error) {
+                alert(`처리 실패: ${error.message}`);
+            }
+        }
 
-      fetchAllRequests(); // 페이지 진입 시 함수 호출
-  });
+        fetchAllRequests(); // 페이지 진입 시 함수 호출
+    });
 </script>
 </body>
 </html>

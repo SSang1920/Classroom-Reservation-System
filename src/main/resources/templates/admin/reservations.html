@@ -12,89 +12,93 @@
 <body>
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="display-6">📅 예약 관리</h1>
-        <a href="/admin/main" class="btn btn-outline-secondary">관리자 홈으로</a>
-    </div>
+<div class="container-fluid">
+    <!-- 사이드바 -->
+    <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
 
-    <div class="card mb-4">
-        <div class="card-body bg-light">
-            <form id="search-form" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label for="username" class="form-label">예약자명</label>
-                    <input type="text" id="username" name="username" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <label for="building-select" class="form-label">건물</label>
-                    <select id="building-select" class="form-select">
-                        <option value="">전체</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="classroom-select" class="form-label">강의실</label>
-                    <select id="classroom-select" name="classroomId" class="form-select" disabled>
-                        <option value="">건물 먼저 선택</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="startDate" class="form-label">시작일</label>
-                    <input type="date" id="startDate" name="startDate" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <label for="endDate" class="form-label">종료일</label>
-                    <input type="date" id="endDate" name="endDate" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <label for="state" class="form-label">상태</label>
-                    <select id="state" name="state" class="form-select">
-                        <option value="">전체</option>
-                        <option th:each="s : ${T(com.example.classroom_reservation_system.reservation.entity.ReservationState).values()}"
-                                th:value="${s.name()}" th:text="${s.description}"></option>
-                    </select>
-                </div>
-                <div class="col-12 d-flex justify-content-end gap-2">
-                    <button type="button" id="reset-btn" class="btn btn-secondary">초기화</button>
-                    <button type="submit" class="btn btn-primary">검색</button>
-                </div>
-            </form>
+    <main class="admin-content px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">📅 예약 관리</h1>
         </div>
-    </div>
+
+        <div class="card mb-4">
+            <div class="card-body bg-light">
+                <form id="search-form" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="username" class="form-label">예약자명</label>
+                        <input type="text" id="username" name="username" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="building-select" class="form-label">건물</label>
+                        <select id="building-select" class="form-select">
+                            <option value="">전체</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="classroom-select" class="form-label">강의실</label>
+                        <select id="classroom-select" name="classroomId" class="form-select" disabled>
+                            <option value="">건물 먼저 선택</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="startDate" class="form-label">시작일</label>
+                        <input type="date" id="startDate" name="startDate" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="endDate" class="form-label">종료일</label>
+                        <input type="date" id="endDate" name="endDate" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="state" class="form-label">상태</label>
+                        <select id="state" name="state" class="form-select">
+                            <option value="">전체</option>
+                            <option th:each="s : ${T(com.example.classroom_reservation_system.reservation.entity.ReservationState).values()}"
+                                    th:value="${s.name()}" th:text="${s.description}"></option>
+                        </select>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end gap-2">
+                        <button type="button" id="reset-btn" class="btn btn-secondary">초기화</button>
+                        <button type="submit" class="btn btn-primary">검색</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
 
-    <div class="table-responsive">
-        <table class="table table-hover text-center align-middle">
-            <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>예약자 (ID)</th>
-                <th>강의실</th>
-                <th>예약 시작</th>
-                <th>예약 종료</th>
-                <th>상태</th>
-                <th>관리</th>
-            </tr>
-            </thead>
-            <tbody id="reservation-table-body">
-            </tbody>
-            <template id="history-detail-template">
-                <tr class="history-detail-row">
-                    <td colspan="7" class="p-3 bg-light">
-                        <div class="history-content">
-                        </div>
-                    </td>
+        <div class="table-responsive">
+            <table class="table table-hover text-center align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>예약자 (ID)</th>
+                    <th>강의실</th>
+                    <th>예약 시작</th>
+                    <th>예약 종료</th>
+                    <th>상태</th>
+                    <th>관리</th>
                 </tr>
-            </template>
-        </table>
-    </div>
+                </thead>
+                <tbody id="reservation-table-body">
+                </tbody>
+                <template id="history-detail-template">
+                    <tr class="history-detail-row">
+                        <td colspan="7" class="p-3 bg-light">
+                            <div class="history-content">
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+            </table>
+        </div>
 
-    <nav id="pagination-nav">
-        <ul class="pagination justify-content-center">
-        </ul>
-    </nav>
+        <nav id="pagination-nav">
+            <ul class="pagination justify-content-center">
+            </ul>
+        </nav>
+    </main>
 </div>
 
-
+<!-- 예약 수정 모달 -->
 <div class="modal fade" id="editReservationModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
