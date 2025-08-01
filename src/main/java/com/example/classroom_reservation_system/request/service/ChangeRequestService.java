@@ -42,6 +42,11 @@ public class ChangeRequestService {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
+        boolean hasPendingReuqest = requestRepository.existsByReservationIdAndStatus(reservationId, RequestStatus.PENDING);
+        if (hasPendingReuqest) {
+            throw new CustomException(ErrorCode.ALREADY_PENDING_REQUEST);
+        }
+
         // [추가] 디버깅을 위한 null 체크
         if (reservation.getEndTime() == null) {
             // 이 로그가 찍힌다면 Reservation 데이터 자체에 문제가 있는 것입니다.
@@ -83,6 +88,7 @@ public class ChangeRequestService {
             request.approve(dto.getResponseMessage());
 
             adminReservationService.updateReservationByChangeRequest(originalReservation.getId(), request);
+            originalReservation.updateByRequest();
 
             message = String.format("요청하신 예약(ID:%d) 변경이 승인되었습니다.",originalReservation.getId());
 

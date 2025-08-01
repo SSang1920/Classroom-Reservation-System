@@ -142,14 +142,23 @@ public class Reservation {
 
     }
 
-    public void updateDetailsByAdmin(Classroom newClassroom, LocalDateTime newStartTime, LocalDateTime newEndTime, Set<TimePeriod> newPeriods){
+
+    public void updateDetails(Classroom newClassroom, LocalDateTime newStartTime, LocalDateTime newEndTime, Set<TimePeriod> newPeriods){
         this.classroom = newClassroom;
         this.startTime = newStartTime;
         this.endTime = newEndTime;
         this.periods = new HashSet<>(newPeriods);
-        this.reservationState = ReservationState.MODIFIED_BY_ADMIN;
+    }
 
+
+    public void updateByAdmin(){
+        this.reservationState = ReservationState.MODIFIED_BY_ADMIN;
         this.addHistory(HistoryState.UPDATED_BY_ADMIN);
+    }
+
+    public void updateByRequest(){
+        this.reservationState = ReservationState.UPDATED_BY_REQUEST;
+        this.addHistory(HistoryState.UPDATED_BY_REQUEST);
     }
 
     public void complete() {

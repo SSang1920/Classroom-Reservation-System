@@ -14,15 +14,17 @@ public class ReservationResponse {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String state;
+    private final boolean hasPendingChangeRequest;
 
     //엔티티 -> DTO 변환 정적 팩토리 메소드
-    public static  ReservationResponse from(Reservation reservation){
+    public static  ReservationResponse from(Reservation reservation, boolean hasPendingChangeRequest){
         return ReservationResponse.builder()
                 .id(reservation.getId())
                 .classroomName(reservation.getClassroom().getName())
                 .startTime(reservation.getStartTime())
                 .endTime(reservation.getEndTime())
                 .state(reservation.getReservationState().getDescription())
+                .hasPendingChangeRequest(hasPendingChangeRequest)
                 .build();
     }
 }

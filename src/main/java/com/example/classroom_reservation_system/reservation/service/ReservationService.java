@@ -6,6 +6,7 @@ import com.example.classroom_reservation_system.faciliity.entity.Classroom;
 import com.example.classroom_reservation_system.faciliity.repository.ClassroomRepository;
 import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.member.service.MemberService;
+import com.example.classroom_reservation_system.request.repository.ReservationChangeRequestRepository;
 import com.example.classroom_reservation_system.reservation.dto.request.ReservationRequest;
 import com.example.classroom_reservation_system.reservation.dto.response.AvailableTimeDto;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
@@ -38,6 +39,7 @@ public class ReservationService {
     private final MemberService memberService; //회원 정보를 가져옴
     private final ClassroomRepository classroomRepository; // 강의실 정보 가져옴
     private final ApplicationEventPublisher eventPublisher; // 이벤트 발행기
+    private final ReservationChangeRequestRepository requestRepository;
 
     /**
      * 예약 생성
@@ -199,8 +201,19 @@ public class ReservationService {
     public List<ReservationResponse> getMyReservationsApi(String memberUuid) {
         Member member = memberService.findByMemberUuid(memberUuid);
         List<Reservation> reservations = reservationRepository.findAllByMemberOrderByStartTimeDesc(member);
+
+        List<Long> reservationIds = reservations.stream()
+                .map(Reservation::getId)
+                .collect(Collectors.toList());
+
+        Set<Long> idsWithPendingRequst = requestRepository.findReservationIdsWithPendingRequests(reservationIds);
+
+
         return reservations.stream()
-                .map(ReservationResponse::from)
+                .map(reservation -> ReservationResponse.from(
+                        reservation,
+                        idsWithPendingRequst.contains(reservation.getId())
+                ))
                 .collect(Collectors.toList());
     }
 

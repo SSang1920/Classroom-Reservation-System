@@ -49,6 +49,7 @@ public enum ErrorCode {
     RESERVATION_NOT_CANCELLABLE(HttpStatus.BAD_REQUEST, "RESERVATION_NOT_CANCELLABLE", "이미 완료되었거나 취소된 예약은 취소할 수 없습니다."),
     RESERVATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "RESERVATION_ACCESS_DENIED", "해당 예약에 접근할 권한이 없습니다."),
     INVALID_RESERVATION_TIME(HttpStatus.BAD_REQUEST, "INVALID_RESERVATION_TIME", "유효하지 않은 예약 시간입니다."),
+    ALREADY_PENDING_REQUEST(HttpStatus.BAD_REQUEST, "ALREADY_PENDING_REQUEST", "이미 처리 대기 중인 변경 요청이 존재합니다."),
 
     // ===== 알림 관련 =====
     NOTIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "NOTIFICATION_NOT_FOUND", "알림을 찾을 수 없습니다."),

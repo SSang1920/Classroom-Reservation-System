@@ -11,7 +11,8 @@ public enum ReservationState {
     CANCELED("취소됨"),
     CANCELED_BY_ADMIN("관리자에 의해 취소됨"),
     MODIFIED_BY_ADMIN("관리자에 의해 변경됨"),
-    COMPLETED_BY_SYSTEM("자동 완료됨");
+    COMPLETED_BY_SYSTEM("자동 완료됨"),
+    UPDATED_BY_REQUEST("요청에 의해 변경됨");
 
     private final String description;
 

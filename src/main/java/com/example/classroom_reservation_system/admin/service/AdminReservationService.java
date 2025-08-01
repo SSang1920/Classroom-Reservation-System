@@ -99,6 +99,8 @@ public class AdminReservationService {
                 request.getReservationDate(),
                 EnumSet.copyOf(request.getPeriods())
         );
+
+        reservation.updateByAdmin();
         // 예약 수정
         String message = String.format("관리자에 의해 '%s' 예약이 수정되었습니다. (수정된 시간: %s)",
                 reservation.getClassroom().getName(), request.getReservationDate());
@@ -149,7 +151,7 @@ public class AdminReservationService {
             throw new CustomException(ErrorCode.CLASSROOM_ALREADY_RESERVED);
         }
 
-        reservation.updateDetailsByAdmin(
+        reservation.updateDetails(
                 newClassroom,
                 newStartTime,
                 newEndTime,

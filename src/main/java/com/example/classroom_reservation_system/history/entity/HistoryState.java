@@ -11,7 +11,8 @@ public enum HistoryState {
     CANCELED_BY_ADMIN("관리자에 의해 취소됨"), // 관리자에 의해 취소됨
     UPDATED_BY_ADMIN("관리자에 의해 변경됨"), // 관리자에 의해 변경됨
     COMPLETED("완료됨"),  // 예약이 완료되었을 때 기록
-    COMPLETED_BY_SYSTEM("자동완료됨"); // 시스템에 의해 자동 완료됨
+    COMPLETED_BY_SYSTEM("자동완료됨"), // 시스템에 의해 자동 완료됨
+    UPDATED_BY_REQUEST("요청에 의해 변경됨");
 
     private final String description;
 }

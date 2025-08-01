@@ -152,49 +152,61 @@
   }
 
   // 상태 이름에 맞는 Bootstrap 배지를 생성하는 헬퍼 함수
-  function getStateBadge(state) {
+function getStateBadge(state) {
       const states = {
           '예약됨': 'bg-primary',
           '사용 완료': 'bg-success',
           '취소됨': 'bg-secondary',
           '관리자에 의해 취소됨': 'bg-danger',
           '관리자에 의해 변경됨': 'bg-warning text-dark',
-          '자동 완료됨': 'bg-info text-dark'
+          '자동 완료됨': 'bg-info text-dark',
+          '요청에 의해 변경됨': 'bg-info text-dark'
       };
       const badgeClass = states[state] || 'bg-dark';
       return `<span class="badge ${badgeClass}">${state}</span>`;
   }
 
   // 예약 데이터로 테이블의 한 행(<tr>)을 생성하는 함수
-  function createReservationRow(reservation, count) {
+function createReservationRow(reservation, count) {
       const startTime = new Date(reservation.startTime);
       const endTime = new Date(reservation.endTime);
       const date = startTime.toLocaleDateString('ko-KR');
       const time = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')} ~ ${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
-
-      //상태 배지 생성 로직을 헬퍼 함수로 분리
       const stateBadge = getStateBadge(reservation.state);
 
-      // 상태에 따라 '취소' 및 '사용 완료' 버튼을 동적으로 생성
       let actionButtons = '';
       const now = new Date();
-      const cancellableStates = ['예약됨', '관리자에 의해 변경됨'];
+      const actionableStates = ['예약됨', '관리자에 의해 변경됨', '요청에 의해 변경됨'];
 
-      if (cancellableStates.includes(reservation.state)) {
-        actionButtons += `
+      if (actionableStates.includes(reservation.state)) {
+          // 1. 취소 버튼 추가
+          actionButtons += `
               <button type="button" class="btn btn-sm btn-outline-danger" onclick="handleCancelClick(this, ${reservation.id})">
                   취소
               </button>
           `;
-        actionButtons += `
-         <button type="button" class="btn btn-sm btn-warning ms-1"
-                 data-bs-toggle="modal"
-                 data-bs-target="#changeRequestModal"
-                 data-reservation-id="${reservation.id}">
-             변경 요청
-         </button>
-       `;
-          // 시작 시간 이후이고, 아직 완료되지 않은 예약에 '사용 완료' 버튼 표시
+
+          // 2. '변경 요청' 버튼을 올바른 if/else 구조와 백틱(`)으로 생성
+          if (reservation.hasPendingChangeRequest) {
+              // PENDING 요청이 있으면 비활성화된 '요청 처리중' 버튼을 표시
+              actionButtons += `
+                  <button type="button" class="btn btn-sm btn-secondary ms-1" disabled title="이미 처리 대기 중인 요청이 있습니다.">
+                      요청 처리중
+                  </button>
+              `;
+          } else {
+              // PENDING 요청이 없으면 활성화된 '변경 요청' 버튼을 표시
+              actionButtons += `
+                  <button type="button" class="btn btn-sm btn-warning ms-1"
+                          data-bs-toggle="modal"
+                          data-bs-target="#changeRequestModal"
+                          data-reservation-id="${reservation.id}">
+                      변경 요청
+                  </button>
+              `;
+          }
+
+          // 3. 사용 완료 버튼 (시작 시간 이후에만 표시)
           if (now >= startTime) {
               actionButtons += `
                   <button type="button" class="btn btn-sm btn-outline-success ms-1" onclick="handleCompleteClick(this, ${reservation.id})">
@@ -204,6 +216,7 @@
           }
       }
 
+      // 최종적으로 생성된 HTML 반환 (백틱(`) 사용)
       return `
           <tr>
             <th scope="row">${count}</th>
@@ -282,6 +295,17 @@
     const periodsDiv = document.getElementById('newPeriods');
     const submitBtn = document.getElementById('submitChangeRequest');
     const token = localStorage.getItem('accessToken');
+
+    periodsDiv.addEventListener('change', function(event) {
+        // 이벤트가 체크박스에서 발생했는지 확인
+        if (event.target.type === 'checkbox') {
+            const checkedBoxes = periodsDiv.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkedBoxes.length > 2) {
+                alert('시간은 최대 2개까지만 선택할 수 있습니다.');
+                event.target.checked = false; // 3번째 선택된 체크박스를 해제
+            }
+        }
+    });
 
     //  flatpickr 초기화
     const datePicker = flatpickr(dateInput, {
