@@ -16,7 +16,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -100,39 +102,32 @@ public class InitData implements CommandLineRunner {
         createFacilities();
     }
     private void createFacilities() {
-        if (buildingRepository.findByName("공학관").isEmpty()) {
-            buildingRepository.save(Building.builder().name("공학관").build());
-        }
-        if (buildingRepository.findByName("인문관").isEmpty()) {
-            buildingRepository.save(Building.builder().name("인문관").build());
-        }
-        if (buildingRepository.findByName("자연관").isEmpty()) {
-            buildingRepository.save(Building.builder().name("자연관").build());
+        if (classroomRepository.findByName("공학관-101호").isPresent()){
+            return ;
         }
 
-        List<Building> buildings = buildingRepository.findAll();
+        List<Building> buildings = List.of("공학관", "인문관", "자연관").stream()
+                .map(name -> Building.builder().name(name).build())
+                .collect(Collectors.toList());
+        buildingRepository.saveAll(buildings);
 
-        for(Building building: buildings){
-            for(int floor = 1; floor <=3; floor++){
-                for(int room =1; room<=10; room++){
-                    String roomNumber = String.format("%d%02d", floor,room);
+        List<Classroom> classroomsTosave = new ArrayList<>();
+        for (Building building : buildings) {
+            for (int floor = 1; floor <= 3; floor++) {
+                for (int room = 1; room <= 10; room++) {
+                    String roomNumber = String.format("%d%02d", floor, room);
                     String classroomName = String.format("%s-%s호", building.getName(), roomNumber);
+                    int capacity = 20 + (int) (Math.random() * 31);
 
-                    if(classroomRepository.findByName(classroomName).isEmpty()){
-                        int capacity = 20 + (int) (Math.random() * 31);
-
-
-                        Classroom classroom = Classroom.builder()
-                                .name(classroomName)
-                                .capacity(capacity)
-                                .building(building)
-                                .state(ClassroomState.AVAILABLE)
-                                .build();
-                        classroomRepository.save(classroom);
-                    }
+                   classroomsTosave.add(Classroom.builder()
+                           .name(classroomName)
+                           .capacity(capacity)
+                           .building(building)
+                           .state(ClassroomState.AVAILABLE)
+                           .build());
                 }
             }
         }
-
+        classroomRepository.saveAll(classroomsTosave);
     }
 }
