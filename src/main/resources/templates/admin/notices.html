@@ -14,7 +14,7 @@
 
     <main class="admin-content px-md-4">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">공지사항 관리</h1>
+            <h1 class="h2">📢 공지사항 관리</h1>
         </div>
 
         <!-- 공지사항 등록 폼 -->
@@ -165,13 +165,20 @@
     // 공지사항 목록 불러오기
     async function loadNotices() {
         try {
-            const response = await fetch('/api/notices');
+            const response = await fetch('/api/notices?size=100');
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
 
             const tbody = document.getElementById('notice-list-body');
             tbody.innerHTML = '';
-            result.data.forEach(notice => {
+
+            const notices = result.data.content;
+            if (!notices || notices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4">등록된 공지사항이 없습니다.</td></tr>';
+                return;
+            }
+
+            notices.forEach(notice => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${notice.id}</td>
@@ -262,17 +269,21 @@
     async function openUpdateModal(noticeId) {
         document.getElementById('update-notice-id').value = noticeId;
 
-        const response = await fetch(`/api/notices/${noticeId}`);
-        if (!response.ok) {
+        try {
+            const response = await fetch(`/api/notices/${noticeId}`);
             const result = await response.json();
-            throw new Error(errorData.message || '공지사항 정보를 불러오지 못했습니다.');
+
+            if (!response.ok) {
+                throw new Error(result.message || '공지사항 정보를 불러오지 못했습니다.');
+            }
+
+            document.getElementById('update-title').value = result.data.title;
+            document.getElementById('update-content').value = result.data.content;
+            updateModalInstance.show();
+
+        } catch (error) {
+            alert('공지사항 정보를 불러오는 데 실패했습니다: ' + error.message);
         }
-
-        const result = await response.json();
-
-        document.getElementById('update-title').value = result.data.title;
-        document.getElementById('update-content').value = result.data.content;
-        updateModalInstance.show();
     }
 
     // 공지사항 수정

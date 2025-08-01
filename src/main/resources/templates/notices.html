@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
+    <title>공지사항</title>
+    <style>
+        .notice-title-link {
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .notice-title-link:hover {
+            text-decoration: underline;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+<!-- 상단바 -->
+<div th:replace="~{fragments/topbar :: topbar}"></div>
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center pb-2 mb-4 border-bottom">
+        <h1 class="h2">📢 공지사항</h1>
+    </div>
+
+    <!-- 공지사항 목록 테이블 -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light text-center">
+            <tr>
+                <th scope="col" style="width: 10%;">번호</th>
+                <th scope="col" style="width: 45%;">제목</th>
+                <th scope="col" style="width: 15%;">작성자</th>
+                <th scope="col" style="width: 20%;">작성일</th>
+                <th scope="col" style="width: 10%;">조회수</th>
+            </tr>
+            </thead>
+            <tbody id="notice-list-body">
+            <!-- JS로 채워질 로딩 스피너 -->
+            <tr>
+                <td colspan="5" class="text-center p-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <nav id="pagination-nav">
+        <ul class="pagination justify-content-center">
+        </ul>
+    </nav>
+</div>
+
+<!-- 공지사항 상세보기 모달 -->
+<div class="modal fade" id="viewNoticeModal" tabindex="-1" aria-labelledby="viewNoticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewNoticeModalLabel">공지사항 상세 정보</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="view-notice-loader" class="text-center p-5">
+                    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+                </div>
+                <div id="view-notice-content-area" class="d-none">
+                    <h3 id="view-title" class="mb-3"></h3>
+                    <div class="d-flex justify-content-between text-muted border-bottom pb-2 mb-3">
+                        <span><strong>작성자:</strong> <span id="view-author"></span></span>
+                        <span><strong>작성일:</strong> <span id="view-createdAt"></span></span>
+                        <span><strong>조회수:</strong> <span id="view-viewCount"></span></span>
+                    </div>
+                    <div id="view-content" style="white-space: pre-wrap; min-height: 200px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 공통 스크립트 -->
+<th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
+
+<!-- 상단바 자바 스크립트 -->
+<th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
+
+<script>
+    let viewModalInstance;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        viewModalInstance = new bootstrap.Modal(document.getElementById('viewNoticeModal'));
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = parseInt(urlParams.get('page')) || 0;
+        loadNotices(page);
+
+        // 제목 클릭 시 모달 열기
+        document.getElementById('notice-list-body').addEventListener('click', function(e) {
+            const target = e.target.closest('.notice-title-link');
+            if (target && target.dataset.noticeId) {
+                e.preventDefault();
+                openViewModal(target.dataset.noticeId);
+            }
+        });
+
+        // 페이지네이션 클릭
+        document.getElementById('pagination-nav').addEventListener('click', function(e) {
+            e.preventDefault();
+            const pageLink = e.target.closest('.page-link');
+            if (pageLink && !pageLink.parentElement.classList.contains('disabled')) {
+                const page = parseInt(pageLink.dataset.page);
+                loadNotices(page);
+            }
+        });
+    });
+
+    async function loadNotices(page = 0) {
+        const tbody = document.getElementById('notice-list-body');
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5"><div class="spinner-border" role="status"></div></td></tr>`;
+
+        const url = new URL(window.location);
+        url.searchParams.set('page', page);
+        window.history.pushState({}, '', url);
+
+        try {
+            const response = await fetch(`/api/notices?page=${page}&size=10&sort=createdAt,desc`);
+            if (!response.ok) throw new Error('공지사항 로딩 실패');
+            const result = await response.json();
+            const pageData = result.data;
+
+            renderTable(pageData.content);
+            renderPagination(pageData);
+        } catch (error) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger p-4">${error.message}</td></tr>`;
+        }
+    }
+
+    function renderTable(notices) {
+        const tbody = document.getElementById('notice-list-body');
+        tbody.innerHTML = '';
+        if (!notices || notices.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4">등록된 공지사항이 없습니다.</td></tr>';
+            return;
+        }
+
+        notices.forEach(notice => {
+            const row = `
+                <tr class="text-center">
+                    <td>${notice.id}</td>
+                    <td class="text-start">
+                        <a href="#" class="text-decoration-none notice-title-link" data-notice-id="${notice.id}">
+                            ${escapeHtml(notice.title)}
+                        </a>
+                    </td>
+                    <td>${escapeHtml(notice.authorName)}</td>
+                    <td>${new Date(notice.createdAt).toLocaleString()}</td>
+                    <td>${notice.viewCount}</td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
+    }
+
+    function renderPagination(pageData) {
+        const paginationNav = document.getElementById('pagination-nav');
+        const ul = paginationNav.querySelector('.pagination');
+        ul.innerHTML = '';
+        if (pageData.totalPages <= 1) {
+            paginationNav.classList.add('d-none');
+            return;
+        }
+        paginationNav.classList.remove('d-none');
+
+        ul.innerHTML += `<li class="page-item ${pageData.first ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${pageData.number - 1}">이전</a></li>`;
+        for (let i = 0; i < pageData.totalPages; i++) {
+            ul.innerHTML += `<li class="page-item ${i === pageData.number ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i + 1}</a></li>`;
+        }
+        ul.innerHTML += `<li class="page-item ${pageData.last ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${pageData.number + 1}">다음</a></li>`;
+    }
+
+    // 상세보기 모달 열기
+    async function openViewModal(noticeId) {
+        viewModalInstance.show();
+        const loader = document.getElementById('view-notice-loader');
+        const contentArea = document.getElementById('view-notice-content-area');
+
+        loader.classList.remove('d-none');
+        contentArea.classList.add('d-none');
+
+        try {
+            const response = await fetch(`/api/notices/${noticeId}`);
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || '공지사항 정보를 불러오지 못했습니다.');
+            }
+            const result = await response.json();
+            const notice = result.data;
+
+            document.getElementById('view-title').textContent = notice.title;
+            document.getElementById('view-author').textContent = notice.authorName;
+            document.getElementById('view-createdAt').textContent = new Date(notice.createdAt).toLocaleString();
+            document.getElementById('view-viewCount').textContent = notice.viewCount;
+            document.getElementById('view-content').textContent = notice.content;
+
+            loader.classList.add('d-none');
+            contentArea.classList.remove('d-none');
+        } catch (error) {
+            loader.classList.add('d-none');
+            contentArea.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            contentArea.classList.remove('d-none');
+        }
+    }
+
+    // XSS 공격 방지 함수
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+</body>
+</html>

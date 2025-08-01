@@ -1,6 +1,7 @@
 /* 기본 body 배경색 설정 */
 body {
     background-color: #f8fafa;
+    padding-top: 56px;
 }
 
 /* 모든 페이지의 상단바 스타일 */
@@ -37,8 +38,7 @@ body {
 /* 관리자 페이지 사이드바 */
 /* ==================== */
 .admin-content {
-    margin-top: 56px;
-    margin-left: 200px;
+    margin-left: 250px;
 }
 
 /* 사이드바 전체 컨테이너 스타일 */
@@ -50,7 +50,7 @@ body {
     z-index: 1000;
     padding: 56px 0 0;
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-    width: 200px;
+    width: 250px;
 }
 
 /* 사이드바 내부 스크롤 가능한 영역 */

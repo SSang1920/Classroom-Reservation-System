@@ -18,10 +18,12 @@ public class NoticeListResponse {
 
     // DTO로 변환
     public static NoticeListResponse from(Notice notice) {
+        String authorName = (notice.getAuthor() != null) ? notice.getAuthor().getName() : "작성자 없음";
+
         return NoticeListResponse.builder()
                 .id(notice.getId())
                 .title(notice.getTitle())
-                .authorName(notice.getAuthor().getName())
+                .authorName(authorName)
                 .createdAt(notice.getCreatedAt())
                 .viewCount(notice.getViewCount())
                 .build();

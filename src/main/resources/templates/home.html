@@ -1,46 +1,206 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
-  <title>강의실 예약 시스템</title>
-  <style>
-    .center-section {
-       min-height: 80vh;
-       display: flex;
-       flex-direction: column;
-       justify-content: center;
-       align-items: center;
-       text-align: center;
-     }
-    .center-section h1 {
-      font-weight: 600;
-    }
-    .center-section p {
-      font-size: 1.1rem;
-      color: #6c757d;
-    }
-    .center-buttons a {
-      width: 250px;
-      margin: 10px;
-    }
-  </style>
+    <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
+    <title>강의실 예약 시스템</title>
+    <style>
+        .center-section {
+           padding-top: 5rem;
+           padding-bottom: 5rem;
+           display: flex;
+           flex-direction: column;
+           justify-content: center;
+           align-items: center;
+           text-align: center;
+         }
+        .center-section h1 {
+          font-weight: 600;
+        }
+        .center-section p {
+          font-size: 1.1rem;
+          color: #6c757d;
+        }
+        .center-buttons a {
+          width: 250px;
+          margin: 10px;
+        }
+        .notice-item {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-
+<!-- 상단바 -->
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
+<!-- 메인 페이지 -->
 <div class="center-section">
-  <h1 class="mb-3">🎓 강의실 예약 시스템에 오신 것을 환영합니다!</h1>
-  <p class="mb-4">원하는 강의실을 예약하고, 예약 내역을 간편하게 확인하세요.</p>
-  <div class="center-buttons">
-    <a href="/reserve" class="btn btn-primary btn-lg">📅 예약하기</a>
-    <a href="/history" class="btn btn-secondary btn-lg">📝 예약 이력 보기</a>
-  </div>
+    <h1 class="mb-3">🎓 강의실 예약 시스템에 오신 것을 환영합니다!</h1>
+    <p class="mb-4">원하는 강의실을 예약하고, 예약 내역을 간편하게 확인하세요.</p>
+    <div class="center-buttons">
+        <a href="/reserve" class="btn btn-primary btn-lg">📅 예약하기</a>
+        <a href="/history" class="btn btn-secondary btn-lg">📝 예약 이력 보기</a>
+    </div>
 </div>
 
+<!-- 공지사항 -->
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="text-center mb-4">📢 최근 공지사항</h2>
+            <div id="recent-notices-list" class="list-group shadow-sm">
+                <!-- JavaScript 데이터 렌더링 -->
+                <div class="list-group-item text-center p-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="/notices" class="btn btn-outline-primary">
+                    모든 공지사항 보기 <i class="bi bi-arrow-right-short"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 공지사항 상세보기 모달 -->
+<div class="modal fade" id="viewNoticeModal" tabindex="-1" aria-labelledby="viewNoticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewNoticeModalLabel">공지사항 상세 정보</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="view-notice-loader" class="text-center p-5">
+                    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+                </div>
+                <div id="view-notice-content-area" class="d-none">
+                    <h3 id="view-title" class="mb-3"></h3>
+                    <div class="d-flex justify-content-between text-muted border-bottom pb-2 mb-3">
+                        <span><strong>작성자:</strong> <span id="view-author"></span></span>
+                        <span><strong>작성일:</strong> <span id="view-createdAt"></span></span>
+                        <span><strong>조회수:</strong> <span id="view-viewCount"></span></span>
+                    </div>
+                    <div id="view-content" style="white-space: pre-wrap; min-height: 200px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 공통 스크립트 -->
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
 
+<!-- 상단바 자바 스크립트 -->
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
+
+<script>
+    let viewModalInstance;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        viewModalInstance = new bootstrap.Modal(document.getElementById('viewNoticeModal'));
+        loadRecentNotices();
+
+        // 공지사항 목록의 항목 클릭 시
+        document.getElementById('recent-notices-list').addEventListener('click', function(e) {
+            const target = e.target.closest('.notice-item');
+            if (target && target.dataset.noticeId) {
+                e.preventDefault();
+                openViewModal(target.dataset.noticeId);
+            }
+        });
+    });
+
+    // 최신 공지사항 5개 불러오는 함수
+    async function loadRecentNotices() {
+        const listContainer = document.getElementById('recent-notices-list');
+
+        try {
+            const response = await fetch('/api/notices?size=5&sort=createdAt,desc');
+            if (!response.ok) throw new Error('공지사항 로딩 실패');
+
+            const result = await response.json();
+            const notices = result.data.content || result.data;
+
+            listContainer.innerHTML = '';
+
+            if (!notices || notices.length === 0) {
+                listContainer.innerHTML = '<div class="list-group-item text-center text-muted">등록된 공지사항이 없습니다.</div>';
+                return;
+            }
+
+            notices.slice(0, 5).forEach(notice => {
+                const noticeItem = `
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center notice-item" data-notice-id="${notice.id}">
+                        <span class="fw-bold">${escapeHtml(notice.title)}</span>
+                        <small class="text-muted">${new Date(notice.createdAt).toLocaleDateString()}</small>
+                    </a>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', noticeItem);
+            });
+
+        } catch (error) {
+            console.error(error);
+            listContainer.innerHTML = '<div class="list-group-item text-center text-danger">공지사항을 불러오는 중 오류가 발생했습니다.</div>';
+        }
+    }
+
+    // 상세보기 모달 열기
+    async function openViewModal(noticeId) {
+        viewModalInstance.show();
+        const loader = document.getElementById('view-notice-loader');
+        const contentArea = document.getElementById('view-notice-content-area');
+
+        // 모달 내용 초기화
+        loader.classList.remove('d-none');
+        contentArea.classList.add('d-none');
+
+        try {
+            const response = await fetch(`/api/notices/${noticeId}`);
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || '공지사항 정보를 불러오지 못했습니다.');
+            }
+
+            const result = await response.json();
+            const notice = result.data;
+
+            // 받아온 데이터로 모달 내용 채우기
+            document.getElementById('view-title').textContent = notice.title;
+            document.getElementById('view-author').textContent = notice.authorName;
+            document.getElementById('view-createdAt').textContent = new Date(notice.createdAt).toLocaleString();
+            document.getElementById('view-viewCount').textContent = notice.viewCount;
+            document.getElementById('view-content').textContent = notice.content;
+
+            loader.classList.add('d-none');
+            contentArea.classList.remove('d-none');
+
+        } catch (error) {
+            loader.classList.add('d-none');
+            contentArea.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            contentArea.classList.remove('d-none');
+        }
+    }
+
+    // XSS 공격 방지 함수
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return unsafe;
+
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
 
 </body>
 </html>

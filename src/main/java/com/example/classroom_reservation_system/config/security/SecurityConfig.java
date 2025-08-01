@@ -29,10 +29,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 // --- 정적 리소스 ---
-                                "/js/**", "/css/**", "/img/**",
+                                "/js/**", "/css/**", "/img/**", "/favicon.ico",
 
                                 // --- View 페이지 (인증 없이 접근 가능) ---
-                                "/", "/login", "/signup", "/find-password", "/reset-password", "/mypage",
+                                "/", "/login", "/signup", "/find-password", "/reset-password", "/mypage", "/notices",
                                 "/admin/main", "/admin/members", "/admin/reservations", "/admin/requests", "/admin/notices",
                                 "/reserve", "/history",
 
