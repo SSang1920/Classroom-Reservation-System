@@ -4,6 +4,9 @@ import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.notification.entity.Notification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
@@ -32,4 +35,8 @@ public interface NotificationRepository  extends JpaRepository<Notification, Lon
      * @return 해당 회원의 읽지 않은 알림 개수
      */
     long countByMemberAndIsReadIsFalse(Member member);
+
+    @Modifying
+    @Query("UPDATE Notification n SET n.isRead = true, n.readAt = CURRENT_TIMESTAMP WHERE n.member = :member And n.isRead = false")
+    void markAllReadByMember(@Param("member") Member member);
 }

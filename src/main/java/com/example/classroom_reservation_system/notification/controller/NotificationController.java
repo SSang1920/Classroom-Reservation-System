@@ -41,6 +41,15 @@ public class NotificationController {
     }
 
     /**
+     * 모두 읽음처리 기능 추가
+     */
+    @PatchMapping("/read-all")
+    public ResponseEntity<ApiSuccessResponse<String>> readAllNotifications(@AuthenticationPrincipal CustomUserDetails userDetails){
+        notificationService.readAllNotifications(userDetails.getMemberUuid());
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "모두 읽음 처리 되었습니다."));
+    }
+
+    /**
      * 알림 읽음 처리
      * 사용자가 특정 알림을 클릭햇을 때 호출될 API
      */

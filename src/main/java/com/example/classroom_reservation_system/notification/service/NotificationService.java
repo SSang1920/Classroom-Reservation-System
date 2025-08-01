@@ -78,6 +78,14 @@ public class NotificationService {
         notification.markAsRead();
     }
 
+    @Transactional
+    public void readAllNotifications(String memberUuid) {
+        Member member = memberRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        notificationRepository.markAllReadByMember(member);
+    }
+
     /**
      * 읽지 않은 알림 개수 조회
      * @param MemberUUid 현재 로그인한 사용자의 UUID
