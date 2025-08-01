@@ -1,8 +1,8 @@
 package com.example.classroom_reservation_system.auth.token;
 
-import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
+import com.example.classroom_reservation_system.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
 

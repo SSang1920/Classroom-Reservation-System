@@ -2,14 +2,13 @@ package com.example.classroom_reservation_system.auth.service;
 
 import com.example.classroom_reservation_system.auth.dto.request.FindPasswordRequest;
 import com.example.classroom_reservation_system.auth.dto.request.ResetPasswordRequest;
-import com.example.classroom_reservation_system.common.mail.MailService;
-import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.auth.token.PasswordResetToken;
+import com.example.classroom_reservation_system.auth.token.PasswordResetTokenRepository;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
-import com.example.classroom_reservation_system.auth.token.PasswordResetTokenRepository;
+import com.example.classroom_reservation_system.common.mail.MailService;
 import com.example.classroom_reservation_system.config.security.TokenGenerator;
-
+import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

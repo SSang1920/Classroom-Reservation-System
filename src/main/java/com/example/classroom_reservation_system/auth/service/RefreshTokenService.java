@@ -1,13 +1,13 @@
 package com.example.classroom_reservation_system.auth.service;
 
 import com.example.classroom_reservation_system.auth.token.RefreshToken;
+import com.example.classroom_reservation_system.auth.token.RefreshTokenRepository;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.config.security.TokenGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.classroom_reservation_system.auth.token.RefreshTokenRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

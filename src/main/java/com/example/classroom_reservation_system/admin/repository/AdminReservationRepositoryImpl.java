@@ -12,7 +12,6 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;

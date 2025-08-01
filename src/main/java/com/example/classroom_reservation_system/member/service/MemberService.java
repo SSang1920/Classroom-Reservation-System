@@ -2,14 +2,14 @@ package com.example.classroom_reservation_system.member.service;
 
 import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
 import com.example.classroom_reservation_system.auth.service.RefreshTokenService;
+import com.example.classroom_reservation_system.common.exception.CustomException;
+import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.config.jwt.JwtProperties;
 import com.example.classroom_reservation_system.config.jwt.JwtUtil;
 import com.example.classroom_reservation_system.member.dto.request.MyInfoUpdateRequest;
 import com.example.classroom_reservation_system.member.dto.request.PasswordChangeRequest;
 import com.example.classroom_reservation_system.member.dto.response.MyInfoResponse;
 import com.example.classroom_reservation_system.member.entity.Member;
-import com.example.classroom_reservation_system.common.exception.CustomException;
-import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.member.repository.AdminRepository;
 import com.example.classroom_reservation_system.member.repository.MemberRepository;
 import com.example.classroom_reservation_system.member.repository.ProfessorRepository;

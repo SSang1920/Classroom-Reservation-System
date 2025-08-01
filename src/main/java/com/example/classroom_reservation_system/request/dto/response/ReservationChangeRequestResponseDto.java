@@ -4,11 +4,9 @@ package com.example.classroom_reservation_system.request.dto.response;
 import com.example.classroom_reservation_system.request.entity.ReservationChangeRequest;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Locale;
 
 @Getter
 @Builder

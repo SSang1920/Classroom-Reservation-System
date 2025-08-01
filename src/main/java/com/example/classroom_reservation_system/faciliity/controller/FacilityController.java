@@ -1,4 +1,4 @@
-package com.example.classroom_reservation_system.faciliity;
+package com.example.classroom_reservation_system.faciliity.controller;
 
 
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;

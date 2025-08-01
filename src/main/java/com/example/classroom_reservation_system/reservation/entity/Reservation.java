@@ -1,12 +1,12 @@
 package com.example.classroom_reservation_system.reservation.entity;
 
+import com.example.classroom_reservation_system.common.exception.CustomException;
+import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.faciliity.entity.Classroom;
 import com.example.classroom_reservation_system.history.entity.History;
 import com.example.classroom_reservation_system.history.entity.HistoryState;
 import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.notification.entity.Notification;
-import com.example.classroom_reservation_system.common.exception.CustomException;
-import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -15,7 +15,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.*;
 
 @Entity

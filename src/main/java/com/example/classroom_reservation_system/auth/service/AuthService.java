@@ -2,15 +2,15 @@ package com.example.classroom_reservation_system.auth.service;
 
 import com.example.classroom_reservation_system.auth.dto.request.LoginRequest;
 import com.example.classroom_reservation_system.auth.dto.request.TokenRequest;
-import com.example.classroom_reservation_system.config.jwt.JwtProperties;
 import com.example.classroom_reservation_system.auth.dto.response.LoginResponse;
 import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
-import com.example.classroom_reservation_system.config.jwt.TokenType;
-import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.auth.token.RefreshToken;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
+import com.example.classroom_reservation_system.config.jwt.JwtProperties;
 import com.example.classroom_reservation_system.config.jwt.JwtUtil;
+import com.example.classroom_reservation_system.config.jwt.TokenType;
+import com.example.classroom_reservation_system.member.entity.Member;
 import com.example.classroom_reservation_system.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

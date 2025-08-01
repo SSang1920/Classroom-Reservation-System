@@ -2,14 +2,13 @@ package com.example.classroom_reservation_system.reservation.controller;
 
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.config.security.CustomUserDetails;
-import com.example.classroom_reservation_system.reservation.dto.AvailableTimeDto;
 import com.example.classroom_reservation_system.reservation.dto.request.ReservationRequest;
+import com.example.classroom_reservation_system.reservation.dto.response.AvailableTimeDto;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationCreationResponse;
 import com.example.classroom_reservation_system.reservation.dto.response.ReservationResponse;
 import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import com.example.classroom_reservation_system.reservation.service.ReservationService;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.sql.Time;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -105,6 +103,4 @@ public class ReservationController {
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "사용완료 처리가 성공적으로 되었습니다."));
 
     }
-
-
 }

@@ -7,7 +7,6 @@ import com.example.classroom_reservation_system.faciliity.repository.BuildingRep
 import com.example.classroom_reservation_system.faciliity.repository.ClassroomRepository;
 import com.example.classroom_reservation_system.member.entity.Admin;
 import com.example.classroom_reservation_system.member.entity.Professor;
-import com.example.classroom_reservation_system.member.entity.Role;
 import com.example.classroom_reservation_system.member.entity.Student;
 import com.example.classroom_reservation_system.member.repository.AdminRepository;
 import com.example.classroom_reservation_system.member.repository.ProfessorRepository;

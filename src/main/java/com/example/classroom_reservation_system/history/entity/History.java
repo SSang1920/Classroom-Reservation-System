@@ -1,8 +1,8 @@
 package com.example.classroom_reservation_system.history.entity;
 
 import com.example.classroom_reservation_system.faciliity.entity.Classroom;
-import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import com.example.classroom_reservation_system.member.entity.Member;
+import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

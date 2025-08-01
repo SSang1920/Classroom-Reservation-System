@@ -1,4 +1,4 @@
-package com.example.classroom_reservation_system.admin.dto.reqeust;
+package com.example.classroom_reservation_system.admin.dto.request;
 
 import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;

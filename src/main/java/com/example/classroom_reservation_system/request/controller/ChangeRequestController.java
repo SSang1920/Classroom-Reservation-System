@@ -47,7 +47,4 @@ public class ChangeRequestController {
 
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "요청이 성공적으로 처리되었습니다."));
     }
-
-
-
 }

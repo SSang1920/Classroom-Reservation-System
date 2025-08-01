@@ -1,6 +1,6 @@
 package com.example.classroom_reservation_system.admin.service;
 
-import com.example.classroom_reservation_system.admin.dto.reqeust.AdminReservationUpdateRequest;
+import com.example.classroom_reservation_system.admin.dto.request.AdminReservationUpdateRequest;
 import com.example.classroom_reservation_system.admin.dto.response.AdminReservationDetailResponse;
 import com.example.classroom_reservation_system.admin.dto.response.AdminReservationResponse;
 import com.example.classroom_reservation_system.admin.repository.AdminReservationRepository;

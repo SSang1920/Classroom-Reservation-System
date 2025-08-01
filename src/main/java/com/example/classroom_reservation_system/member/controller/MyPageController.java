@@ -1,6 +1,5 @@
 package com.example.classroom_reservation_system.member.controller;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 

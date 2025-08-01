@@ -6,8 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     // 모든 공지사항을 최신순으로 조회

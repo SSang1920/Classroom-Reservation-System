@@ -1,6 +1,5 @@
 package com.example.classroom_reservation_system.admin.dto.response;
 
-import com.example.classroom_reservation_system.member.entity.Admin;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import lombok.Builder;
@@ -9,7 +8,6 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -42,6 +40,4 @@ public class AdminReservationDetailResponse {
                 .build();
 
     }
-
-
 }

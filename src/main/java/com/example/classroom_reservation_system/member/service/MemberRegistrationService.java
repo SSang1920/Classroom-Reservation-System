@@ -1,11 +1,11 @@
 package com.example.classroom_reservation_system.member.service;
 
+import com.example.classroom_reservation_system.common.exception.CustomException;
+import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.member.dto.request.SignUpRequest;
 import com.example.classroom_reservation_system.member.entity.Professor;
 import com.example.classroom_reservation_system.member.entity.Role;
 import com.example.classroom_reservation_system.member.entity.Student;
-import com.example.classroom_reservation_system.common.exception.CustomException;
-import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.member.repository.MemberRepository;
 import com.example.classroom_reservation_system.member.repository.ProfessorRepository;
 import com.example.classroom_reservation_system.member.repository.StudentRepository;

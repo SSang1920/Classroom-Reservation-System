@@ -2,15 +2,18 @@ package com.example.classroom_reservation_system.auth.controller;
 
 import com.example.classroom_reservation_system.auth.dto.request.LoginRequest;
 import com.example.classroom_reservation_system.auth.dto.request.TokenRequest;
-import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.auth.dto.response.LoginResponse;
 import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
+import com.example.classroom_reservation_system.auth.service.AuthService;
+import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-import com.example.classroom_reservation_system.auth.service.AuthService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")

@@ -3,7 +3,6 @@ package com.example.classroom_reservation_system.request.controller;
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.request.dto.AdminFeedbackDto;
 import com.example.classroom_reservation_system.request.dto.response.ReservationChangeRequestResponseDto;
-import com.example.classroom_reservation_system.request.entity.ReservationChangeRequest;
 import com.example.classroom_reservation_system.request.service.ChangeRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +36,4 @@ public class AdminRequestController {
 
         return ResponseEntity.ok(ApiSuccessResponse.of(200, message));
     }
-
-
 }

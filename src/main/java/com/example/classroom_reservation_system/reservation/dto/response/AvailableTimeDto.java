@@ -1,4 +1,4 @@
-package com.example.classroom_reservation_system.reservation.dto;
+package com.example.classroom_reservation_system.reservation.dto.response;
 
 import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import lombok.Getter;

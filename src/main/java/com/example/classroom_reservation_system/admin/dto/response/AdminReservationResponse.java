@@ -1,7 +1,6 @@
 package com.example.classroom_reservation_system.admin.dto.response;
 
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
-import com.example.classroom_reservation_system.reservation.entity.ReservationState;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -37,6 +36,4 @@ public class AdminReservationResponse {
                 .createAt(reservation.getCreatedAt())
                 .build();
     }
-
-
 }

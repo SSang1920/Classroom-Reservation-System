@@ -1,8 +1,8 @@
 package com.example.classroom_reservation_system.config.jwt;
 
-import com.example.classroom_reservation_system.member.entity.Role;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
+import com.example.classroom_reservation_system.member.entity.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
