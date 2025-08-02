@@ -58,69 +58,86 @@
     // 읽지 않은 알림 개수를 추적하는 전역 변수
     let unreadCount = 0;
 
+    // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', function() {
         const token = localStorage.getItem('accessToken');
         const loggedOutView = document.getElementById('logged-out-view');
         const loggedInView = document.getElementById('logged-in-view');
 
         if (token) {
-            // UI 상태 변경
+            // 토큰이 있으면, UI를 먼저 그리고 비동기 초기화 함수 호출
             loggedOutView.classList.add('d-none');
             loggedInView.classList.remove('d-none');
-
-            try {
-                const payload = parseJwt(token);
-
-                let adminButtonHtml = '';
-                if (payload.role === 'ROLE_ADMIN') {
-                    adminButtonHtml = `<a href="/admin/main" class="btn btn-warning btn-sm me-2">관리자 페이지</a>`;
-                }
-
-                loggedInView.innerHTML = `
-                    <span class="me-2">환영합니다, <strong id="username-display">${payload.name || '사용자'}</strong>님!</span>
-                    <a href="/mypage" class="btn btn-outline-info btn-sm me-2">내 정보</a>
-                    ${adminButtonHtml}
-                    <button id="logout-button" class="btn btn-outline-danger btn-sm">로그아웃</button>
-
-                    <div class="notification dropdown ms-2">
-                        <button class="btn btn-outline-secondary btn-sm position-relative" type="button" id="notification-dropdown-btn" data-bs-toggle="dropdown" aria-expanded="false">
-                        🔔
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notification-count-badge">
-                            0
-                        </span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notification-dropdown-btn" id="notification-list" style="width: 350px; max-height: 400px; overflow-y: auto;">
-                            <!-- 알림 헤더: '모두 읽음' 버튼 포함 -->
-                            <li>
-                                <div class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
-                                    <h6 class="mb-0">알림</h6>
-                                    <button class="btn btn-link btn-sm p-0" id="mark-all-as-read-btn" style ="text-decoration : none;">모두 읽음</button>
-                                </div>
-                            </li>
-                            <li><hr class="dropdown-divider my-0"></li>
-                            <!-- 알림이 없을 때 표시될 메시지 -->
-                            <li><p class="dropdown-item text-center text-muted mb-0">알림이 없습니다.</p></li>
-                        </ul>
-                    </div>
-                `;
-
-                document.getElementById('logout-button').addEventListener('click', () => logout(true));
-                document.getElementById('mark-all-as-read-btn').addEventListener('click', handleMarkAllAsRead);
-
-                // 로그인 상태일 때만 알림 기능 자동 실행
-                initializeNotifications();
-                connectSSE();
-
-            } catch (e) {
-                console.error("토큰 파싱 오류:", e);
-                logout();
-            }
+            initializeApp();
 
         } else {
+            // 토큰이 없으면, 로그아웃 상태 UI 표시
             loggedOutView.classList.remove('d-none');
             loggedInView.classList.add('d-none');
         }
     });
+
+    // 모든 비동기 초기화 작업을 순서대로 처리하는 함수
+    async function initializeApp() {
+        try {
+            const response = await fetchWithAuth('/api/members/me');
+            if (!response.ok) throw new Error('인증 세션이 유효하지 않습니다.');
+
+            const result = await response.json();
+            const myInfo = result.data;
+
+            renderLoggedInUI(myInfo);
+
+            await initializeNotifications();
+            connectSSE();
+
+        } catch (error) {
+            console.error("애플리케이션 초기화 실패:", error.message);
+            logout();
+        }
+    }
+
+    // 로그인된 사용자 정보를 기반으로 UI 렌더링하는 함수
+    function renderLoggedInUI(myInfo) {
+        const loggedInView = document.getElementById('logged-in-view');
+
+        let adminButtonHtml = '';
+        if (myInfo.role === 'ADMIN') {
+            adminButtonHtml = `<a href="/admin/main" class="btn btn-warning btn-sm me-2">관리자 페이지</a>`;
+        }
+
+        loggedInView.innerHTML = `
+            <span class="me-2">환영합니다, <strong id="username-display">${myInfo.name || '사용자'}</strong>님!</span>
+            <a href="/mypage" class="btn btn-outline-info btn-sm me-2">내 정보</a>
+            ${adminButtonHtml}
+            <button id="logout-button" class="btn btn-outline-danger btn-sm">로그아웃</button>
+
+            <div class="notification dropdown ms-2">
+                <button class="btn btn-outline-secondary btn-sm position-relative" type="button" id="notification-dropdown-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                🔔
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notification-count-badge">
+                    0
+                </span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notification-dropdown-btn" id="notification-list" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                    <!-- 알림 헤더: '모두 읽음' 버튼 포함 -->
+                    <li>
+                        <div class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
+                            <h6 class="mb-0">알림</h6>
+                            <button class="btn btn-link btn-sm p-0" id="mark-all-as-read-btn" style ="text-decoration : none;">모두 읽음</button>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider my-0"></li>
+                    <!-- 알림이 없을 때 표시될 메시지 -->
+                    <li><p class="dropdown-item text-center text-muted mb-0">알림이 없습니다.</p></li>
+                </ul>
+            </div>
+        `;
+
+        document.getElementById('logout-button').addEventListener('click', () => logout(true));
+        document.getElementById('mark-all-as-read-btn').addEventListener('click', handleMarkAllAsRead);
+    }
+
 
     // (페이지 로드 시) 기존 알림 목록을 가져오는 함수
     async function initializeNotifications() {

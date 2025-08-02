@@ -47,7 +47,13 @@
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h2 class="text-center mb-4">📢 최근 공지사항</h2>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h3 mb-0">📢 최근 공지사항</h2>
+                <a href="/notices" class="btn btn-sm btn-outline-secondary align-middle">
+                    더보기 <i class="bi bi-plus"></i>
+                </a>
+            </div>
+
             <div id="recent-notices-list" class="list-group shadow-sm">
                 <!-- JavaScript 데이터 렌더링 -->
                 <div class="list-group-item text-center p-5">
@@ -55,12 +61,6 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="text-center mt-4">
-                <a href="/notices" class="btn btn-outline-primary">
-                    모든 공지사항 보기 <i class="bi bi-arrow-right-short"></i>
-                </a>
             </div>
         </div>
     </div>
@@ -123,7 +123,7 @@
         const listContainer = document.getElementById('recent-notices-list');
 
         try {
-            const response = await fetch('/api/notices?size=5&sort=createdAt,desc');
+            const response = await fetchWithAuth('/api/notices?size=5&sort=createdAt,desc');
             if (!response.ok) throw new Error('공지사항 로딩 실패');
 
             const result = await response.json();
@@ -163,7 +163,7 @@
         contentArea.classList.add('d-none');
 
         try {
-            const response = await fetch(`/api/notices/${noticeId}`);
+            const response = await fetchWithAuth(`/api/notices/${noticeId}`);
             if (!response.ok) {
                 const err = await response.json();
                 throw new Error(err.message || '공지사항 정보를 불러오지 못했습니다.');

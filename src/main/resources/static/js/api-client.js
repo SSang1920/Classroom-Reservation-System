@@ -1,3 +1,22 @@
+// 토큰 재발급이 진행 중인지 여부 추적하는 플래그
+let isRefreshing = false;
+// 재발급이 진행되는 동안 실패한 요청들을 저장하는 배열
+let failedQueue = [];
+
+/**
+ * 대기 중인 모든 요청을 처리하는 함수
+ */
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);     // 재발급 실패 시, 기다리던 모든 요청 실패 처리
+        } else {
+            prom.resolve(token);    // 재발급 성공 시, 기다리던 모든 요청에 새 토큰 전달
+        }
+    });
+    failedQueue = [];
+};
+
 /**
  * 인증이 필요한 API 요청을 처리하는 클라이언트 함수
  * AccessToken 만료되었을 때 자동으로 재발급 시도하고, 기존 요청 재시도
@@ -7,6 +26,7 @@ async function fetchWithAuth(url, options = {}) {
     let accessToken = localStorage.getItem('accessToken');
 
     if (!accessToken) {
+        console.error('No access token found');
         window.location.href = '/login';
         throw new Error('No access token found');
     }
@@ -18,34 +38,61 @@ async function fetchWithAuth(url, options = {}) {
         'Authorization': `Bearer ${accessToken}`
     };
 
-    // 첫 번째 API 요청 시도
-    let response = await fetch(url, {...options, headers });
+    try {
+        // 첫 번째 API 요청 시도
+        let response = await fetch(url, {...options, headers });
 
-    // 엑세스 토큰이 만료(401) 시 재발급 시도
-    if (response.status === 401) {
-        console.warn("Access Token이 만료되어 재발급을 시도합니다.");
-        try {
-            const newAccessToken = await reissueToken();
+        // 엑세스 토큰 만료(401) 시 재발급 로직 실행
+        if (response.status === 401) {
+            // 이미 다른 요청에 의해 토큰 재발급이 진행 중인 경우
+            if (isRefreshing) {
+                // 이 요청은 대기열에 추가하고, 재발급이 완료되기를 기다림
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then(newAccessToken => {
+                    // 재발급이 완료되면, 새 토큰으로 원래 요청 재시도
+                    headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    return fetch(url, {...options, headers });
+                });
+            }
 
-            // 재발급 성공 시, 새 토큰으로 헤더를 업데이트하고 원래 요청 재시도
-            headers['Authorization'] = `Bearer ${newAccessToken}`;
-            console.log("새 토큰으로 API 요청을 재시도합니다.");
-            response = await fetch(url, {...options, headers });
+            // 이 요청이 첫 번째로 401 에러를 받았을 경우, 재발급 프로세스 실행
+            isRefreshing = true;
 
-        } catch (reissueError) {
-            console.error("토큰 재발급 실패:", reissueError.message);
-            throw reissueError;
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const newAccessToken = await reissueToken();    // 토큰 재발급 시도
+
+                    // 재발급 성공 시, 대기 중인 모든 요청에 새 토큰 전달
+                    processQueue(null, newAccessToken);
+
+                    // 현재 실패했던 원래 요청도 새 토큰으로 다시 시도
+                    headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    resolve(fetch(url, { ...options, headers }));
+
+                } catch (reissueError) {
+                    // 재발급 실패 시, 대기 중인 모든 요청 실패 처리
+                    processQueue(reissueError, null);
+                    reject(reissueError);   // 현재 요청도 실패 처리
+                } finally {
+                    isRefreshing = false;   // 재발급 프로세스 종료
+                }
+            });
         }
-    }
 
-    // 권한 없음(403) 에러 처리
-    if (response.status === 403) {
-        console.error("접근 권한이 없습니다. (403 Forbidden)");
-        alert("해당 기능에 접근할 권한이 없습니다.");
-        throw new Error('Forbidden');
-    }
+        // 권한 없음(403) 에러 처리
+        if (response.status === 403) {
+            console.error("접근 권한이 없습니다. (403 Forbidden)");
+            alert("해당 기능에 접근할 권한이 없습니다.");
+            throw new Error('Forbidden');
+        }
 
-    return response;
+        return response;
+
+    } catch (error) {
+        console.error('Fetch with auth failed:', error);
+        throw error;
+    }
 }
 
 /**

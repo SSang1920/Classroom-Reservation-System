@@ -4,12 +4,14 @@ import com.example.classroom_reservation_system.auth.token.RefreshToken;
 import com.example.classroom_reservation_system.auth.token.RefreshTokenRepository;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
+import com.example.classroom_reservation_system.config.jwt.JwtUtil;
 import com.example.classroom_reservation_system.config.security.TokenGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
@@ -19,6 +21,7 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenGenerator tokenGenerator;
+    private final JwtUtil jwtUtil;
 
     /**
      * RefreshToken 저장, 갱신
@@ -69,5 +72,23 @@ public class RefreshTokenService {
      */
     public void deleteByMemberUuid(String memberUuid) {
         refreshTokenRepository.deleteByMemberUuid(memberUuid);
+    }
+
+    /**
+     * 기존 RefreshToken을 새로운 값으로 교체
+     * @param storedToken DB에 저장되어 있던 기존 RefreshToken
+     * @param newRawToken 새로 발급된 원본 토큰 문자열
+     */
+    public void rotateRefreshToken(RefreshToken storedToken, String newRawToken) {
+        // 새로운 토큰 해싱
+        String newHashedToken = tokenGenerator.hashToken(newRawToken);
+
+        // 새로운 토큰의 만료 시간 계산
+        LocalDateTime newExpiryDate = jwtUtil.getExpiryDateFromToken(newRawToken)
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        storedToken.updateToken(newHashedToken, newExpiryDate);
     }
 }

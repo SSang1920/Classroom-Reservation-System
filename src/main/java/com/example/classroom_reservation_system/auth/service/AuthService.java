@@ -5,6 +5,7 @@ import com.example.classroom_reservation_system.auth.dto.request.TokenRequest;
 import com.example.classroom_reservation_system.auth.dto.response.LoginResponse;
 import com.example.classroom_reservation_system.auth.dto.response.TokenResponse;
 import com.example.classroom_reservation_system.auth.token.RefreshToken;
+import com.example.classroom_reservation_system.auth.token.RefreshTokenRepository;
 import com.example.classroom_reservation_system.common.exception.CustomException;
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.config.jwt.JwtProperties;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AuthService {
 
+    private final RefreshTokenRepository refreshTokenRepository;
     private final MemberService memberService;
     private final MemberLoginService memberLoginService;
     private final RefreshTokenService refreshTokenService;
@@ -63,18 +65,18 @@ public class AuthService {
         // 토큰 검증
         jwtUtil.validateTokenOrThrow(refreshToken, TokenType.REFRESH);
 
+        // DB에서 해싱된 토큰 찾기
         RefreshToken storedToken = refreshTokenService.findByToken(refreshToken);
 
         // 새 AccessToken 발급
         Member member = memberService.findByMemberUuid(storedToken.getMemberUuid());
         String newAccessToken = jwtUtil.generateAccessToken(member.getMemberUuid(), member.getId(), member.getName() ,member.getRole());
 
-        // 새 RefreshToken 발급하고 DB의 기존 토큰 업데이트
+        // 새 RefreshToken 발급
         String newRefreshToken = jwtUtil.generateRefreshToken(member.getMemberUuid());
-        storedToken.updateToken(
-                newRefreshToken,
-                jwtUtil.getExpiryDateFromToken(newRefreshToken).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
-        );
+
+        // 토큰 교체
+        refreshTokenService.rotateRefreshToken(storedToken, newRefreshToken);
 
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
