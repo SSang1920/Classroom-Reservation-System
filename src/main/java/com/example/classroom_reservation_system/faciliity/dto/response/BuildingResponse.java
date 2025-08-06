@@ -1,4 +1,4 @@
-package com.example.classroom_reservation_system.faciliity.dto;
+package com.example.classroom_reservation_system.faciliity.dto.response;
 
 import com.example.classroom_reservation_system.faciliity.entity.Building;
 import lombok.Builder;
@@ -6,13 +6,13 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class BuildingResponseDto {
+public class BuildingResponse {
 
     private Long id;
     private String name;
 
-    public static BuildingResponseDto from(Building building){
-        return BuildingResponseDto.builder()
+    public static BuildingResponse from(Building building){
+        return BuildingResponse.builder()
                 .id(building.getId())
                 .name(building.getName())
                 .build();

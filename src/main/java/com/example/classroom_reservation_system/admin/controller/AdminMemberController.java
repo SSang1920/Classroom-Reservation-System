@@ -1,7 +1,7 @@
 package com.example.classroom_reservation_system.admin.controller;
 
 import com.example.classroom_reservation_system.admin.dto.response.AdminMemberListResponse;
-import com.example.classroom_reservation_system.admin.service.AdminService;
+import com.example.classroom_reservation_system.admin.service.AdminMemberService;
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.member.entity.Role;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +16,18 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/admin/members")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminController {
+public class AdminMemberController {
 
-    private final AdminService adminService;
+    private final AdminMemberService adminMemberService;
 
     /**
      * 회원 목록을 검색 조건에 따라 조회
-     *
      * @param pageable 페이징 정보
      */
-    @GetMapping("/members")
+    @GetMapping
     public ResponseEntity<ApiSuccessResponse<Page<AdminMemberListResponse>>> getMemberList(
             // 검색 조건 파라미터
             @RequestParam(required = false) String loginId,
@@ -37,7 +36,7 @@ public class AdminController {
             @RequestParam(required = false) Role role,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @PageableDefault(size = 10, sort = "createdAt,desc") Pageable pageable) {
-        Page<AdminMemberListResponse> memberList = adminService.searchMembers(loginId, name, email, role, date, pageable);
+        Page<AdminMemberListResponse> memberList = adminMemberService.searchMembers(loginId, name, email, role, date, pageable);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "회원 목록 조회에 성공했습니다.", memberList));
     }
 
@@ -45,9 +44,9 @@ public class AdminController {
      * 관리자가 특정 회원을 삭제
      * @param memberPkId 삭제할 회원의 PK
      */
-    @DeleteMapping("/members/{memberPkId}")
+    @DeleteMapping("/{memberPkId}")
     public ResponseEntity<ApiSuccessResponse<Void>> deleteMember(@PathVariable Long memberPkId) {
-        adminService.deleteMember(memberPkId);
+        adminMemberService.deleteMember(memberPkId);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "회원이 성공적으로 삭제되었습니다.", null));
     }
 }

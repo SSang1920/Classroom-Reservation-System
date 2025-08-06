@@ -33,7 +33,7 @@ public class SecurityConfig {
 
                                 // --- View 페이지 (인증 없이 접근 가능) ---
                                 "/", "/login", "/signup", "/find-password", "/reset-password", "/mypage", "/notices",
-                                "/admin/main", "/admin/members", "/admin/reservations", "/admin/requests", "/admin/notices",
+                                "/admin/main", "/admin/members", "/admin/reservations", "/admin/requests", "/admin/notices", "/admin/facilities",
                                 "/reserve", "/history",
 
                                 // --- API (인증 없이 접근 가능) ---

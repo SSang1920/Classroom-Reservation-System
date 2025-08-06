@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
+    <title>건물 & 강의실 관리</title>
+    <style>
+        .list-group-item.active {
+            z-index: 2;
+            color: #fff;
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .building-item, .action-icon {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<!-- 상단바 -->
+<div th:replace="~{fragments/topbar :: topbar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- 관리자 사이드바 -->
+        <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
+
+        <main class="admin-content px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">🏢 건물 & 강의실 관리</h1>
+            </div>
+
+            <div class="row">
+                <!-- 건물 목록 -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">건물 목록</h5>
+                            <button class="btn btn-primary btn-sm" id="add-building-btn">
+                                <i class="bi bi-plus-lg"></i> 새 건물 추가
+                            </button>
+                        </div>
+                        <div id="building-list" class="list-group list-group-flush" style="max-height: 70vh; overflow-y: auto;">
+                            <!-- 로딩 스피너 -->
+                            <div class="list-group-item text-center p-5" id="building-loader">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 강의실 목록 섹션 -->
+                <div class="col-md-8">
+                    <div class="card shadow-sm" id="classroom-section">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" id="classroom-list-title">강의실 목록</h5>
+                            <button class="btn btn-primary btn-sm d-none" id="add-classroom-btn">
+                                <i class="bi bi-plus-lg"></i> 새 강의실 추가
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="classroom-placeholder" class="text-center text-muted p-5">
+                                <i class="bi bi-arrow-left-square-fill fs-1"></i>
+                                <p class="mt-2">왼쪽에서 건물을 선택해주세요.</p>
+                            </div>
+                            <div id="classroom-content" class="d-none">
+                                <div id="classroom-loader" class="text-center p-5">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                                <div id="classroom-table-container" class="table-responsive">
+                                    <!-- 강의실 테이블 JavaScript 렌더링 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- 건물 추가/수정 모달 -->
+<div class="modal fade" id="building-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="building-form" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="building-modal-title">새 건물 추가</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="building-id">
+                    <div class="mb-3">
+                        <label for="building-name" class="form-label">건물 이름</label>
+                        <input type="text" class="form-control" id="building-name" required>
+                        <div class="invalid-feedback">건물 이름을 입력해주세요.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="submit" class="btn btn-primary" id="building-save-btn">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 강의실 추가/수정 모달 -->
+<div class="modal fade" id="classroom-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="classroom-form" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="classroom-modal-title">새 강의실 추가</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="classroom-id">
+                    <div class="mb-3">
+                        <label for="classroom-name" class="form-label">강의실 이름 (예: 101호)</label>
+                        <input type="text" class="form-control" id="classroom-name" required>
+                        <div class="invalid-feedback">강의실 이름을 입력해주세요.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="classroom-capacity" class="form-label">수용 인원</label>
+                        <input type="number" class="form-control" id="classroom-capacity" required min="1">
+                        <div class="invalid-feedback">1 이상의 숫자를 입력해주세요.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="classroom-info" class="form-label">비고 (선택사항)</label>
+                        <textarea class="form-control" id="classroom-info" rows="3" placeholder="빔 프로젝터, 화이트보드 등"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="submit" class="btn btn-primary" id="classroom-save-btn">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 공용 스크립트 -->
+<th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
+
+<!-- 상단바 스크립트 -->
+<th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
+
+<!-- 관리자 페이지 접근 제어 스크립트 -->
+<script th:src="@{/js/admin-auth.js}"></script>
+
+<script>
+    let buildingModal, classroomModal;
+    let selectedBuildingId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 모달 인스턴스 초기화
+        buildingModal = new bootstrap.Modal(document.getElementById('building-modal'));
+        classroomModal = new bootstrap.Modal(document.getElementById('classroom-modal'));
+
+        // 초기 건물 목록 로드
+        loadBuildings();
+
+        // 새 건물 추가 버튼
+        document.getElementById('add-building-btn').addEventListener('click', () => openBuildingModal());
+
+        // 새 강의실 추가 버튼
+        document.getElementById('add-classroom-btn').addEventListener('click', () => openClassroomModal());
+
+        // 건물 목록 클릭
+        document.getElementById('building-list').addEventListener('click', handleBuildingListClick);
+
+        // 강의실 테이블 클릭
+        document.getElementById('classroom-table-container').addEventListener('click', handleClassroomTableClick);
+
+        // 모달 폼 제출
+        document.getElementById('building-form').addEventListener('submit', handleBuildingFormSubmit);
+        document.getElementById('classroom-form').addEventListener('submit', handleClassroomFormSubmit);
+    });
+
+    // 건물 목록 로드
+    async function loadBuildings() {
+        const listContainer = document.getElementById('building-list');
+        const loader = document.getElementById('building-loader');
+        loader.classList.remove('d-none');
+        listContainer.innerHTML = '';
+        listContainer.appendChild(loader);
+
+        try {
+            const response = await fetchWithAuth('/api/admin/facilities/buildings');
+            if (!response.ok) throw new Error('건물 목록 로딩 실패');
+
+            const result = await response.json();
+            renderBuildings(result.data);
+
+        } catch (error) {
+            console.error(error);
+            listContainer.innerHTML = '<div class="list-group-item text-danger">오류가 발생했습니다.</div>';
+        } finally {
+            loader.classList.add('d-none');
+        }
+    }
+
+    function renderBuildings(buildings) {
+        const listContainer = document.getElementById('building-list');
+        listContainer.innerHTML = '';
+
+        if (!buildings || buildings.length === 0) {
+            listContainer.innerHTML = '<div class="list-group-item text-muted">등록된 건물이 없습니다.</div>';
+            return;
+        }
+
+        buildings.forEach(building => {
+            const item = `
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center building-item"
+                    data-id="${building.id}" data-name="${escapeHtml(building.name)}">
+                    <span>${escapeHtml(building.name)}</span>
+                    <div>
+                        <i class="bi bi-pencil-square text-primary me-2 action-icon" data-action="edit-building" title="수정"></i>
+                        <i class="bi bi-trash-fill text-danger action-icon" data-action="delete-building" title="삭제"></i>
+                    </div>
+                </div>
+            `;
+            listContainer.insertAdjacentHTML('beforeend', item);
+        });
+    }
+
+    // 건물 목록 클릭
+    function handleBuildingListClick(event) {
+        const buildingItem = event.target.closest('.building-item');
+        if (!buildingItem) return;
+
+        const actionIcon = event.target.closest('.action-icon');
+        const buildingId = buildingItem.dataset.id;
+        const buildingName = buildingItem.dataset.name;
+
+        if (actionIcon) {
+            const action = actionIcon.dataset.action;
+            if (action === 'edit-building') {
+                openBuildingModal({ id: buildingId, name: buildingName });
+            } else if (action === 'delete-building') {
+                handleDeleteBuilding(buildingId, buildingName);
+            }
+        } else {
+            selectBuilding(buildingItem);
+        }
+    }
+
+    function selectBuilding(buildingItem) {
+        selectedBuildingId = buildingItem.dataset.id;
+
+        document.querySelectorAll('#building-list .building-item').forEach(item => item.classList.remove('active'));
+        buildingItem.classList.add('active');
+
+        document.getElementById('classroom-list-title').textContent = `${buildingItem.dataset.name} 강의실 목록`;
+        document.getElementById('add-classroom-btn').classList.remove('d-none');
+        document.getElementById('classroom-placeholder').classList.add('d-none');
+        document.getElementById('classroom-content').classList.remove('d-none');
+
+        loadClassrooms(selectedBuildingId);
+    }
+
+    async function handleDeleteBuilding(buildingId, buildingName) {
+        if (!confirm(`'${buildingName}' 건물을 정말로 삭제하시겠습니까?\n해당 건물의 모든 강의실과 예약 정보도 함께 삭제됩니다.`)) return;
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/facilities/buildings/${buildingId}`, { method: 'DELETE' });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '건물 삭제 실패');
+            }
+            alert('건물이 성공적으로 삭제되었습니다.');
+
+            if (selectedBuildingId === buildingId) {
+                resetClassroomView();
+            }
+            loadBuildings();
+
+        } catch (error) {
+            console.error(error);
+            alert(`건물 삭제 중 오류가 발생했습니다: ${error.message}`);
+        }
+    }
+
+    function openBuildingModal(building = null) {
+        const form = document.getElementById('building-form');
+        form.classList.remove('was-validated');
+        form.reset();
+
+        const title = document.getElementById('building-modal-title');
+        if (building) {
+            title.textContent = '건물 정보 수정';
+            document.getElementById('building-id').value = building.id;
+            document.getElementById('building-name').value = building.name;
+        } else {
+            title.textContent = '새 건물 추가';
+            document.getElementById('building-id').value = '';
+        }
+        buildingModal.show();
+    }
+
+    async function handleBuildingFormSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const buildingId = document.getElementById('building-id').value;
+        const buildingName = document.getElementById('building-name').value;
+        const isEdit = !!buildingId;
+
+        const url = isEdit ? `/api/admin/facilities/buildings/${buildingId}` : '/api/admin/facilities/buildings';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetchWithAuth(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: buildingName })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '저장 실패');
+            }
+            alert('성공적으로 추가되었습니다.');
+            buildingModal.hide();
+            loadBuildings();
+        } catch (error) {
+            console.error(error);
+            alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+        }
+    }
+
+    async function loadClassrooms(buildingId) {
+        const tableContainer = document.getElementById('classroom-table-container');
+        const loader = document.getElementById('classroom-loader');
+        loader.classList.remove('d-none');
+        tableContainer.innerHTML = '';
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/facilities/buildings/${buildingId}/classrooms`);
+            if (!response.ok) throw new Error('강의실 목록 로딩 실패');
+            const result = await response.json();
+            renderClassrooms(result.data);
+        } catch (error) {
+            console.error(error);
+            tableContainer.innerHTML = '<div class="alert alert-danger">강의실 목록을 불러오는 중 오류가 발생했습니다.</div>';
+        } finally {
+            loader.classList.add('d-none');
+        }
+    }
+
+    function renderClassrooms(classrooms) {
+        const container = document.getElementById('classroom-table-container');
+        if (!classrooms || classrooms.length === 0) {
+            container.innerHTML = '<p class="text-center text-muted mt-4">등록된 강의실이 없습니다.</p>';
+            return;
+        }
+
+        const table = `
+            <table class="table table-hover align-middle">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th>강의실 이름</th>
+                        <th>수용 인원</th>
+                        <th>비고</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    ${classrooms.map(c => `
+                        <tr data-id="${c.id}" data-name="${escapeHtml(c.name)}" data-capacity="${c.capacity}" data-info="${escapeHtml(c.info || '')}">
+                            <td>${escapeHtml(c.name)}</td>
+                            <td>${c.capacity}명</td>
+                            <td>${escapeHtml(c.info || '-')}</td>
+                            <td>
+                                <i class="bi bi-pencil-square text-primary me-2 action-icon" data-action="edit-classroom" title="수정"></i>
+                                <i class="bi bi-trash-fill text-danger action-icon" data-action="delete-classroom" title="삭제"></i>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+        container.innerHTML = table;
+    }
+
+    function handleClassroomTableClick(event) {
+        const actionIcon = event.target.closest('.action-icon');
+        if (!actionIcon) return;
+
+        const row = actionIcon.closest('tr');
+        const classroom = {
+            id: row.dataset.id,
+            name: row.dataset.name,
+            capacity: row.dataset.capacity,
+            info: row.dataset.info
+        };
+
+        const action = actionIcon.dataset.action;
+        if (action === 'edit-classroom') {
+            openClassroomModal(classroom);
+        } else if (action === 'delete-classroom') {
+            handleDeleteClassroom(classroom.id, classroom.name);
+        }
+    }
+
+    async function handleDeleteClassroom(classroomId, classroomName) {
+        if (!confirm(`'${classroomName}' 강의실을 삭제하시겠습니까?`)) return;
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/facilities/classrooms/${classroomId}`, { method: 'DELETE' });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '강의실 삭제 실패');
+            }
+            alert('강의실이 성공적으로 삭제되었습니다.');
+            loadClassrooms(selectedBuildingId);
+        } catch (error) {
+            console.error(error);
+            alert(`강의실 삭제 중 오류가 발생했습니다: ${error.message}`);
+        }
+    }
+
+    function openClassroomModal(classroom = null) {
+        const form = document.getElementById('classroom-form');
+        form.classList.remove('was-validated');
+        form.reset();
+
+        const title = document.getElementById('classroom-modal-title');
+        if (classroom) {
+            title.textContent = '강의실 정보 수정';
+            document.getElementById('classroom-id').value = classroom.id;
+            document.getElementById('classroom-name').value = classroom.name;
+            document.getElementById('classroom-capacity').value = classroom.capacity;
+            document.getElementById('classroom-info').value = classroom.info;
+        } else {
+            title.textContent = '새 강의실 추가';
+            document.getElementById('classroom-id').value = '';
+        }
+        classroomModal.show();
+    }
+
+    async function handleClassroomFormSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const classroomId = document.getElementById('classroom-id').value;
+        const isEdit = !!classroomId;
+
+        const data = {
+            name: document.getElementById('classroom-name').value,
+            capacity: parseInt(document.getElementById('classroom-capacity').value),
+            info: document.getElementById('classroom-info').value
+        };
+
+        const url = isEdit
+            ? `/api/admin/facilities/classrooms/${classroomId}`
+            : `/api/admin/facilities/buildings/${selectedBuildingId}/classrooms`;
+        const method = isEdit ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetchWithAuth(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '저장 실패');
+            }
+            alert('성공적으로 추가되었습니다.');
+            classroomModal.hide();
+            loadClassrooms(selectedBuildingId);
+        } catch (error) {
+            console.error(error);
+            alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+        }
+    }
+
+    function resetClassroomView() {
+        selectedBuildingId = null;
+        document.getElementById('classroom-list-title').textContent = '강의실 목록';
+        document.getElementById('add-classroom-btn').classList.add('d-none');
+        document.getElementById('classroom-placeholder').classList.remove('d-none');
+        document.getElementById('classroom-content').classList.add('d-none');
+    }
+
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+</script>
+</body>
+</html>

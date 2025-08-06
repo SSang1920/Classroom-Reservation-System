@@ -36,9 +36,13 @@ public enum ErrorCode {
     PASSWORD_RESET_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "PASSWORD_RESET_TOKEN_EXPIRED", "만료된 토큰입니다."),
     CURRENT_PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "CURRENT_PASSWORD_NOT_MATCH", "현재 비밀번호와 일치하지 않습니다."),
 
+    // ===== 건물 관련 =====
+    DUPLICATE_BUILDING_NAME(HttpStatus.BAD_REQUEST, "DUPLICATE_BUILDING_NAME", "이미 존재하는 건물입니다."),
+
     // ===== 강의실 관련 =====
     BUILDING_NOT_FOUND(HttpStatus.NOT_FOUND, "BUILDING_NOT_FOUND", "존재하지 않는 건물입니다."),
     CLASSROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CLASSROOM_NOT_FOUND", "존재하지 않는 강의실입니다."),
+    DUPLICATE_CLASSROOM_NAME(HttpStatus.BAD_REQUEST, "DUPLICATE_CLASSROOM_NAME", "이미 존재하는 강의실입니다."),
     CLASSROOM_ALREADY_RESERVED(HttpStatus.BAD_REQUEST, "CLASSROOM_ALREADY_RESERVED", "이미 예약된 강의실입니다."),
     CLASSROOM_HAS_ACTIVE_RESERVATIONS(HttpStatus.BAD_REQUEST, "CLASSROOM_HAS_ACTIVE_RESERVATIONS", "이미 진행 중인 예약이 있는 강의실입니다."),
 

@@ -38,6 +38,13 @@ public class Building {
     private List<Classroom> classrooms = new ArrayList<>();
 
     /**
+     * 건물 이름 변경
+     */
+    public void updateName(String newName) {
+        this.name = newName;
+    }
+
+    /**
      * 연관관계 편의 메서드 - 강의실 추가, 제거
      */
     public void addClassroom(Classroom classroom){

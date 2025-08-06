@@ -39,4 +39,9 @@ public class AdminViewController {
     public String adminNoticePage() {
         return "admin/notices";
     }
+
+    @GetMapping("/facilities")
+    public String adminFacilityPage() {
+        return "admin/facilities";
+    }
 }

@@ -4,6 +4,9 @@ import com.example.classroom_reservation_system.common.exception.CustomException
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -65,6 +68,15 @@ public class Classroom {
 
         this.state = ClassroomState.UNAVAILABLE;
         this.unavailableReason = reason;
+    }
+
+    /**
+     * 비즈니스 로직: 강의실 이름 변경 메서드
+     */
+    public void updateDetails(String name, Integer capacity, String info) {
+        this.name = name;
+        this.capacity = capacity;
+        this.equipmentInfo = info;
     }
 
     public void makeAvailable() {

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/admin/reservations")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminReservationController {
@@ -28,7 +28,7 @@ public class AdminReservationController {
     /**
      * 관리자용 예약 목록 검색 API
      */
-    @GetMapping("/reservations")
+    @GetMapping
     public ResponseEntity<ApiSuccessResponse<Page<AdminReservationResponse>>> getReservations(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) Long classroomId,
@@ -46,7 +46,7 @@ public class AdminReservationController {
     /**
      * 관리자용 예약 강제취소 API
      */
-    @PatchMapping("/reservations/{reservationId}/cancel")
+    @PatchMapping("/{reservationId}/cancel")
     public ResponseEntity<ApiSuccessResponse<Void>> cancelReservationByAdmin(@PathVariable Long reservationId){
         adminReservationService.cancelReservationByAdmin(reservationId);
 
@@ -57,7 +57,7 @@ public class AdminReservationController {
      * 관리자용 단일 예약 상세 조회 API
      * @param reservationId
      */
-    @GetMapping("/reservations/{reservationId}")
+    @GetMapping("/{reservationId}")
     public ResponseEntity<ApiSuccessResponse<AdminReservationDetailResponse>> getReservationDetails(@PathVariable Long reservationId){
         AdminReservationDetailResponse reservationDetails = adminReservationService.getReservationDetails(reservationId);
 
@@ -67,7 +67,7 @@ public class AdminReservationController {
     /**
      * 관리자용 예약 변경 API
      */
-    @PutMapping("/reservations/{reservationId}")
+    @PutMapping("/{reservationId}")
     public ResponseEntity<ApiSuccessResponse<Void>> updateReservationByAdmin(
             @PathVariable Long reservationId,
             @Valid @RequestBody AdminReservationUpdateRequest request
