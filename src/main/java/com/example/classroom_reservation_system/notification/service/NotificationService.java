@@ -8,6 +8,7 @@ import com.example.classroom_reservation_system.member.repository.AdminRepositor
 import com.example.classroom_reservation_system.member.repository.MemberRepository;
 import com.example.classroom_reservation_system.notification.dto.NotificationResponseDto;
 import com.example.classroom_reservation_system.notification.entity.Notification;
+import com.example.classroom_reservation_system.notification.entity.NotificationType;
 import com.example.classroom_reservation_system.notification.repository.EmitterRepository;
 import com.example.classroom_reservation_system.notification.repository.NotificationRepository;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -153,8 +155,8 @@ public class NotificationService {
      * 예약 생성/취소 등 다른 서비스에서 이벤트 리스너를 통해 호출
      */
     @Transactional
-    public void send(Reservation reservation, String message){
-        Notification notification = createNotification(reservation, message);
+    public void send(Reservation reservation, String message, NotificationType type){
+        Notification notification = createNotification(reservation, message, type);
         String eventId = String.valueOf(reservation.getMember().getMemberId()) + "_" + System.currentTimeMillis();
 
         // 해당 사용자에게 연결된 모든 Emitter를 찾아 알림을 전송
@@ -174,11 +176,11 @@ public class NotificationService {
      * 관리자 그룹에게 알림 전송
      */
     @Transactional
-    public void sendToAdmins(Reservation reservation, String message){
+    public void sendToAdmins(Reservation reservation, String message, NotificationType type){
         List<Admin> admins = adminRepository.findAll();
 
         for(Member admin : admins){
-            Notification notification = createNotificationForAdmin(admin, reservation, message);
+            Notification notification = createNotificationForAdmin(admin, reservation, message, type);
             String eventId = String.valueOf(admin.getMemberId()) + "_" + System.currentTimeMillis();
 
             //관리자에게 연결된 모든 Emitter을 찾아 알림 전송
@@ -193,21 +195,23 @@ public class NotificationService {
     }
 
     // 알림 엔티티를 생성하고 DB에 저장하는 private 메서드
-    private Notification createNotification(Reservation reservation, String message) {
+    private Notification createNotification(Reservation reservation, String message, NotificationType type) {
         Notification notification = Notification.builder()
                 .member(reservation.getMember())
                 .reservation(reservation)
                 .message(message)
+                .type(type)
                 .isRead(false)
                 .build();
         return notificationRepository.save(notification);
     }
 
-    private Notification createNotificationForAdmin(Member admin, Reservation reservation, String message){
+    private Notification createNotificationForAdmin(Member admin, Reservation reservation, String message, NotificationType type){
         Notification notification = Notification.builder()
                 .member(admin)
                 .reservation(reservation)
                 .message(message)
+                .type(type)
                 .isRead(false)
                 .build();
         return notificationRepository.save(notification);

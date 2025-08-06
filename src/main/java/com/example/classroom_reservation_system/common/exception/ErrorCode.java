@@ -58,6 +58,7 @@ public enum ErrorCode {
     // ===== 알림 관련 =====
     NOTIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "NOTIFICATION_NOT_FOUND", "알림을 찾을 수 없습니다."),
     NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "NOTIFICATION_ACCESS_DENIED", "자신의 알림만 읽을 수 있습니다.."),
+    HISTORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "HISTORY_NOT_fOUND", " 예약에 대한 기록을 찾을 수 없습니다."),
 
     // ===== 예약 변경 관련 =====
     REQUEST_NOT_FOUND(HttpStatus.BAD_REQUEST, "REQUEST_NOT_FOUND", "요청을 찾을 수 없습니다."),
