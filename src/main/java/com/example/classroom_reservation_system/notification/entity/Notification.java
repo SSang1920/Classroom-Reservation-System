@@ -48,6 +48,11 @@ public class Notification {
     @Column(name = "read_at")
     private LocalDateTime readAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "notification_type", nullable = false)
+    private NotificationType type;
+
+
     /**
      * 읽음 처리 메서드
      */

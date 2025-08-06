@@ -210,7 +210,10 @@
 
         return `
             <li>
-                <a class="dropdown-item ${isUnreadClass}" href="#" data-notification-id="${notification.id}" onclick="handleNotificationClick(event)">
+                <a class="dropdown-item ${isUnreadClass}" href="#"
+                 data-notification-id="${notification.id}"
+                 onclick="handleNotificationClick(event)"
+                 data-destination-path="${notification.destinationPath}">
                     <div class="d-flex w-100 justify-content-between align-items-center">
                         <div class="me-2">
                             <small>${notification.message}</small>
@@ -227,27 +230,33 @@
         event.preventDefault();
         const target = event.currentTarget;
         const notificationId = target.dataset.notificationId;
+        const destinationPath = target.dataset.destinationPath;
 
-        if (!target.classList.contains('fw-bold')) return;
+        if (target.classList.contains('fw-bold')) {
+            try {
+                const response = await fetchWithAuth(`/api/notifications/${notificationId}/read`, {
+                    method: 'PATCH',
+                });
+                if (!response.ok) throw new Error('읽음 처리 실패');
 
-        try {
-            const response = await fetchWithAuth(`/api/notifications/${notificationId}/read`, {
-                method: 'PATCH',
-            });
-            if (!response.ok) throw new Error('읽음 처리 실패');
+                target.classList.remove('fw-bold');
+                unreadCount--;
+                updateUnreadCountBadge();
 
-            target.classList.remove('fw-bold');
-
-            unreadCount--;
-            updateUnreadCountBadge();
-
-            const readStatusSpan = target.querySelector('.read-status');
-            if (readStatusSpan) {
-                readStatusSpan.classList.remove('d-none');
+                const readStatusSpan = target.querySelector('.read-status');
+                if (readStatusSpan) {
+                    readStatusSpan.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error("알림 읽음 처리 실패:", error);
+                // 읽음 처리에 실패하더라도 페이지 이동은 계속 진행합니다.
             }
-
-        } catch (error) {
-            console.error("알림 읽음 처리 실패:", error);
+        }
+        // 읽음처리와 관계없이 페이지 이동 진행
+        if (destinationPath) {
+            window.location.href = destinationPath;
+        } else {
+            console.warn('이동할 경로(destinationPath)가 지정되지 않은 알림입니다.');
         }
     }
     async function handleMarkAllAsRead(event) {
@@ -288,8 +297,10 @@
         if (unreadCount > 0) {
             badge.textContent = unreadCount;
             badge.classList.remove('d-none');
+            if (markAllBtn) markAllBtn.classList.remove('disabled');
         } else {
             badge.classList.add('d-none');
+            if (markAllBtn) markAllBtn.classList.add('disabled');
         }
     }
 
