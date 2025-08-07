@@ -4,14 +4,20 @@
     <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
     <title>건물 & 강의실 관리</title>
     <style>
-        .list-group-item.active {
-            z-index: 2;
-            color: #fff;
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
         .building-item, .action-icon {
             cursor: pointer;
+        }
+        .notes-column {
+            white-space: normal;
+            word-break: break-word;
+            max-width: 200px;
+        }
+        .table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        .action-icon, .btn {
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -20,66 +26,64 @@
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
 <div class="container-fluid">
-    <div class="row">
-        <!-- 관리자 사이드바 -->
-        <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
+    <!-- 관리자 사이드바 -->
+    <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
 
-        <main class="admin-content px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">🏢 건물 & 강의실 관리</h1>
+    <main class="admin-content px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">🏢 건물 & 강의실 관리</h1>
+        </div>
+
+        <div class="row">
+            <!-- 건물 목록 -->
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">건물 목록</h5>
+                        <button class="btn btn-primary btn-sm" id="add-building-btn">
+                            <i class="bi bi-plus-lg"></i> 새 건물 추가
+                        </button>
+                    </div>
+                    <div id="building-list" class="list-group list-group-flush" style="max-height: 70vh; overflow-y: auto;">
+                        <!-- 로딩 스피너 -->
+                        <div class="list-group-item text-center p-5" id="building-loader">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="row">
-                <!-- 건물 목록 -->
-                <div class="col-md-4">
-                    <div class="card shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">건물 목록</h5>
-                            <button class="btn btn-primary btn-sm" id="add-building-btn">
-                                <i class="bi bi-plus-lg"></i> 새 건물 추가
-                            </button>
+            <!-- 강의실 목록 섹션 -->
+            <div class="col-md-8">
+                <div class="card shadow-sm" id="classroom-section">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" id="classroom-list-title">강의실 목록</h5>
+                        <button class="btn btn-primary btn-sm d-none" id="add-classroom-btn">
+                            <i class="bi bi-plus-lg"></i> 새 강의실 추가
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="classroom-placeholder" class="text-center text-muted p-5">
+                            <i class="bi bi-arrow-left-square-fill fs-1"></i>
+                            <p class="mt-2">왼쪽에서 건물을 선택해주세요.</p>
                         </div>
-                        <div id="building-list" class="list-group list-group-flush" style="max-height: 70vh; overflow-y: auto;">
-                            <!-- 로딩 스피너 -->
-                            <div class="list-group-item text-center p-5" id="building-loader">
+                        <div id="classroom-content" class="d-none">
+                            <div id="classroom-loader" class="text-center p-5">
                                 <div class="spinner-border" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 강의실 목록 섹션 -->
-                <div class="col-md-8">
-                    <div class="card shadow-sm" id="classroom-section">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0" id="classroom-list-title">강의실 목록</h5>
-                            <button class="btn btn-primary btn-sm d-none" id="add-classroom-btn">
-                                <i class="bi bi-plus-lg"></i> 새 강의실 추가
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="classroom-placeholder" class="text-center text-muted p-5">
-                                <i class="bi bi-arrow-left-square-fill fs-1"></i>
-                                <p class="mt-2">왼쪽에서 건물을 선택해주세요.</p>
-                            </div>
-                            <div id="classroom-content" class="d-none">
-                                <div id="classroom-loader" class="text-center p-5">
-                                    <div class="spinner-border" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                                <div id="classroom-table-container" class="table-responsive">
-                                    <!-- 강의실 테이블 JavaScript 렌더링 -->
-                                </div>
+                            <div id="classroom-table-container" style="max-height: 70vh; overflow-y: auto;">
+                                <!-- 강의실 테이블 JavaScript 렌더링 -->
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 </div>
 
 <!-- 건물 추가/수정 모달 -->
@@ -143,6 +147,33 @@
     </div>
 </div>
 
+<!-- 강의실 사용 불가 사유 입력 모달 -->
+<div class="modal fade" id="unavailable-reason-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="unavailable-reason-form" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title">사용 불가 처리</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="unavailable-classroom-id">
+                    <div class="mb-3">
+                        <label for="unavailable-reason" class="form-label">사유</label>
+                        <textarea class="form-control" id="unavailable-reason" rows="3" required></textarea>
+                        <div class="invalid-feedback">사유를 입력해주세요.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="submit" class="btn btn-danger">확인</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <!-- 공용 스크립트 -->
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
 
@@ -153,13 +184,14 @@
 <script th:src="@{/js/admin-auth.js}"></script>
 
 <script>
-    let buildingModal, classroomModal;
+    let buildingModal, classroomModal, unavailableReasonModal;
     let selectedBuildingId = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         // 모달 인스턴스 초기화
         buildingModal = new bootstrap.Modal(document.getElementById('building-modal'));
         classroomModal = new bootstrap.Modal(document.getElementById('classroom-modal'));
+        unavailableReasonModal = new bootstrap.Modal(document.getElementById('unavailable-reason-modal'));
 
         // 초기 건물 목록 로드
         loadBuildings();
@@ -179,6 +211,7 @@
         // 모달 폼 제출
         document.getElementById('building-form').addEventListener('submit', handleBuildingFormSubmit);
         document.getElementById('classroom-form').addEventListener('submit', handleClassroomFormSubmit);
+        document.getElementById('unavailable-reason-form').addEventListener('submit', handleUnavailableReasonSubmit);
     });
 
     // 건물 목록 로드
@@ -273,11 +306,7 @@
                 throw new Error(errorData.message || '건물 삭제 실패');
             }
             alert('건물이 성공적으로 삭제되었습니다.');
-
-            if (selectedBuildingId === buildingId) {
-                resetClassroomView();
-            }
-            loadBuildings();
+            location.reload();
 
         } catch (error) {
             console.error(error);
@@ -327,9 +356,9 @@
                 const errorData = await response.json();
                 throw new Error(errorData.message || '저장 실패');
             }
-            alert('성공적으로 추가되었습니다.');
+            alert('성공적으로 저장되었습니다.');
             buildingModal.hide();
-            loadBuildings();
+            location.reload();
         } catch (error) {
             console.error(error);
             alert(`저장 중 오류가 발생했습니다: ${error.message}`);
@@ -366,21 +395,24 @@
             <table class="table table-hover align-middle">
                 <thead class="table-light text-center">
                     <tr>
-                        <th>강의실 이름</th>
-                        <th>수용 인원</th>
-                        <th>비고</th>
-                        <th>관리</th>
+                        <th style="width: 20%;">강의실</th>
+                        <th style="width: 10%;">인원</th>
+                        <th style="width: 15%;">상태</th>
+                        <th style="width: 30%;">비고</th>
+                        <th style="width: 25%;">관리</th>
                     </tr>
                 </thead>
                 <tbody class="text-center">
                     ${classrooms.map(c => `
-                        <tr data-id="${c.id}" data-name="${escapeHtml(c.name)}" data-capacity="${c.capacity}" data-info="${escapeHtml(c.info || '')}">
+                        <tr data-id="${c.id}" data-name="${escapeHtml(c.name)}" data-capacity="${c.capacity}" data-info="${escapeHtml(c.info || '')}" data-state="${c.state}">
                             <td>${escapeHtml(c.name)}</td>
                             <td>${c.capacity}명</td>
-                            <td>${escapeHtml(c.info || '-')}</td>
+                            <td>${renderStatusBadge(c.state, c.unavailableReason)}</td>
+                            <td class="notes-column">${escapeHtml(c.info || '-')}</td>
                             <td>
                                 <i class="bi bi-pencil-square text-primary me-2 action-icon" data-action="edit-classroom" title="수정"></i>
-                                <i class="bi bi-trash-fill text-danger action-icon" data-action="delete-classroom" title="삭제"></i>
+                                <i class="bi bi-trash-fill text-danger me-2 action-icon" data-action="delete-classroom" title="삭제"></i>
+                                ${renderStatusButton(c)}
                             </td>
                         </tr>
                     `).join('')}
@@ -388,25 +420,56 @@
             </table>
         `;
         container.innerHTML = table;
+
+        // 툴팁 초기화
+        const tooltipTriggerList = [].slice.call(container.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+
+    function renderStatusBadge(state, reason) {
+        if (state === 'UNAVAILABLE') {
+            return `<span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="${escapeHtml(reason || '사유 없음')}">사용 불가</span>`;
+        }
+        return '<span class="badge bg-success">사용 가능</span>';
+    }
+
+    function renderStatusButton(classroom) {
+        if (classroom.state === 'AVAILABLE') {
+            return `<button class="btn btn-warning btn-sm" data-action="mark-unavailable" data-id="${classroom.id}">사용 불가</button>`;
+        } else {
+            return `<button class="btn btn-success btn-sm" data-action="mark-available" data-id="${classroom.id}">사용 가능</button>`;
+        }
     }
 
     function handleClassroomTableClick(event) {
-        const actionIcon = event.target.closest('.action-icon');
-        if (!actionIcon) return;
+        const target = event.target;
+        const actionIcon = target.closest('.action-icon');
+        const statusButton = target.closest('button[data-action]');
 
-        const row = actionIcon.closest('tr');
-        const classroom = {
-            id: row.dataset.id,
-            name: row.dataset.name,
-            capacity: row.dataset.capacity,
-            info: row.dataset.info
-        };
-
-        const action = actionIcon.dataset.action;
-        if (action === 'edit-classroom') {
-            openClassroomModal(classroom);
-        } else if (action === 'delete-classroom') {
-            handleDeleteClassroom(classroom.id, classroom.name);
+        if (actionIcon) {
+            const row = actionIcon.closest('tr');
+            const classroom = {
+                id: row.dataset.id,
+                name: row.dataset.name,
+                capacity: row.dataset.capacity,
+                info: row.dataset.info
+            };
+            const action = actionIcon.dataset.action;
+            if (action === 'edit-classroom') {
+                openClassroomModal(classroom);
+            } else if (action === 'delete-classroom') {
+                handleDeleteClassroom(classroom.id, classroom.name);
+            }
+        } else if (statusButton) {
+            const action = statusButton.dataset.action;
+            const classroomId = statusButton.dataset.id;
+            if (action === 'mark-unavailable') {
+                openUnavailableReasonModal(classroomId);
+            } else if (action === 'mark-available') {
+                handleMarkAsAvailable(classroomId);
+            }
         }
     }
 
@@ -457,6 +520,11 @@
         const classroomId = document.getElementById('classroom-id').value;
         const isEdit = !!classroomId;
 
+        if (!isEdit && !selectedBuildingId) {
+            alert('강의실을 추가하려면 먼저 건물을 선택해주세요.');
+            return;
+        }
+
         const data = {
             name: document.getElementById('classroom-name').value,
             capacity: parseInt(document.getElementById('classroom-capacity').value),
@@ -478,7 +546,7 @@
                 const errorData = await response.json();
                 throw new Error(errorData.message || '저장 실패');
             }
-            alert('성공적으로 추가되었습니다.');
+            alert('성공적으로 저장되었습니다.');
             classroomModal.hide();
             loadClassrooms(selectedBuildingId);
         } catch (error) {
@@ -487,12 +555,65 @@
         }
     }
 
-    function resetClassroomView() {
-        selectedBuildingId = null;
-        document.getElementById('classroom-list-title').textContent = '강의실 목록';
-        document.getElementById('add-classroom-btn').classList.add('d-none');
-        document.getElementById('classroom-placeholder').classList.remove('d-none');
-        document.getElementById('classroom-content').classList.add('d-none');
+    function openUnavailableReasonModal(classroomId) {
+        const form = document.getElementById('unavailable-reason-form');
+        form.reset();
+        form.classList.remove('was-validated');
+        document.getElementById('unavailable-classroom-id').value = classroomId;
+        unavailableReasonModal.show();
+    }
+
+    async function handleUnavailableReasonSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const classroomId = document.getElementById('unavailable-classroom-id').value;
+        const reason = document.getElementById('unavailable-reason').value;
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/facilities/classrooms/${classroomId}/unavailable`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason: reason })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '상태 변경 실패');
+            }
+            alert('강의실 상태가 변경되었습니다.');
+            unavailableReasonModal.hide();
+            loadClassrooms(selectedBuildingId);
+
+        } catch (error) {
+            console.error(error);
+            alert(`오류가 발생했습니다: ${error.message}`);
+        }
+    }
+
+    async function handleMarkAsAvailable(classroomId) {
+        if (!confirm('이 강의실을 다시 사용 가능한 상태로 변경하시겠습니까?')) return;
+
+        try {
+            const response = await fetchWithAuth(`/api/admin/facilities/classrooms/${classroomId}/available`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '상태 변경 실패');
+            }
+            alert('강의실 상태가 변경되었습니다.');
+            loadClassrooms(selectedBuildingId);
+
+        } catch (error) {
+            console.error(error);
+            alert(`오류가 발생했습니다: ${error.message}`);
+        }
     }
 
     function escapeHtml(unsafe) {

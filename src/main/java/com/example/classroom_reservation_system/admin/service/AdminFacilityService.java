@@ -4,6 +4,7 @@ import com.example.classroom_reservation_system.common.exception.CustomException
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.faciliity.dto.request.BuildingRequest;
 import com.example.classroom_reservation_system.faciliity.dto.request.ClassroomRequest;
+import com.example.classroom_reservation_system.faciliity.dto.request.ClassroomUnavailableRequest;
 import com.example.classroom_reservation_system.faciliity.dto.response.BuildingResponse;
 import com.example.classroom_reservation_system.faciliity.dto.response.ClassroomInBuildingResponse;
 import com.example.classroom_reservation_system.faciliity.entity.Building;
@@ -148,5 +149,25 @@ public class AdminFacilityService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CLASSROOM_NOT_FOUND));
 
         classroomRepository.delete(classroom);
+    }
+
+    /**
+     * 강의실을 사용 불가로 변경
+     */
+    @Transactional
+    public void markClassroomAsUnavailable(Long classroomId, ClassroomUnavailableRequest request) {
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CLASSROOM_NOT_FOUND));
+        classroom.markAsUnavailable(request.getReason());
+    }
+
+    /**
+     * 강의실을 사용 가능으로 변경
+     */
+    @Transactional
+    public void markClassroomAsAvailable(Long classroomId) {
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CLASSROOM_NOT_FOUND));
+        classroom.makeAvailable();
     }
 }

@@ -27,7 +27,7 @@ public class Building {
     @Column(name = "building_id")
     private Long id;
 
-    @Column(name = "building_name", length = 20, nullable = false, unique = true)
+    @Column(name = "building_name", length = 20, nullable = false)
     private String name;
 
     @Column(name = "deleted_at")

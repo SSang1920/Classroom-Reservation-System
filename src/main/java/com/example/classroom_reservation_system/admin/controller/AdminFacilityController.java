@@ -4,6 +4,7 @@ import com.example.classroom_reservation_system.admin.service.AdminFacilityServi
 import com.example.classroom_reservation_system.common.dto.ApiSuccessResponse;
 import com.example.classroom_reservation_system.faciliity.dto.request.BuildingRequest;
 import com.example.classroom_reservation_system.faciliity.dto.request.ClassroomRequest;
+import com.example.classroom_reservation_system.faciliity.dto.request.ClassroomUnavailableRequest;
 import com.example.classroom_reservation_system.faciliity.dto.response.BuildingResponse;
 import com.example.classroom_reservation_system.faciliity.dto.response.ClassroomInBuildingResponse;
 import jakarta.validation.Valid;
@@ -93,5 +94,23 @@ public class AdminFacilityController {
     public ResponseEntity<ApiSuccessResponse<Void>> deleteClassroom(@PathVariable Long classroomId) {
         adminFacilityService.deleteClassroom(classroomId);
         return ResponseEntity.ok(ApiSuccessResponse.of(200, "강의실이 삭제되었습니다.", null));
+    }
+
+    /**
+     * 강의실을 사용 불가로 변경
+     */
+    @PostMapping("/classrooms/{classroomId}/unavailable")
+    public ResponseEntity<ApiSuccessResponse<Void>> markClassroomAsUnavailable(@PathVariable Long classroomId, @RequestBody ClassroomUnavailableRequest request) {
+        adminFacilityService.markClassroomAsUnavailable(classroomId, request);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "강의실을 사용 불가로 변경했습니다.", null));
+    }
+
+    /**
+     * 강의실을 사용 가능으로 변경
+     */
+    @PostMapping("/classrooms/{classroomId}/available")
+    public ResponseEntity<ApiSuccessResponse<Void>> markClassroomAsAvailable(@PathVariable Long classroomId) {
+        adminFacilityService.markClassroomAsAvailable(classroomId);
+        return ResponseEntity.ok(ApiSuccessResponse.of(200, "강의실을 사용 가능으로 변경했습니다.", null));
     }
 }

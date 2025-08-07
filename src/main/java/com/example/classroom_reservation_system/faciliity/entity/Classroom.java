@@ -4,10 +4,9 @@ import com.example.classroom_reservation_system.common.exception.CustomException
 import com.example.classroom_reservation_system.common.exception.ErrorCode;
 import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +17,8 @@ import java.util.List;
         @Index(name = "idx_classroom_building_id", columnList = "building_id"),
         @Index(name = "idx_classroom_state", columnList = "classroom_state")
 })
+@SQLDelete(sql = "UPDATE classroom SET deleted_at = NOW() WHERE classroom_id = ?")  // 논리적 삭제
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -40,15 +41,19 @@ public class Classroom {
     @JoinColumn(name = "building_id", nullable = false)
     private Building building;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "classroom_state", nullable = false)
-    private ClassroomState state;
+    private ClassroomState state = ClassroomState.AVAILABLE;
 
     @Lob
     private String equipmentInfo;       // 비품 정보
 
     @Lob
     private String unavailableReason;    // 사용 불가 사유
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @Builder.Default
     @OneToMany(mappedBy = "classroom", orphanRemoval = true)
