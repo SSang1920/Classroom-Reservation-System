@@ -12,6 +12,8 @@ public class ClassroomInBuildingResponse {
     private String name;
     private int capacity;
     private String info;
+    private String state;
+    private String unavailableReason;
 
     public static ClassroomInBuildingResponse from(Classroom classroom) {
         return ClassroomInBuildingResponse.builder()
@@ -19,6 +21,8 @@ public class ClassroomInBuildingResponse {
                 .name(classroom.getName())
                 .capacity(classroom.getCapacity())
                 .info(classroom.getEquipmentInfo())
+                .state(classroom.getState().name())
+                .unavailableReason(classroom.getUnavailableReason())
                 .build();
     }
 }
