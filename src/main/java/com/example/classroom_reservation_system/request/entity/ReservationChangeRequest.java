@@ -4,6 +4,7 @@ import com.example.classroom_reservation_system.reservation.entity.Reservation;
 import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+@Slf4j
 @Entity
 @Getter
 @Builder
@@ -70,6 +72,17 @@ public class ReservationChangeRequest {
     public void reject(String message){
         this.status = RequestStatus.REJECTED;
         this.responseMessage = message;
+        this.processedAt = LocalDateTime.now();
+    }
+
+    public void cancel() {
+        if (this.status != RequestStatus.PENDING) {
+            log.warn("이미 처리된 변경 요청(ID: {})은 자동 취소할 수 없습니다. 현재 상태 : {}", this.getId(), this.status);
+            return;
+        }
+        log.info("연관된 예약 취소로 인해 변경 요청(ID: {}) 상태를 PENDING에서 CANCELED로 변경합니다.", this.getId());
+        this.status = RequestStatus.CANCELED;
+        this.responseMessage = "연관된 예약이 취소되어 해당 요청이 자동으로 취소되었습니다.";
         this.processedAt = LocalDateTime.now();
     }
 }

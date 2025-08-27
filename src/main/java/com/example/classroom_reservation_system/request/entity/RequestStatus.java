@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum RequestStatus {
     PENDING("대기중"),
     APPROVED("승인됨"),
-    REJECTED("거절됨");
+    REJECTED("거절됨"),
+    CANCELED("취소됨");
 
     private final String description;
 }
