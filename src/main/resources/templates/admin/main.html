@@ -2,9 +2,9 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <th:block th:replace="~{fragments/common :: common-resources}"></th:block>
-    <title>관리자 페이지</title>
+    <title>관리자 대시보드</title>
 </head>
-<body>
+<body class="bg-light">
 <!-- 상단 바 -->
 <div th:replace="~{fragments/topbar :: topbar}"></div>
 
@@ -12,40 +12,88 @@
     <!-- 사이드바 -->
     <nav th:replace="~{fragments/admin-sidebar :: admin-sidebar}"></nav>
 
-    <main class="admin-content px-md-5">
+    <main class="admin-content px-md-4">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">대시보드</h1>
+            <h1 class="h2">📊 대시보드</h1>
         </div>
 
-        <div class="p-5 mb-4 bg-white rounded-3 shadow-sm border">
-            <h1 class="display-5 fw-bold">관리자 페이지</h1>
-            <p class="col-md-8 fs-4">이곳에서 시스템의 주요 기능을 관리할 수 있습니다.</p>
-            <hr class="my-4">
-            <p>왼쪽 사이드바 메뉴를 통해 각 기능으로 이동하세요.</p>
-        </div>
-
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="card text-center mb-3">
+        <!-- KPI 카드 섹션 -->
+        <div class="row" id="kpi-cards-container">
+            <!-- 총 회원 수 -->
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card text-white bg-primary h-100 shadow">
                     <div class="card-body">
-                        <h5 class="card-title">총 회원 수</h5>
-                        <p class="card-text fs-2">1,234 명</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">총 회원 수</h5>
+                                <p class="card-text fs-2 fw-bold" id="total-members-count">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </p>
+                            </div>
+                            <i class="bi bi-people-fill fs-1 opacity-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card text-center mb-3">
+            <!-- 오늘 예약 건수 -->
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card text-white bg-success h-100 shadow">
                     <div class="card-body">
-                        <h5 class="card-title">오늘의 예약</h5>
-                        <p class="card-text fs-2">56 건</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">오늘의 예약</h5>
+                                <p class="card-text fs-2 fw-bold" id="today-reservations-count">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </p>
+                            </div>
+                            <i class="bi bi-calendar-check-fill fs-1 opacity-50"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card text-center mb-3">
+            <!-- 총 시설 수 -->
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card text-white bg-warning h-100 shadow">
                     <div class="card-body">
-                        <h5 class="card-title">새 공지사항</h5>
-                        <p class="card-text fs-2">3 개</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">총 시설 수</h5>
+                                <p class="card-text fs-4 fw-bold" id="total-facilities-count">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </p>
+                            </div>
+                            <i class="bi bi-building-fill fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 처리 대기 요청 -->
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card text-white bg-danger h-100 shadow">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">대기 중인 요청</h5>
+                                <p class="card-text fs-2 fw-bold" id="pending-requests-count">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </p>
+                            </div>
+                            <i class="bi bi-hourglass-split fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 차트 섹션 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        주간 예약 현황
+                    </div>
+                    <div class="card-body">
+                        <canvas id="reservation-chart" style="width:100%; max-height:400px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -55,11 +103,81 @@
 
 <!-- 공통 스크립트 -->
 <th:block th:replace="~{fragments/common :: common-scripts}"></th:block>
-
-<!-- 상단 바 자바 스크립트 -->
+<!-- 상단 바 스크립트 -->
 <th:block th:replace="~{fragments/topbar :: topbar-script}"></th:block>
-
 <!-- 관리자 페이지 접근 제어 스크립트 -->
-<script src="/js/admin-auth.js"></script>
+<script th:src="@{/js/admin-auth.js}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+    });
+
+    // 대시보드 통계 데이터 로드 및 렌더링
+    async function loadDashboardData() {
+        try {
+            const response = await fetchWithAuth('/api/admin/dashboard/statistics');
+            if (!response.ok) throw new Error('데이터 로딩 실패');
+
+            const result = await response.json();
+            const stats = result.data;
+
+            updateKpiCards(stats);
+            renderReservationChart(stats.reservationChartLabels, stats.reservationChartData);
+
+        } catch (error) {
+            console.error('대시보드 데이터 로딩 오류:', error);
+            document.getElementById('kpi-cards-container').innerHTML =
+                '<div class="col-12"><div class="alert alert-danger">대시보드 데이터를 불러오는 데 실패했습니다.</div></div>';
+        }
+    }
+
+    // KPI 카드 데이터 업데이트
+    function updateKpiCards(stats) {
+        document.getElementById('total-members-count').textContent = `${stats.totalMembers} 명`;
+        document.getElementById('today-reservations-count').textContent = `${stats.todayReservations} 건`;
+        document.getElementById('total-facilities-count').textContent = `건물 ${stats.totalBuildings} / 강의실 ${stats.totalClassrooms}`;
+        document.getElementById('pending-requests-count').textContent = `${stats.pendingRequests} 건`;
+    }
+
+    // 주간 예약 현황 차트 렌더링
+    function renderReservationChart(labels, data) {
+        const ctx = document.getElementById('reservation-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels, // 예: ["월", "화", "수", ...]
+                datasets: [{
+                    label: '예약 건수',
+                    data: data, // 예: [12, 19, 3, ...]
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            // y축 눈금이 정수만 표시되도록 설정
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // 범례 숨기기
+                    },
+                    title: {
+                        display: true,
+                        text: '최근 7일간 예약 건수'
+                    }
+                }
+            }
+        });
+    }
+</script>
 </body>
 </html>

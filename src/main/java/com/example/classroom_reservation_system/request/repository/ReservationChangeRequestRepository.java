@@ -22,4 +22,6 @@ public interface ReservationChangeRequestRepository extends JpaRepository<Reserv
 
     @Query("SELECT rcr.reservation.id FROM ReservationChangeRequest rcr WHERE rcr.reservation.id IN :reservationIds AND rcr.status = 'PENDING'")
     Set<Long> findReservationIdsWithPendingRequests(@Param("reservationIds") List<Long> reservationIds);
+
+    long countByStatus(RequestStatus requestStatus);
 }
