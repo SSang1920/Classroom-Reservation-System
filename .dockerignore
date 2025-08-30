@@ -24,3 +24,8 @@ application-secret.properties
 Dockerfile
 docker-compose.yml
 .dockerignore
+nginx.conf
+
+# 인증서/웹루트(권한 문제 + 이미지에 불필요)
+certbot/
+certbot/**
