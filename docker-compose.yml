@@ -54,28 +54,24 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./certbot/www:/var/www/certbot        # 웹루트 인증용
-      - ./certbot/conf:/etc/letsencrypt:ro    # 발급된 인증서
+      - /etc/letsencrypt:/etc/letsencrypt:ro    # 발급된 인증서
     networks:
       - app-network
 
   certbot-renewer:
-    image: docker:cli
+    image: certbot/certbot
     container_name: certbot-renewer
     restart: always
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: /bin/sh -c
     command: >
       "while :; do
-         docker run --rm
-           -v /etc/letsencrypt:/etc/letsencrypt
-           -v /var/www/certbot:/var/www/certbot
-           certbot/certbot renew --webroot -w /var/www/certbot --quiet &&
-         docker kill -s HUP classroom-proxy || true;
-         sleep 12h;
-       done"
+        certbot renew --webroot -w /var/www/certbot --quiet && \
+        nginx -s reload 2>/dev/null || true;
+        sleep 12h;
+      done"
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - /etc/letsencrypt:/etc/letsencrypt
 
 volumes:
   mysql-data:
