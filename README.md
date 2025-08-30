@@ -28,5 +28,10 @@
 - Thymeleaf, JavaScript, Bootstrap  
 
 ### Infra & Tools
-- Docker, Docker Compose  
-- IntelliJ IDEA, Git/GitHub  
+- IntelliJ IDEA, Git/GitHub
+
+##  배포 & 운영
+- **Oracle Cloud (OCI)** – 서버 및 데이터베이스 배포 환경  
+- **Docker, Docker Compose** – 컨테이너 기반 서비스 관리  
+- **Nginx** – Reverse Proxy 및 정적 리소스 제공  
+
