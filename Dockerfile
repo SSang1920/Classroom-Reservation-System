@@ -12,4 +12,4 @@ COPY ${JAR_FILE} app.jar
 EXPOSE 8080
 
 # 5. 애플리케이션 실행 명령어
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
