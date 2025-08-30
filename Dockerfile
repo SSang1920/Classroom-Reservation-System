@@ -1,5 +1,5 @@
 # 1. JDK 17이 설치된 경량 리눅스 이미지 사용
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 
 # 2. 작업 디렉토리 설정
 WORKDIR /app
