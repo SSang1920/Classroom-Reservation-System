@@ -36,6 +36,8 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       TZ: Asia/Seoul
       SERVER_FORWARD_HEADERS_STRATEGY: framework
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
     expose:
       - "8080"
     restart: unless-stopped
