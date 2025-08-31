@@ -98,7 +98,7 @@ public class ReservationConcurrencyTest {
     @AfterEach
     void tearDown() {
         transactionTemplate.execute(status -> {
-            // 외래 키 제약 조건을 일시적으로 비활성화하여 테스트 데이터를 안정적으로 정리합니다.
+            // 외래 키 제약 조건을 일시적으로 비활성화하여 테스트 데이터를 안정적으로 정리
 
             entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
             entityManager.createQuery("DELETE FROM PasswordResetToken").executeUpdate();
@@ -118,18 +118,18 @@ public class ReservationConcurrencyTest {
     @Test
     @DisplayName("두 명의 사용자가 동시에 같은 강의실을 예약할 때, 한 명만 성공해야 한다")
     void reservationConcurrencyTest() throws InterruptedException {
-        // given: 2개의 스레드를 생성하고, 모든 스레드가 동시에 시작하도록 CountDownLatch를 사용합니다.
+        // given: 2개의 스레드를 생성하고, 모든 스레드가 동시에 시작
         final int numberOfThreads = 2;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
-        // ReflectionTestUtils를 사용하여 생성자 없이 ReservationRequest 객체를 생성하고 필드 값을 설정합니다.
+        // ReflectionTestUtils를 사용하여 생성자 없이 ReservationRequest 객체를 생성
         ReservationRequest request = new ReservationRequest();
         ReflectionTestUtils.setField(request, "classroomId", testClassroom.getId());
         ReflectionTestUtils.setField(request, "reservationDate", LocalDate.now().plusDays(1));
         ReflectionTestUtils.setField(request, "periods", List.of(TimePeriod.PERIOD_1, TimePeriod.PERIOD_2));
 
-        // when: 2개의 스레드가 각각 다른 사용자로 동시에 예약을 요청합니다.
+        // 2개의 스레드가 각각 다른 사용자로 동시에 예약을 요청
         for (int i = 0; i < numberOfThreads; i++) {
             final Member member = (i % 2 == 0) ? testMember1 : testMember2;
             executorService.submit(() -> {
@@ -147,7 +147,7 @@ public class ReservationConcurrencyTest {
         boolean finished = executorService.awaitTermination(1, java.util.concurrent.TimeUnit.MINUTES);
         assertThat(finished).isTrue(); // 1분 안에 모든 작업이 끝나야 함
 
-        // then: 최종적으로 데이터베이스에 저장된 예약은 단 1개여야 합니다.
+        // 저장된 예약은  1개
         long reservationCount = reservationRepository.count();
         assertThat(reservationCount).isEqualTo(1);
     }
