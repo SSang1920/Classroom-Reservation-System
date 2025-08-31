@@ -16,6 +16,7 @@ import com.example.classroom_reservation_system.reservation.entity.TimePeriod;
 import com.example.classroom_reservation_system.reservation.event.ReservationStatusChangedEvent;
 import com.example.classroom_reservation_system.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ReservationService {
@@ -55,7 +57,7 @@ public class ReservationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.CLASSROOM_NOT_FOUND));
 
         // 2. 예약 목록을 시간순으로 정렬
-        List<TimePeriod> periods = request.getPeriods();
+        List<TimePeriod> periods = new ArrayList<>(request.getPeriods());
         periods.sort(Comparator.naturalOrder()); // ENUM 정의순으로 정렬
 
         // 3.DB에 저장될 시작& 종료 시간 계산
@@ -65,15 +67,14 @@ public class ReservationService {
 
 
         // 4. 예약 중복 확인 (Pessimistic Lock)
-        boolean isOverlapping = reservationRepository.existsByClassroomAndReservationStateNotAndEndTimeAfterAndStartTimeBefore(
+        List<Reservation> overlappingReservations = reservationRepository.findOverlappingReservationsForUpdate(
                 classroom,
-                ReservationState.CANCELED,
                 finalStartTime,
                 finalEndTime
         );
 
         // 5. 중복 시 예외 발생
-        if (isOverlapping){
+        if (!overlappingReservations.isEmpty()){
             throw new CustomException(ErrorCode.CLASSROOM_ALREADY_RESERVED);
         }
 
@@ -90,9 +91,12 @@ public class ReservationService {
         Reservation savedReservation = reservationRepository.save(reservation);
 
         // 8. 예약 성공 이벤트 발행
-        String message = String.format("'%s' 예약이 완료되었습니다.", savedReservation.getClassroom().getName());
-        eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, savedReservation, message));
-
+        try {
+            String message = String.format("'%s' 예약이 완료되었습니다.", savedReservation.getClassroom().getName());
+            eventPublisher.publishEvent(new ReservationStatusChangedEvent(this, savedReservation, message));
+        } catch (Exception e) {
+            log.error("예약 생성 후 이벤트 발행에 실패했습니다. 예약은 정상 처리됩니다. reservationId: {}", savedReservation.getId(), e);
+        }
         return savedReservation.getId();
     }
 

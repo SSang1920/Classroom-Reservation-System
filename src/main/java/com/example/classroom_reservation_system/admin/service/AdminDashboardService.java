@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +30,11 @@ public class AdminDashboardService {
     private final ReservationChangeRequestRepository requestRepository;
 
     public DashboardStatisticsResponse getDashboardStatistics() {
+        LocalDate today = LocalDate.now();
+
         // KPI 데이터 계산
         long totalMembers = memberRepository.count();
-        long todayReservations = reservationRepository.countByDate(LocalDate.now());
+        long todayReservations = reservationRepository.countByDateBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay());
         long totalBuildings = buildingRepository.count();
         long totalClassrooms = classroomRepository.count();
         long pendingRequests = requestRepository.countByStatus(RequestStatus.PENDING);
@@ -39,13 +42,15 @@ public class AdminDashboardService {
         // 차트 데이터 계산 (최근 7일)
         List<String> chartLabels = new ArrayList<>();
         List<Long> chartData = new ArrayList<>();
-        LocalDate today = LocalDate.now();
 
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             String dayOfWeek = date.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN);
             chartLabels.add(dayOfWeek);
-            chartData.add(reservationRepository.countByDate(date));
+            LocalDateTime startOfDay = date.atStartOfDay();
+            LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
+            chartData.add(reservationRepository.countByDateBetween(startOfDay, endOfDay));
+
         }
 
         // DTO 반환

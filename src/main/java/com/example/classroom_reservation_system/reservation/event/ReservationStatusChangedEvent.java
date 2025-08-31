@@ -10,6 +10,7 @@ public class ReservationStatusChangedEvent extends ApplicationEvent {
     private final Reservation reservation;
     private final String message;
 
+
     public ReservationStatusChangedEvent(Object source, Reservation reservation, String message){
         super(source);
         this.reservation = reservation;

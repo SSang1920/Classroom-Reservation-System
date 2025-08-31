@@ -17,7 +17,16 @@ import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)  //조회한 데이터 쓰기 기능 잠금
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Reservation r WHERE r.classroom = :classroom " +
+            "AND r.reservationState <> com.example.classroom_reservation_system.reservation.entity.ReservationState.CANCELED " +
+            "AND r.endTime > :startTime AND r.startTime < :endTime")
+    List<Reservation> findOverlappingReservationsForUpdate(
+            @Param("classroom") Classroom classroom,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime
+    );
+
     boolean existsByClassroomAndReservationStateNotAndEndTimeAfterAndStartTimeBefore(
             Classroom classroom,
             ReservationState reservationState,
@@ -89,6 +98,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             LocalDateTime end
     );
 
-    @Query("SELECT count(r) FROM Reservation r WHERE DATE(r.startTime) = :date")
-    long countByDate(@Param("date") LocalDate date);
+    @Query("SELECT count(r) FROM Reservation r WHERE r.startTime >= :startOfDay AND r.startTime < :endOfDay")
+    long countByDateBetween(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
+
 }

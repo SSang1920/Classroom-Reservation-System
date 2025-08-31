@@ -398,58 +398,88 @@ function createReservationRow(reservation, count) {
     });
 
     // 예약 가능한 시간대를 가져와 체크박스로 표시하는 함수
-    async function fetchAvailableTimes() {
-      const classroomId = classroomSelect.value;
-      const date = dateInput.value;
+  async function fetchAvailableTimes() {
+       const classroomId = classroomSelect.value;
+       const date = dateInput.value;
+       const reservationId = document.getElementById('modalReservationId').value;
 
-      if (!classroomId || !date) {
-        periodsDiv.innerHTML = '<small class="text-muted">강의실과 날짜를 선택하세요.</small>';
-        return;
-      }
+       if (!classroomId || !date) {
+         periodsDiv.innerHTML = '<small class="text-muted">강의실과 날짜를 선택하세요.</small>';
+         return;
+       }
 
-      periodsDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
+       periodsDiv.innerHTML = '<div class="d-flex justify-content-center"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
-      try {
-        const url = `/api/reservations/classroom/${classroomId}/available-times?date=${date}`;
-        const response = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) throw new Error('시간 조회 실패');
+       const allPeriods = [
+         { value: 'PERIOD_1', text: '1교시 (09:30 ~ 10:45)', endTime: '10:45' },
+         { value: 'PERIOD_2', text: '2교시 (11:00 ~ 12:15)', endTime: '12:15' },
+         { value: 'PERIOD_3', text: '3교시 (13:00 ~ 14:15)', endTime: '14:15' },
+         { value: 'PERIOD_4', text: '4교시 (14:30 ~ 15:45)', endTime: '15:45' },
+         { value: 'PERIOD_5', text: '5교시 (16:00 ~ 17:15)', endTime: '17:15' },
+         { value: 'PERIOD_6', text: '6교시 (17:30 ~ 18:45)', endTime: '18:45' },
+         { value: 'PERIOD_7', text: '7교시 (19:00 ~ 20:15)', endTime: '20:15' },
+         { value: 'PERIOD_8', text: '8교시 (20:30 ~ 21:45)', endTime: '21:45' }
+       ];
 
-        const result = await response.json();
-        const availablePeriods = result.data;
+       try {
+         const url = `/api/reservations/classroom/${classroomId}/reserved-periods?date=${date}`;
+         const response = await fetch(url, {
+           headers: { 'Authorization': `Bearer ${token}` }
+         });
+         if (!response.ok) throw new Error('시간 조회에 실패했습니다.');
 
-        // 오늘 날짜인지, 현재 시간은 몇 시인지 확인
-        const now = new Date();
-        const selectedDateStr = new Date(date).toDateString();
-        const isToday = now.toDateString() === selectedDateStr;
-        const currentHour = now.getHours();
+         const result = await response.json();
+         const reservedPeriods = new Set(result.data);
 
-        periodsDiv.innerHTML = '';
-        if (availablePeriods.length > 0) {
-          availablePeriods.forEach(period => {
-            // 과거 시간인지 판별
-            const startHour = parseInt(period.time.substring(0, 2), 10);
-            const isPast = isToday && startHour < currentHour;
-            const disabledAttr = isPast ? 'disabled' : '';
+         periodsDiv.innerHTML = '';
 
-            periodsDiv.innerHTML += `
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="${period.name}" id="period-${period.name}" ${disabledAttr}>
-                <label class="form-check-label ${isPast ? 'text-muted' : ''}" for="period-${period.name}">
-                  ${period.time} ${isPast ? '(시간 지남)' : ''}
-                </label>
-              </div>
-            `;
-          });
-        } else {
-          periodsDiv.innerHTML = '<small class="text-muted">선택한 날짜에 예약 가능한 시간이 없습니다.</small>';
-        }
-      } catch (error) {
-        console.error(error);
-        periodsDiv.innerHTML = `<small class="text-danger">${error.message}</small>`;
-      }
-    }
+         const now = new Date();
+         const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+         const isToday = (date === todayStr);
+
+         allPeriods.forEach(period => {
+           const isReserved = reservedPeriods.has(period.value);
+           let isPast = false;
+
+           if (isToday) {
+             const periodEndTime = new Date(`${date}T${period.endTime}`);
+             if (now > periodEndTime) {
+               isPast = true;
+             }
+           }
+
+           const formCheckDiv = document.createElement('div');
+           formCheckDiv.className = 'form-check';
+
+           const checkbox = document.createElement('input');
+           checkbox.type = 'checkbox';
+           checkbox.className = 'form-check-input';
+           checkbox.value = period.value;
+           checkbox.id = `period-${period.value}`;
+           checkbox.disabled = isReserved || isPast;
+
+           const label = document.createElement('label');
+           label.className = 'form-check-label';
+           label.htmlFor = `period-${period.value}`;
+
+           let labelText = period.text;
+           if (isReserved) {
+             labelText += " (예약됨)";
+           } else if (isPast) {
+             labelText += " (시간 지남)";
+           }
+           label.textContent = labelText;
+
+           formCheckDiv.appendChild(checkbox);
+           formCheckDiv.appendChild(label);
+           periodsDiv.appendChild(formCheckDiv);
+         });
+
+       } catch (error) {
+         console.error(error);
+         periodsDiv.innerHTML = `<small class="text-danger">${error.message}</small>`;
+       }
+     }
 
     // '요청 제출' 버튼 클릭 이벤트
     submitBtn.addEventListener('click', async function () {
