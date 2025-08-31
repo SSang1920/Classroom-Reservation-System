@@ -22,7 +22,8 @@ services:
       retries: 12
 
   app:
-    build: .
+    image: saangjun00/classroom-reservation:latest
+    pull_policy: always
     container_name: spring-app
     depends_on:
       mysql:
