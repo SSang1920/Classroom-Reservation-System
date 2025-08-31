@@ -25,7 +25,7 @@ import java.util.*;
         @Index(name = "idx_reservation_member", columnList = "member_id")
 })
 @EntityListeners(AuditingEntityListener.class)
-@SQLDelete(sql = "UPDATE Reservation SET deleted_at = NOW() WHERE reservation_id = ?")  // 논리적 삭제 추가
+@SQLDelete(sql = "UPDATE reservation SET deleted_at = NOW() WHERE reservation_id = ?")  // 논리적 삭제 추가
 @SQLRestriction("deleted_at IS NULL")   // 모든 조회 쿼리에 조건을 추가하여, 논리적으로 삭제된 데이터는 조회하지 않도록 함
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -115,10 +115,7 @@ public class Reservation {
      * 비즈니스 로직: 예약 상태 변경과 기록 처리
      */
     public void cancel() {
-        // 예약이 취소 불가능한 상태인지 검사
-        if (this.reservationState == ReservationState.CANCELED || this.reservationState == ReservationState.COMPLETED) {
-            throw new CustomException(ErrorCode.RESERVATION_NOT_CANCELLABLE);
-        }
+        validateCancellable();
 
         // 예약 상태를 'CANCELED' 변경
         this.reservationState = ReservationState.CANCELED;
@@ -129,10 +126,7 @@ public class Reservation {
     }
 
     public void cancelByAdmin(){
-        // 예약이 취소 불가능한 상태인지 검사
-        if (this.reservationState == ReservationState.CANCELED || this.reservationState == ReservationState.COMPLETED) {
-            throw new CustomException(ErrorCode.RESERVATION_NOT_CANCELLABLE);
-        }
+        validateCancellable();
 
         // 예약 상태를 'CANCELED' 변경
         this.reservationState = ReservationState.CANCELED_BY_ADMIN;
@@ -205,6 +199,12 @@ public class Reservation {
         // Reservation -> History 양방향 관계 설정
         this.histories.add(history);
         history.linkToReservation(this);
+    }
+
+    private void validateCancellable() {
+        if (this.reservationState == ReservationState.CANCELED || this.reservationState == ReservationState.COMPLETED || this.reservationState == ReservationState.CANCELED_BY_ADMIN) {
+            throw new CustomException(ErrorCode.RESERVATION_NOT_CANCELLABLE);
+        }
     }
 
 
