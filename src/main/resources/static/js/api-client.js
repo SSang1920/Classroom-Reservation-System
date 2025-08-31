@@ -27,7 +27,7 @@ async function fetchWithAuth(url, options = {}) {
 
     if (!accessToken) {
         console.error('No access token found');
-        window.location.href = '/login';
+        window.location.href = '/';
         throw new Error('No access token found');
     }
 

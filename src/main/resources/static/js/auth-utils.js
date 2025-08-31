@@ -33,5 +33,5 @@ function logout(showAlert = false) {
         alert('로그아웃되었습니다.');
     }
 
-    window.location.href = "/login";
+    window.location.href = "/";
 }
