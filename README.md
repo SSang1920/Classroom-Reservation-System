@@ -10,6 +10,19 @@
 
 ---
 
+## 배포 주소
+[https://bookingclass.kro.kr](https://bookingclass.kro.kr)
+
+---
+
+## 팀원 소개
+| 이름 | Github |
+| ----- | ----- |
+| 김상준 | https://github.com/Saangjun00 |
+| 용상윤 | https://github.com/imnerf242 |
+
+---
+
 ## 목차
 1. [프로젝트 소개](#프로젝트-소개)  
 2. [목표](#목표)  
@@ -127,28 +140,69 @@
 #### 공지사항 관리
 ![공지사항 관리](https://github.com/user-attachments/assets/8f5c92df-9f6b-4ff3-a680-e1cc4c698d20)
 
-## 5. 설치 및 실행 방법
+---
 
-## 기술 스택
+## 아키텍처
+- **Spring Boot + MySQL + JPA(QueryDSL)** 기반 백엔드  
+- **Thymeleaf + JavaScript + Bootstrap** 기반 프론트엔드  
+- **JWT** 기반 인증/인가 (Access Token + Refresh Token)  
+- **SSE(Server-Sent Events)** 로 실시간 알림 전송  
+- **Docker + Docker Compose** 로 배포 환경 구성  
+- **Nginx** 를 통한 Reverse Proxy
 
-### Backend
-- Java 17, Spring Boot 3.x  
-- Spring Data JPA, QueryDSL  
-- Spring Security, JWT  
-- MySQL, Lombok  
+---
+
+## 기술 스택 상세
 
 ### Frontend
-- Thymeleaf, JavaScript, Bootstrap  
+- **Thymeleaf**: 서버 사이드 렌더링  
+- **JavaScript (ES6)**: 동적 UI 처리  
+- **Bootstrap 5**: 반응형 UI 프레임워크    
 
-### Infra & Tools
-- IntelliJ IDEA, Git/GitHub
+### Backend
+- **Java 17**, **Spring Boot 3.x**  
+- **Spring Data JPA + QueryDSL**: ORM & 동적 쿼리  
+- **Spring Security + JWT**: 인증/인가 처리  
+- **Lombok**: 코드 최소화  
+- **MySQL**: 데이터베이스   
 
-##  배포 & 운영
-- **Oracle Cloud (OCI)** – 서버 및 데이터베이스 배포 환경  
-- **Docker, Docker Compose** – 컨테이너 기반 서비스 관리  
-- **Nginx** – Reverse Proxy 및 정적 리소스 제공
+### Infra & DevOps
+- **Oracle Cloud (OCI)**: 서버 및 데이터베이스 배포  
+- **Docker & Docker Compose**: 컨테이너 기반 배포  
+- **Nginx**: Reverse Proxy, 정적 리소스 제공  
+- **Certbot (Let’s Encrypt)**: SSL 인증서 발급 및 자동 갱신 → HTTPS 적용
+- **GitHub Actions (CI/CD)**: 코드 푸시 시 자동 빌드 & 배포 파이프라인 구축
 
- 
+---
+
+## 프로젝트 실행 방법(두 가지 방식 중 하나 택)
+
+### 1. 로컬 실행
+```bash
+# 레포지토리 클론
+git clone https://github.com/SSang1920/Classroom-Reservation-System.git
+cd Classroom-Reservation-System
+
+# 환경변수 설정 (.env 파일 작성 필요)
+SPRING_DATASOURCE_URL=...
+SPRING_DATASOURCE_USERNAME=...
+SPRING_DATASOURCE_PASSWORD=...
+JWT_SECRET_KEY=...
+
+# 방법 1: JAR 빌드 후 실행
+./gradlew build
+java -jar build/libs/classroom-reservation-system-0.0.1-SNAPSHOT.jar
+
+# 방법 2: 개발용 실행
+./gradlew bootRun
+```
+
+### 2. Docker 실행(Docker & Docker compose 필요)
+```bash
+docker-compose up -d
+```
+
+---
 
 ## 데이터베이스 설계도 (ERD)
 ![데이터베이스 설계도](https://github.com/user-attachments/assets/e41b2d48-5024-4496-b2ae-348b9d126452)
