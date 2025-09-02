@@ -73,3 +73,32 @@
 ## 데이터베이스 설계도 (ERD)
 ![데이터베이스 설계도](https://github.com/user-attachments/assets/e41b2d48-5024-4496-b2ae-348b9d126452)
 
+## 4. 구현 화면
+
+### 강의실 예약
+![강의실 예약](https://github.com/user-attachments/assets/88937b32-29a8-4c62-9a80-dc83da741d26)
+
+### 예약 변경 요청
+![예약 변경 요청](https://github.com/user-attachments/assets/030bc9b4-adb9-4a54-8235-b110c27be4cc)
+
+### 알림 기능 구현
+![알림 기능](https://github.com/user-attachments/assets/8571baa0-b79a-4007-b51c-d34967e32c64)
+
+### 관리자 페이지
+
+#### 대시보드
+![관리자 대시보드](https://github.com/user-attachments/assets/eeaa7040-d476-4d59-9e52-27db312298c2)
+
+#### 회원 관리
+![회원 관리](https://github.com/user-attachments/assets/114c18bb-008b-4c75-918e-380799924b74)
+
+#### 변경 요청 관리
+![변경 요청 관리](https://github.com/user-attachments/assets/a2c86e54-97de-4f96-a73b-60c9240f9d44)
+
+#### 공지사항 관리
+![공지사항 관리](https://github.com/user-attachments/assets/8f5c92df-9f6b-4ff3-a680-e1cc4c698d20)
+
+
+
+
+
