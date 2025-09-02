@@ -1,79 +1,108 @@
-##  프로젝트 소개
+# BookingClassroom
 
+> 대학 강의실 예약을 **실시간** 관리하는 웹 애플리케이션
+
+![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)  
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot&logoColor=white)  
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)  
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)  
+![Nginx](https://img.shields.io/badge/Nginx-009639?logo=nginx&logoColor=white)  
+
+---
+
+## 목차
+1. [프로젝트 소개](#프로젝트-소개)  
+2. [목표](#목표)  
+3. [주요 기능](#주요-기능)  
+4. [구현 화면](#구현-화면)  
+5. [아키텍처](#아키텍처)  
+6. [기술 스택 상세](#기술-스택-상세)  
+7. [프로젝트 실행 방법](#프로젝트-실행-방법)  
+8. [데이터베이스 설계 (ERD)](#데이터베이스-설계-erd)
+
+---
+
+##  프로젝트 소개
 **BookingClassroom** 은 대학 내 강의실 예약을 효율적으로 관리하기 위한 웹 애플리케이션입니다.  
 
-###  목표
-- 학생들이 간편하게 강의실을 예약/취소/변경할 수 있도록 지원  
-- 예약 현황을 실시간으로 확인 가능  
-- 관리자는 승인, 취소, 회원 관리 등을 통합적으로 처리  
-- **실시간 동시성 제어**를 통해 여러 사용자가 동시에 예약을 시도해도 **중복 예약을 방지**  
+- 학생들이 간편하게 강의실을 예약/취소/변경 가능  
+- 관리자는 예약 승인, 취소, 회원 관리 등을 통합적으로 처리  
+- **실시간 동시성 제어**를 통해 중복 예약을 방지
 
-###  주요 기능 요약
-- **회원 관리**: 학번 기반 회원가입, 로그인, 권한(Role)별 접근 제어  
-- **강의실 예약**: 원하는 날짜/교시를 선택해 예약 신청 및 취소  
-- **예약 변경 요청**: 예약된 내역 변경 시 관리자의 승인을 통한 처리  
-- **알림(Notification)**: 예약 승인/거절, 변경 처리 등의 상태를 실시간 전달  
-- **관리자 페이지**: 회원 목록 조회, 예약 내역 관리, 검색/필터링 기능  
-- **중복 방지 예약 시스템**: 동시에 여러 사용자가 신청해도 한 강의실에는 한 명만 예약 가능  
+---
 
-## 기술 스택
+## 목표
+- 강의실 예약 프로세스의 편의성 제공
+- 예약 현황 실시간 확인 가능
+- 관리자 권한 기반 통합 관리
+- **동시성 제어**로 다중 사용자 예약 충돌 방지
 
-### Backend
-- Java 17, Spring Boot 3.x  
-- Spring Data JPA, QueryDSL  
-- Spring Security, JWT  
-- MySQL, Lombok  
+---
 
-### Frontend
-- Thymeleaf, JavaScript, Bootstrap  
-
-### Infra & Tools
-- IntelliJ IDEA, Git/GitHub
-
-##  배포 & 운영
-- **Oracle Cloud (OCI)** – 서버 및 데이터베이스 배포 환경  
-- **Docker, Docker Compose** – 컨테이너 기반 서비스 관리  
-- **Nginx** – Reverse Proxy 및 정적 리소스 제공
-
-## 3. 주요 기능
+## 주요 기능
+- 학번 기반 **JWT 인증/인가**(Access 1h / Refresh 14d), BCrypt 비밀번호
+- **강의실 예약/취소/변경 요청** + **동시성 제어로 중복 방지**
+- **SSE 실시간 알림**(승인/거절/변경), 읽음 상태 관리
+- **히스토리 엔티티**로 변경·취소 흐름 추적
+- **관리자 대시보드**: 회원/시설/예약/요청/공지 통합 관리
 
 ### JWT 기반 인증/인가
-- **Access Token (1시간)**, **Refresh Token (14일)** 을 사용하는 2토큰 방식
-- 로그인 시 두 토큰을 발급받고, Access Token 만료 시 Refresh Token으로 재발급
-- 로그아웃 시 서버에서 Refresh Token을 무효화하여 재사용 방지
-- 토큰에는 학번(ID), 이름, 역할(Role) 정보를 포함 → `ROLE_STUDENT`, `ROLE_ADMIN` 별 권한 제어
-- 비밀번호는 **BCrypt 해시**로 저장, **비밀키(JWT_SECRET_KEY)** 는 환경 변수로 관리
+<details>
+  <summary>자세히 보기</summary>
+
+  - **2-토큰**: Access(1h), Refresh(14d)  
+  - 만료 시 Refresh로 재발급, 로그아웃 시 서버 저장 Refresh 무효화  
+  - 토큰 클레임: 학번(ID), 이름, 역할(`ROLE_STUDENT`, `ROLE_ADMIN`)  
+  - 비밀번호 **BCrypt 해시**, `JWT_SECRET_KEY`는 환경 변수로 관리  
+</details>
 
 ### 강의실 예약
-- 원하는 날짜와 교시를 선택해 예약 신청 가능  
-- **실시간 동시성 제어** 적용 → 여러 사용자가 동시에 신청해도 **중복 예약 방지**  
-- 예약 취소 및 예약 변경 요청 기능 제공  
-- 변경 요청은 관리자의 승인 후 반영  
-- 취소·변경 요청은 **History 엔티티**를 통해 관리되어 투명성 확보
+<details>
+  <summary>자세히 보기</summary>
 
-### 알림 (Notification) 시스템
-- 예약 승인/거절, 변경 요청 처리 등 주요 이벤트 발생 시 알림 제공  
-- **읽음/안 읽음 상태** 관리 가능 (`isRead`, `readAt` 필드)  
-- 사용자는 자신의 알림 목록을 조회하고, 전체 알림 읽음 처리 가능  
-- **SSE(Server-Sent Events)** 기반 실시간 알림 구독 지원 → 예약 상태 변경 시 즉시 알림 수신
+  - 날짜/교시 선택 **예약 신청**, **취소**, **변경 요청**  
+  - **실시간 동시성 제어**로 중복 예약 방지  
+  - 변경 요청은 **관리자 승인 후 반영**  
+  - 취소/변경 요청은 **History 엔티티**로 투명하게 관리 
+</details>
 
-### 예약 히스토리 관리
-- 예약에 대한 **취소 및 변경 요청**을 `History` 엔티티를 통해 관리  
-- 단순 로그가 아닌, **요청 자체가 히스토리로 생성**되어 상태 흐름을 추적 가능  
-- 관리자는 히스토리에 기록된 요청을 확인 후 승인/거절 처리  
-- 사용자는 자신의 예약 변경·취소 요청 내역을 확인 가능
+### 알림
+<details>
+  <summary>자세히 보기</summary>
+
+  - 승인/거절/변경 등 **이벤트 발생 시 푸시**  
+  - 읽음/안읽음(`isRead`, `readAt`) 상태 관리, 전체 읽음 처리  
+  - **SSE 구독** 기반 실시간 알림 구독 지원 → 예약 상태 변경 시 즉시 알림 수신
+</details>
+
+### 예약 히스토리
+<details>
+  <summary>자세히 보기</summary>
+
+  - **요청 자체가 히스토리**로 생성되어 상태 흐름 추적  
+  - 관리자는 히스토리를 보고 승인/거절, 사용자는 자신의 요청 내역 조회
+</details>
 
 ### 관리자 기능
-- **대시보드**: 회원 수, 예약 현황, 시설 수, 대기 중 요청 등 통계 확인    
-- **시설 관리**: 물·강의실 추가, 수정, 삭제, 사용 가능/불가 전환  
-- **회원 관리**: 조건 검색, 삭제(관리자 계정 제외)   
-- **예약 관리**: 학생의 예약 변경 요청 승인/거절 처리  
-- **공지사항 관리**: 공지사항 등록, 수정, 삭제  
+<details>
+  <summary>자세히 보기</summary>
 
-## 데이터베이스 설계도 (ERD)
-![데이터베이스 설계도](https://github.com/user-attachments/assets/e41b2d48-5024-4496-b2ae-348b9d126452)
+  - **대시보드**: 회원 수, 예약 현황, 시설 수, 대기 중 요청 등  
+  - **시설 관리**: 강의실 추가/수정/삭제, 사용 가능/불가 전환  
+  - **회원 관리**: 조건 검색, 삭제(관리자 계정 제외)  
+  - **예약 관리**: 학생의 변경 요청 **승인/거절**  
+  - **공지사항 관리**: 등록/수정/삭제  
+</details>
 
-## 4. 구현 화면
+---
+
+## 구현 화면
+
+### 요약(표)
+| 기능 | 화면 |
+| ------- | ------- |
+| 홈 화면 | ![홈 화면](https://github.com/user-attachments/assets/b18cc16c-fa17-4230-b764-cf2cca08eedf)|
+
 
 ### 강의실 예약
 ![강의실 예약](https://github.com/user-attachments/assets/88937b32-29a8-4c62-9a80-dc83da741d26)
@@ -98,6 +127,31 @@
 #### 공지사항 관리
 ![공지사항 관리](https://github.com/user-attachments/assets/8f5c92df-9f6b-4ff3-a680-e1cc4c698d20)
 
+## 5. 설치 및 실행 방법
+
+## 기술 스택
+
+### Backend
+- Java 17, Spring Boot 3.x  
+- Spring Data JPA, QueryDSL  
+- Spring Security, JWT  
+- MySQL, Lombok  
+
+### Frontend
+- Thymeleaf, JavaScript, Bootstrap  
+
+### Infra & Tools
+- IntelliJ IDEA, Git/GitHub
+
+##  배포 & 운영
+- **Oracle Cloud (OCI)** – 서버 및 데이터베이스 배포 환경  
+- **Docker, Docker Compose** – 컨테이너 기반 서비스 관리  
+- **Nginx** – Reverse Proxy 및 정적 리소스 제공
+
+ 
+
+## 데이터베이스 설계도 (ERD)
+![데이터베이스 설계도](https://github.com/user-attachments/assets/e41b2d48-5024-4496-b2ae-348b9d126452)
 
 
 
