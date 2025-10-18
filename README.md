@@ -109,36 +109,88 @@
 
 ---
 
-## 구현 화면
+### 구현화면
 
-### 요약(표)
-| 기능 | 화면 |
-| ------- | ------- |
-| 홈 화면 | ![홈 화면](https://github.com/user-attachments/assets/b18cc16c-fa17-4230-b764-cf2cca08eedf)|
-
-
-### 강의실 예약
-![강의실 예약](https://github.com/user-attachments/assets/88937b32-29a8-4c62-9a80-dc83da741d26)
-
-### 예약 변경 요청
-![예약 변경 요청](https://github.com/user-attachments/assets/030bc9b4-adb9-4a54-8235-b110c27be4cc)
-
-### 알림 기능 구현
-![알림 기능](https://github.com/user-attachments/assets/8571baa0-b79a-4007-b51c-d34967e32c64)
-
-### 관리자 페이지
-
-#### 대시보드
-![관리자 대시보드](https://github.com/user-attachments/assets/eeaa7040-d476-4d59-9e52-27db312298c2)
-
-#### 회원 관리
-![회원 관리](https://github.com/user-attachments/assets/114c18bb-008b-4c75-918e-380799924b74)
-
-#### 변경 요청 관리
-![변경 요청 관리](https://github.com/user-attachments/assets/a2c86e54-97de-4f96-a73b-60c9240f9d44)
-
-#### 공지사항 관리
-![공지사항 관리](https://github.com/user-attachments/assets/8f5c92df-9f6b-4ff3-a680-e1cc4c698d20)
+<table>
+  <thead>
+    <tr>
+      <th align="center">기능</th>
+      <th align="center">화면</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="left"><p align="center"><b>홈 화면</b><br/></p>
+        - 공지사항 확인<br/>
+        - 예약 / 예약내역 진입<br/>
+        - 관리자/로그인 배지 표시
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/b18cc16c-fa17-4230-b764-cf2cca08eedf" alt="홈 화면" width="900"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="left"><p align="center"><b>강의실 예약</b><br/></p>
+        - 날짜/교시 선택 예약 신청<br/>
+        - 중복 예약 방지(동시성 제어)
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/88937b32-29a8-4c62-9a80-dc83da741d26" alt="강의실 예약" width="900"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="left"><p align="center"><b>예약 변경 요청</b><br/></p>
+        - 변경 신청 후 관리자 승인/거절<br/>
+        - 히스토리로 흐름 추적
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/030bc9b4-adb9-4a54-8235-b110c27be4cc" alt="예약 변경 요청" width="900"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="left"><b>알림</b><br/>
+        - SSE 기반 실시간 알림<br/>
+        - 읽음/안읽음 상태 관리
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/8571baa0-b79a-4007-b51c-d34967e32c64" alt="알림 기능" width="900"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="left"><p align="center"><b>관리자 대시보드</b><br/></p>
+        - 회원/시설/예약 현황 위젯<br/>
+        - 대기 중 요청 카운트
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/eeaa7040-d476-4d59-9e52-27db312298c2" alt="관리자 대시보드" width="900"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="left"><b>회원 관리</b><br/>
+        - 조건 검색 및 삭제(관리자 제외)
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/114c18bb-008b-4c75-918e-380799924b74" alt="회원 관리" width="900"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="left"><b>변경 요청 관리</b><br/>
+        - 학생 변경 요청 승인/거절
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/a2c86e54-97de-4f96-a73b-60c9240f9d44" alt="변경 요청 관리" width="900"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="left"><b>공지사항 관리</b><br/>
+        - 공지 등록/수정/삭제
+      </td>
+      <td align="center">
+        <img src="https://github.com/user-attachments/assets/8f5c92df-9f6b-4ff3-a680-e1cc4c698d20" alt="공지사항 관리" width="900"/>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
