@@ -148,7 +148,7 @@
       </td>
     </tr>
     <tr>
-      <td align="left"><b>알림</b><br/>
+      <td align="left"><p align="center"><b>알림</b><br/></p>
         - SSE 기반 실시간 알림<br/>
         - 읽음/안읽음 상태 관리
       </td>
@@ -166,7 +166,7 @@
       </td>
     </tr>
     <tr>
-      <td align="left"><b>회원 관리</b><br/>
+      <td align="left"><p align="center"><b>회원 관리</b><br/></p>
         - 조건 검색 및 삭제(관리자 제외)
       </td>
       <td align="center">
@@ -174,7 +174,7 @@
       </td>
     </tr>
     <tr>
-      <td align="left"><b>변경 요청 관리</b><br/>
+      <td align="left"><p align="center"><b>변경 요청 관리</b><br/></p>
         - 학생 변경 요청 승인/거절
       </td>
       <td align="center">
@@ -182,7 +182,7 @@
       </td>
     </tr>
     <tr>
-      <td align="left"><b>공지사항 관리</b><br/>
+      <td align="left"><p align="center"><b>공지사항 관리</b><br/></p>
         - 공지 등록/수정/삭제
       </td>
       <td align="center">
