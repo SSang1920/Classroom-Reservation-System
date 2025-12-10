@@ -11,7 +11,7 @@
 ---
 
 ## 배포 주소
-[https://bookingclass.kro.kr](https://bookingclass.kro.kr)
+[https://bookingclass.kro.kr](https://bookingclass.kro.kr) (2025-08-31 ~ 미정)
 
 ---
 
